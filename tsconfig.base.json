@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "display": "GameDev Agent Base",
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2023"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "moduleDetection": "force",
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "exactOptionalPropertyTypes": true,
+    "forceConsistentCasingInFileNames": true,
+    "verbatimModuleSyntax": true,
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "incremental": true,
+    "tsBuildInfoFile": "node_modules/.tmp/tsconfig.tsbuildinfo",
+    "useDefineForClassFields": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noEmitOnError": false,
+    "baseUrl": ".",
+    "paths": {
+      "@gamedev-agent/shared": ["packages/shared/src/index.ts"],
+      "@gamedev-agent/di": ["packages/di/src/index.ts"],
+      "@gamedev-agent/config": ["packages/config/src/index.ts"],
+      "@gamedev-agent/logging": ["packages/logging/src/index.ts"],
+      "@gamedev-agent/events": ["packages/events/src/index.ts"],
+      "@gamedev-agent/kernel": ["packages/kernel/src/index.ts"]
+    }
+  },
+  "exclude": ["node_modules", "dist", "coverage", ".turbo"]
+}

@@ -1,0 +1,39 @@
+{
+  "name": "@gamedev-agent/kernel",
+  "version": "0.1.0",
+  "description": "Studio kernel: lifecycle, boot/shutdown, and module composition for GameDev Agent.",
+  "type": "module",
+  "license": "PROPRIETARY",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome check src",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@gamedev-agent/shared": "workspace:*",
+    "@gamedev-agent/di": "workspace:*",
+    "@gamedev-agent/config": "workspace:*",
+    "@gamedev-agent/logging": "workspace:*",
+    "@gamedev-agent/events": "workspace:*"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.3",
+    "@types/node": "^22.10.0",
+    "tsup": "^8.3.0",
+    "typescript": "^5.6.2",
+    "vitest": "^2.1.1"
+  }
+}

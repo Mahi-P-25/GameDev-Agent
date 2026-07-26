@@ -1,0 +1,40 @@
+/**
+ * Nova Design System — Font face imports.
+ *
+ * Self-hosted (fontsource) to avoid external network requests and FOUT.
+ * Inter = UI text, Manrope = headlines, Instrument Serif = display,
+ * Source Serif 4 = long-form, Poppins = occasional display accent.
+ * Geist = landing page primary typeface.
+ */
+
+@import "@fontsource-variable/inter";
+@import "@fontsource/inter/400.css";
+@import "@fontsource/inter/500.css";
+@import "@fontsource/inter/600.css";
+@import "@fontsource/inter/700.css";
+
+@import "@fontsource-variable/manrope";
+
+@import "@fontsource/instrument-serif/400.css";
+
+@import "@fontsource/source-serif-4/400.css";
+@import "@fontsource/source-serif-4/500.css";
+
+@import "@fontsource/poppins/500.css";
+@import "@fontsource/poppins/600.css";
+
+@font-face {
+  font-family: "Geist";
+  src: url("/fonts/Geist-Variable.woff2") format("woff2-variations");
+  font-weight: 100 900;
+  font-display: swap;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Geist";
+  src: url("/fonts/Geist-Italic[wght].woff2") format("woff2-variations");
+  font-weight: 100 900;
+  font-display: swap;
+  font-style: italic;
+}

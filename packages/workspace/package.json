@@ -1,0 +1,38 @@
+{
+  "name": "@gamedev-agent/workspace",
+  "version": "0.1.0",
+  "description": "Nova Workspace System — the highest-level persistent aggregate root: every Project, Capability, Tool, Preference, and Activity belongs to a Workspace.",
+  "type": "module",
+  "license": "PROPRIETARY",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome check src",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@gamedev-agent/di": "workspace:*",
+    "@gamedev-agent/events": "workspace:*",
+    "@gamedev-agent/kernel": "workspace:*",
+    "@gamedev-agent/logging": "workspace:*",
+    "@gamedev-agent/project": "workspace:*",
+    "@gamedev-agent/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.3",
+    "tsup": "^8.3.0",
+    "typescript": "^5.6.2",
+    "vitest": "^2.1.1"
+  }
+}

@@ -1,6 +1,6 @@
 # @gamedev-agent/di
 
-The **dependency-injection container** for GameDev Agent.
+The **dependency-injection container** for Nova.
 
 This package owns the type-safe service registry (`ServiceContainer`) and the
 token mechanism (`ServiceToken`, `createServiceToken`). It has **zero**

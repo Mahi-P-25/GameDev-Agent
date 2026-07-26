@@ -1,25 +1,28 @@
-# GameDev Agent — Masterplan
+# Nova — Masterplan
 
 **Version:** 1.0
 **Status:** Living Document
-**Owner:** Lead Software Engineer
-**Last Updated:** 2026-07-15
+**Owner:** Chief Software Architect
+**Last Updated:** 2026-07-16
+
+> See `ADRs/0001-nova-vision.md` for the strategic re-alignment from "AI assistant"
+> to "AI-native Game Development Studio", and `ROADMAP.md` for the build order.
 
 ---
 
 ## 1. Vision
 
-GameDev Agent is an AI Operating System for professional game development. It is not a tool, a chatbot, or a single-purpose assistant. It is a persistent, autonomous software platform that lives alongside development teams, understands their codebase, their craft, and their intent, and operates as a first-class participant in the production of interactive entertainment.
+Nova is an AI-native Game Development Studio. It is not a chatbot and not another AI coding assistant. It is a persistent, autonomous software studio that lives alongside the Creative Director, understands their codebase, their craft, and their intent, and operates as the entire game development team — Producer, Architect, Engineers, Artists, and more — in the production of interactive entertainment.
 
-Our vision is a world where the friction between creative intent and shipped product is removed by an intelligent system that scales with teams, learns from every project, and enforces engineering discipline without slowing anyone down.
+Our vision is a world where the friction between creative intent and shipped product is removed by a studio that scales with the Creative Director, learns from every Project, and enforces engineering discipline without slowing anyone down.
 
 ## 2. Mission
 
-To deliver a durable, trustworthy, and extensible operating environment that augments professional game developers across the entire lifecycle of a game — from concept and prototyping through production, launch, live operations, and long-tail maintenance — while preserving the authority, ownership, and creative control of the human teams who build with it.
+To deliver a durable, trustworthy, and extensible studio environment that empowers the Creative Director and their team across the entire lifecycle of a game — from concept and prototyping through production, launch, live operations, and long-tail maintenance — while preserving the authority, ownership, and creative control of the human who directs it.
 
 ## 3. Long-term Goals
 
-- Establish GameDev Agent as the foundational operating layer for AI-assisted game production across studios of every size.
+- Establish Nova as the foundational studio layer for AI-native game production across studios of every size.
 - Achieve deep, native integration with the dominant game engines and the platforms that host finished games.
 - Build a memory architecture that accumulates project, team, and craft knowledge that compounds in value over years.
 - Cultivate an open plugin ecosystem that lets studios extend the system to their own pipelines, genres, and workflows.
@@ -28,7 +31,7 @@ To deliver a durable, trustworthy, and extensible operating environment that aug
 
 ## 4. Core Principles
 
-- **Human Authority.** The system advises, automates, and executes, but final ownership of every decision rests with the human team.
+- **Creative Director Authority.** The studio advises, automates, and executes, but final ownership of every creative and commercial decision rests with the Creative Director.
 - **Trust Through Predictability.** Behavior must be consistent, explainable, and reproducible. Surprise is a defect.
 - **Durability Over Novelty.** We optimize for systems that survive years of change, not demos that impress for a day.
 - **Composability.** Small, well-defined capabilities compose into powerful workflows rather than monolithic features.
@@ -37,7 +40,7 @@ To deliver a durable, trustworthy, and extensible operating environment that aug
 
 ## 5. Engineering Philosophy
 
-We engineer GameDev Agent the way we expect our users to engineer games: with discipline, testing, and respect for the long arc of a project.
+We engineer Nova the way we expect our users to engineer games: with discipline, testing, and respect for the long arc of a project.
 
 - **Correctness before cleverness.** Working software that is boring to operate beats clever software that is exciting to demo.
 - **Contracts over convention.** Explicit interfaces and guarantees, not implicit assumptions, are the unit of collaboration.
@@ -48,9 +51,9 @@ We engineer GameDev Agent the way we expect our users to engineer games: with di
 
 ## 6. Project Scope
 
-GameDev Agent spans the operational layer of game development. It includes:
+Nova spans the operational layer of game development. It includes:
 
-- A persistent runtime and operating environment for AI-driven development tasks.
+- A persistent runtime and operating environment for studio-driven development work.
 - A memory system that captures and retrieves contextual, project-specific, and cross-project knowledge.
 - A plugin framework that lets studios and third parties extend the system.
 - Integration points with game engines, version control, build systems, and platform services.
@@ -62,7 +65,7 @@ The system does not replace the engine, the platform, or the studio. It operates
 ## 7. What the System Will Do
 
 - Understand and reason about a studio's codebase, assets, and production state.
-- Plan, execute, and track development tasks across the project lifecycle.
+- Plan, execute, and track Missions across the project lifecycle.
 - Integrate natively with supported game engines and platforms.
 - Persist and retrieve institutional and project knowledge through a memory-first architecture.
 - Orchestrate complex, multi-step workflows that span tools, repositories, and services.
@@ -83,7 +86,7 @@ The system does not replace the engine, the platform, or the studio. It operates
 
 ## 9. Supported Platforms
 
-GameDev Agent is designed to operate across the platforms where modern games are built and shipped:
+Nova is designed to operate across the platforms where modern games are built and shipped:
 
 - Windows
 - macOS
@@ -107,7 +110,7 @@ Engine integration is achieved through well-defined adapters and plugins, allowi
 
 ## 11. Plugin-first Architecture Philosophy
 
-The core of GameDev Agent is intentionally small and stable. Almost everything that touches a specific engine, platform, pipeline, or studio convention is expressed as a plugin.
+The core of Nova is intentionally small and stable. Almost everything that touches a specific engine, platform, pipeline, or studio convention is expressed as a plugin.
 
 - **Core is a contract, not a feature set.** The core defines interfaces, safety boundaries, memory primitives, and orchestration. It stays narrow so it stays dependable.
 - **Extensibility is the default.** If a capability is not universal, it belongs in a plugin, not the core.
@@ -129,7 +132,7 @@ Game development operates at the scale of millions of assets, massive codebases,
 
 ## 13. Memory-first Philosophy
 
-Memory is the defining capability that separates GameDev Agent from a stateless assistant. The system is designed from the ground up to remember.
+Memory is the defining capability that separates Nova from a stateless assistant. The system is designed from the ground up to remember.
 
 - **Memory is persistent.** Knowledge survives sessions, restarts, and project handovers.
 - **Memory is structured.** Context is captured with provenance, scope, and confidence so it can be retrieved and trusted.
@@ -140,7 +143,7 @@ Memory is the defining capability that separates GameDev Agent from a stateless 
 
 ## 14. Development Methodology
 
-GameDev Agent is developed like the production software it supports.
+Nova is developed like the production software it supports.
 
 - **Long-lived, phased delivery.** The project progresses through clearly scoped phases with explicit exit criteria.
 - **Contract-driven development.** Interfaces are defined and agreed before implementation begins.
@@ -152,17 +155,20 @@ GameDev Agent is developed like the production software it supports.
 
 ## 15. Roadmap Overview
 
-The roadmap is organized as phases, each with a stable contract and a measurable outcome. Phases are intentionally independent so that progress in one area does not block another.
+The roadmap is organized as sprints, each with a stable contract and a measurable outcome. Sprints are intentionally independent so that progress in one area does not block another. The authoritative, ordered list lives in `ROADMAP.md`; the summary below reflects the Nova Vision.
 
-- **Phase 0 — Foundation.** Establish the core runtime, safety boundaries, and architectural contracts.
-- **Phase 1 — Memory.** Deliver the persistent, governed, project-aware memory architecture.
-- **Phase 2 — Engine Integration.** Build the plugin adapters for the supported game engines.
-- **Phase 3 — Workflow Orchestration.** Enable multi-step, cross-tool task planning and execution.
-- **Phase 4 — Plugin Ecosystem.** Harden the plugin framework and governance model for external contributors.
-- **Phase 5 — Production Hardening.** Achieve the reliability, observability, and performance required for commercial deployment.
-- **Phase 6 — Evolution.** Continuous, backward-compatible expansion of capabilities and platform coverage.
+- **Workspace** — the Creative Director's working surface grouping their Projects.
+- **Mission** — the unit of planned work (replaces "task"), scoped to a Project.
+- **Role System** — stable responsibilities (Producer, Lead Architect, Gameplay Engineer, …); models are interchangeable behind Roles.
+- **Memory** — persistent, project-scoped, namespaced memory.
+- **Knowledge** — structured/semantic knowledge substrate.
+- **Planner** — translates Creative Director direction into dependency-aware Mission plans.
+- **Workflow** — declarative orchestration of Missions across Roles and tools.
+- **Router** — model routing by capability, cost, latency, and policy.
+- **Extensions** — engine/tool adapters (Blender, Three.js, Godot, Unity, Unreal Engine, Roblox Studio).
+- **Studio** — the Nova Studio application surface (Desktop/Web/CLI/VS Code).
 
-Each phase completes only when its quality standards are met, not when its features are merely present.
+Each sprint completes only when its quality standards are met, not when its features are merely present.
 
 ## 16. Quality Standards
 

@@ -1,9 +1,9 @@
 {
-  "name": "gamedev-agent",
+  "name": "nova",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "GameDev Agent — the operating system of a game studio.",
+  "description": "Nova — the AI-native operating system for game development.",
   "packageManager": "pnpm@9.12.0",
   "engines": {
     "node": ">=20.0.0",
@@ -16,7 +16,7 @@
     "test": "vitest run",
     "test:packages": "turbo run test",
     "test:watch": "vitest",
-    "dev": "turbo run dev",
+    "dev": "turbo run dev --filter=./apps/*",
     "clean": "turbo run clean && node scripts/clean.mjs",
     "format": "biome format --write .",
     "format:check": "biome format .",

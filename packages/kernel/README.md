@@ -1,6 +1,6 @@
 # @gamedev-agent/kernel
 
-The **kernel** — the lifecycle and composition runtime of GameDev Agent.
+The **kernel** — the lifecycle and composition runtime of Nova.
 
 The kernel is a generic, long-lived runtime. It owns the lifecycle and wires
 together the four foundational subsystems (logging, events, configuration,

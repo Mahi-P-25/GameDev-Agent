@@ -1,7 +1,7 @@
 # @gamedev-agent/shared
 
 Cross-cutting types, nominal brands, and kernel constants shared by every package in the
-GameDev Agent workspace.
+Nova workspace.
 
 This package has **no dependencies** and is the root of the dependency DAG. It must never
 import from any other workspace package (that would create a cycle).

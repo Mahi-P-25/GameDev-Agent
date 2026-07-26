@@ -1,0 +1,207 @@
+/**
+ * Nova Design System — Token Source (Tailwind v4, CSS-first).
+ *
+ * This file is the single source of truth for Nova's visual language. It is the
+ * Tailwind v4 entry point: `@import "tailwindcss"` pulls in the engine, and the
+ * `@theme` block publishes every design token as a first-class Tailwind utility
+ * (e.g. `bg-surface-panel`, `text-fg-muted`, `rounded-xl`, `shadow-elevated`).
+ *
+ * Design language — "Iron workshop at night":
+ *   Deep Black base · Charcoal elevated surfaces · Steel accents · Soft Gold
+ *   highlight · White typography. Premium, minimal, intent-dense.
+ *
+ * The raw `:root` custom properties are kept in sync so the pre-existing
+ * `nova-*` utility classes (Sidebar, App shell) continue to resolve against the
+ * same values during the migration. Never edit token values in two places —
+ * `@theme` is authoritative; the `:root` block mirrors it for legacy CSS.
+ */
+
+@import "tailwindcss";
+
+/* ------------------------------------------------------------------ *
+ * Theme tokens — published as Tailwind utilities + CSS variables.
+ * Naming: --color-<role>, --font-<role>, --radius-<scale>,
+ *         --spacing-<scale> (Tailwind already owns spacing), --shadow-<role>,
+ *         --ease-*, --duration-* for motion.
+ * ------------------------------------------------------------------ */
+@theme {
+  /* --- Color: backgrounds (Deep Black → Charcoal) ------------------- */
+  --color-bg-base: #08090c;
+  --color-bg-sunken: #050608;
+  --color-bg-elevated: #0f1117;
+  --color-bg-panel: #15171f;
+  --color-bg-inset: #1b1e28;
+  --color-bg-hover: #20242f;
+  --color-bg-active: #262b38;
+
+  /* --- Color: borders ---------------------------------------------- */
+  --color-border: #232733;
+  --color-border-strong: #323849;
+  --color-border-accent: #3a3320;
+
+  /* --- Color: foreground (White typography) ------------------------ */
+  --color-fg: #f4f6fb;
+  --color-fg-muted: #9aa3b6;
+  --color-fg-subtle: #646d82;
+  --color-fg-on-accent: #1a1407;
+  --color-fg-on-primary: #ffffff;
+
+  /* --- Color: brand (Steel primary + Soft Gold accent) ------------ */
+  --color-primary: #5b7cfa;
+  --color-primary-strong: #4361e8;
+  --color-primary-soft: #1b2440;
+  --color-accent: #e3c27e;
+  --color-accent-strong: #d4ad5e;
+  --color-accent-soft: #2a2415;
+
+  /* --- Color: semantic states -------------------------------------- */
+  --color-success: #4ade80;
+  --color-success-soft: #14271c;
+  --color-warning: #f5c451;
+  --color-warning-soft: #2a2310;
+  --color-danger: #f26d6d;
+  --color-danger-soft: #2c1818;
+  --color-info: #6ba8f5;
+  --color-info-soft: #142233;
+
+  /* --- Typography --------------------------------------------------- */
+  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  /* --- Radius ------------------------------------------------------- */
+  --radius-xs: 4px;
+  --radius-sm: 7px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --radius-full: 999px;
+
+  /* --- Elevation (shadows) ----------------------------------------- */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.45);
+  --shadow-md: 0 6px 22px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 18px 50px rgba(0, 0, 0, 0.5);
+  --shadow-glow: 0 0 0 1px color-mix(in srgb, var(--color-accent) 40%, transparent), 0 8px 30px
+    color-mix(in srgb, var(--color-accent) 18%, transparent);
+
+  /* --- Motion tokens (durations) ----------------------------------- */
+  --duration-instant: 80ms;
+  --duration-fast: 140ms;
+  --duration-base: 200ms;
+  --duration-slow: 320ms;
+  --duration-slower: 480ms;
+
+  /* --- Motion tokens (easings) ------------------------------------- */
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-spring: linear(0, 0.02 2%, 0.18 8%, 0.52 18%, 0.82 32%, 1.02 48%, 1 62%, 1 100%);
+}
+
+/* ------------------------------------------------------------------ *
+ * Legacy mirror — kept so the existing `nova-*` / app.css classes keep
+ * resolving against identical values. Do not introduce new tokens here.
+ * ------------------------------------------------------------------ */
+:root {
+  --color-bg: var(--color-bg-base);
+  --color-bg-elevated: var(--color-bg-elevated);
+  --color-bg-panel: var(--color-bg-panel);
+  --color-bg-hover: var(--color-bg-hover);
+  --color-border: var(--color-border);
+  --color-border-strong: var(--color-border-strong);
+
+  --color-text: var(--color-fg);
+  --color-text-muted: var(--color-fg-muted);
+  --color-text-subtle: var(--color-fg-subtle);
+
+  --color-primary: var(--color-primary);
+  --color-primary-strong: var(--color-primary-strong);
+  --color-primary-contrast: var(--color-fg-on-primary);
+
+  --color-accent: var(--color-accent);
+  --color-warning: var(--color-warning);
+  --color-danger: var(--color-danger);
+  --color-success: var(--color-success);
+  --color-info: var(--color-info);
+
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+
+  --rail-width: 220px;
+  --topbar-height: 56px;
+}
+
+/* ------------------------------------------------------------------ *
+ * Base layer — structural resets & global type. Tailwind's preflight
+ * handles the reset; this only sets the app canvas.
+ * ------------------------------------------------------------------ */
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    margin: 0;
+    background: var(--color-bg-base);
+    color: var(--color-fg);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  * {
+    border-color: var(--color-border);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    margin: 0;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-border-strong);
+    border-radius: 8px;
+    border: 2px solid var(--color-bg-base);
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  /* Honor user motion preferences globally — Nova animations degrade to
+     instant, never disabled outright. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}

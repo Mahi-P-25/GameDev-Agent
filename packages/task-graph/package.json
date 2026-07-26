@@ -1,0 +1,37 @@
+{
+  "name": "@gamedev-agent/task-graph",
+  "version": "0.1.0",
+  "description": "Nova Task Graph — DAG-based work representation with scheduling, validation, and parallel execution planning.",
+  "type": "module",
+  "license": "PROPRIETARY",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome check src",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@gamedev-agent/shared": "workspace:*",
+    "@gamedev-agent/di": "workspace:*",
+    "@gamedev-agent/events": "workspace:*",
+    "@gamedev-agent/kernel": "workspace:*",
+    "@gamedev-agent/logging": "workspace:*"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.3",
+    "tsup": "^8.3.0",
+    "typescript": "^5.6.2",
+    "vitest": "^2.1.1"
+  }
+}

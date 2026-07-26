@@ -1,6 +1,6 @@
 # @gamedev-agent/events
 
-The single in-process communication backbone for GameDev Agent. `EventBus` is the
+The single in-process communication backbone for Nova. `EventBus` is the
 typed, observable message bus that every major package (kernel, workflow, missions,
 plugins, memory, knowledge, configuration) uses to talk to one another without
 hard dependencies.

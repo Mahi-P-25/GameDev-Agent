@@ -1,10 +1,10 @@
-# AI Model Routing Architecture Specification: GameDev Agent
+# AI Model Routing Architecture Specification: Nova
 
 ## 1. Purpose and Principle
 
-GameDev Agent supports a heterogeneous fleet of AI models spanning local, cloud, free, and premium tiers. The defining requirement of the routing system is that the user never manually selects a model. Routing is fully automatic: the platform observes the task, the environment, and historical outcomes, then dispatches work to the most appropriate model along the dimensions of quality, latency, cost, and reliability.
+Nova supports a heterogeneous fleet of AI models spanning local, cloud, free, and premium tiers. The defining requirement of the routing system is that the Creative Director never manually selects a model. Routing is fully automatic: the platform observes the Mission, the Role requesting it, the environment, and historical outcomes, then dispatches work to the most appropriate model along the dimensions of quality, latency, cost, and reliability. Roles declare a *needed capability*, not a model name, so models remain interchangeable.
 
-The routing system is provider-agnostic. Models are registered as capabilities, not brands, so the platform can absorb new providers and model generations without user intervention or core changes.
+The routing system is provider-agno 8stic. Models are registered as capabilities, not brands, so the platform can absorb new providers and model generations without user intervention or core changes.
 
 ## 2. Model Categories
 
@@ -143,4 +143,4 @@ The routing system is designed for indefinite model evolution:
 - **Benchmark integration** — newly registered models automatically enter the benchmarking and learning cycle, so they earn routing share through demonstrated performance.
 - **Backward compatibility** — model and provider contracts are versioned, ensuring older models remain routable as the fleet expands.
 
-This design guarantees that as AI models and providers evolve over the platform's multi-year life, GameDev Agent continues to choose optimally without ever requiring the user to make that choice.
+This design guarantees that as AI models and providers evolve over the studio's multi-year life, Nova continues to choose optimally without ever requiring the Creative Director to make that choice.

@@ -1,6 +1,6 @@
 # @gamedev-agent/config
 
-Configuration source and schema contracts for GameDev Agent.
+Configuration source and schema contracts for Nova.
 
 A `ConfigSource` is a named, loadable origin of settings. A `ConfigSchema<T>` is the
 single, typed place where raw `Json` is validated into a value. `ResolvedConfig<T>`

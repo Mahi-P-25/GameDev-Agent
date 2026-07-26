@@ -1,0 +1,78 @@
+/**
+ * Nova Material Language — every surface has a reason to exist (Operation Immersion).
+ *
+ * A small, intentional set of materials. Each maps to a real role in the spatial
+ * stack; nothing is decorative. Glass is reserved for *transient overlays only*
+ * (Command Center, tooltips) — never for resting panels, per the "no glass
+ * everywhere" directive. All values resolve from the existing design tokens.
+ *
+ *   canvas    — the studio floor; the deepest plane (see .nova-stage)
+ *   brushed   — structural chrome (rail, top bar): a faint directional grain
+ *   matte     — the default resting panel: flat, low-contrast, quiet
+ *   elevated  — a surface lifted above the workspace (cards that own focus)
+ *   inset     — a well cut into a surface (nested regions, inputs, code)
+ *   floating  — a surface that hovers above everything (command, modals)
+ *
+ * The material system pairs with the spatial planes in spatial.css.
+ */
+
+@layer components {
+  /* Matte — the calm default. Flat, no sheen. */
+  .matte {
+    background: var(--color-bg-panel);
+    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-sm);
+  }
+
+  /* Brushed — structural chrome with a barely-there directional grain. */
+  .brushed {
+    background-color: var(--color-bg-sunken);
+    background-image: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--color-fg) 3%, transparent),
+      transparent 38%
+    );
+    border-right: 1px solid var(--color-border);
+  }
+
+  /* Elevated — a surface that owns the foreground. */
+  .elevated {
+    background: var(--color-bg-elevated);
+    border: 1px solid var(--color-border-strong);
+    box-shadow: var(--shadow-md);
+  }
+
+  /* Inset — a quiet well cut into a surface. */
+  .inset {
+    background: var(--color-bg-inset);
+    border: 1px solid var(--color-border);
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.35);
+  }
+
+  /* Floating — hovers above all planes (transient, never resting). */
+  .floating {
+    background: var(--glass-bg-strong);
+    border: 1px solid var(--glass-border-strong);
+    box-shadow: var(--shadow-float);
+    backdrop-filter: blur(var(--blur-xl)) saturate(160%);
+    -webkit-backdrop-filter: blur(var(--blur-xl)) saturate(160%);
+  }
+
+  /* Respect quiet mode: materials never animate their appearance. */
+  .matte,
+  .brushed,
+  .elevated,
+  .inset {
+    transition: border-color var(--duration-base) var(--ease-standard),
+      box-shadow var(--duration-base) var(--ease-standard);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .matte,
+  .brushed,
+  .elevated,
+  .inset {
+    transition: none !important;
+  }
+}

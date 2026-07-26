@@ -1,7 +1,38 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "outDir": "dist"
+    "composite": false,
+    "declaration": false,
+    "declarationMap": false,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "types": ["vite/client", "node"],
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "allowImportingTsExtensions": false,
+    "baseUrl": ".",
+    "paths": {
+      "@gamedev-agent/shared": ["../../packages/shared/src/index.ts"],
+      "@gamedev-agent/di": ["../../packages/di/src/index.ts"],
+      "@gamedev-agent/config": ["../../packages/config/src/index.ts"],
+      "@gamedev-agent/logging": ["../../packages/logging/src/index.ts"],
+      "@gamedev-agent/events": ["../../packages/events/src/index.ts"],
+      "@gamedev-agent/kernel": ["../../packages/kernel/src/index.ts"],
+      "@gamedev-agent/project": ["../../packages/project/src/index.ts"],
+      "@gamedev-agent/coordinator": ["../../packages/coordinator/src/index.ts"],
+      "@gamedev-agent/producer": ["../../packages/producer/src/index.ts"],
+      "@gamedev-agent/planner": ["../../packages/planner/src/index.ts"],
+      "@gamedev-agent/capabilities": ["../../packages/capabilities/src/index.ts"],
+      "@gamedev-agent/tool-runtime": ["../../packages/tool-runtime/src/index.ts"],
+      "@gamedev-agent/vscode": ["../../packages/vscode/src/index.ts"],
+      "@gamedev-agent/workflow": ["../../packages/workflow/src/index.ts"],
+      "@gamedev-agent/terminal": ["../../packages/terminal/src/index.ts"],
+      "@gamedev-agent/workspace": ["../../packages/workspace/src/index.ts"],
+      "@gamedev-agent/studio-api": ["../../packages/studio-api/src/index.ts"],
+      "@gamedev-agent/intelligence": ["../../packages/intelligence/src/index.ts"],
+      "@gamedev-agent/runtime": ["../../packages/runtime/src/index.ts"]
+    }
   },
   "include": ["src"]
 }

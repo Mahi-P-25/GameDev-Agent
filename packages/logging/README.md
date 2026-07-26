@@ -1,6 +1,6 @@
 # @gamedev-agent/logging
 
-Structured, namespaced logging contracts for GameDev Agent.
+Structured, namespaced logging contracts for Nova.
 
 Logging is namespaced so that every role, team, and project emits an isolated,
 attributable stream. A `LogSink` is a destination; a `Logger` is the namespaced,

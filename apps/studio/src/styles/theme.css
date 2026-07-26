@@ -1,0 +1,8 @@
+/**
+ * Nova Studio — legacy stylesheet entry.
+ *
+ * All design tokens now live in `tokens.css` (Tailwind v4 `@theme`). This file
+ * is kept as the historical import target and re-exports the token source.
+ * Structural/layout rules remain in `app.css`.
+ */
+@import "./tokens.css";

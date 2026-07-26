@@ -1,0 +1,18 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "baseUrl": "../..",
+    "paths": {
+      "@gamedev-agent/shared": ["packages/shared/dist/index.d.ts"],
+      "@gamedev-agent/di": ["packages/di/dist/index.d.ts"],
+      "@gamedev-agent/logging": ["packages/logging/dist/index.d.ts"],
+      "@gamedev-agent/events": ["packages/events/dist/index.d.ts"],
+      "@gamedev-agent/kernel": ["packages/kernel/dist/index.d.ts"],
+      "@gamedev-agent/coordinator": ["packages/coordinator/dist/index.d.ts"],
+      "@gamedev-agent/capabilities": ["packages/capabilities/dist/index.d.ts"],
+      "@gamedev-agent/tool-runtime": ["packages/tool-runtime/dist/index.d.ts"]
+    }
+  },
+  "include": ["src"]
+}

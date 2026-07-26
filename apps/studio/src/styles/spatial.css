@@ -1,0 +1,58 @@
+/**
+ * Nova Spatial Planes — depth without distraction (Operation Immersion).
+ *
+ * The studio occupies four quiet planes. Content lives on the workspace plane;
+ * the ambient light lives behind it; the rail/bar are foreground structure. Depth
+ * is conveyed through elevation tokens and a *single* parallax on the ambient
+ * layer — never on readable content, never enough to induce motion sickness.
+ *
+ *   --plane-bg        deepest (canvas / ambient light)
+ *   --plane-workspace the surface content sits on
+ *   --plane-foreground structural chrome (rail, bar)
+ *   --plane-float     transient overlays (command, toasts)
+ */
+
+@layer base {
+  :root {
+    --plane-bg: 0;
+    --plane-workspace: 10;
+    --plane-foreground: 20;
+    --plane-float: 50;
+  }
+}
+
+@layer components {
+  /* The ambient layer that may drift with the pointer. Kept behind everything
+     and far enough from content that parallax reads as depth, not movement. */
+  .nova-ambient-layer {
+    position: absolute;
+    inset: -6%;
+    z-index: var(--plane-bg);
+    pointer-events: none;
+    will-change: transform;
+  }
+
+  /* A surface raised onto the workspace plane. */
+  .plane-workspace {
+    position: relative;
+    z-index: var(--plane-workspace);
+  }
+
+  /* Foreground structure (rail, top bar). */
+  .plane-foreground {
+    position: relative;
+    z-index: var(--plane-foreground);
+  }
+
+  /* Transient overlays. */
+  .plane-float {
+    z-index: var(--plane-float);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Parallax is disabled entirely; the ambient layer holds still. */
+  .nova-ambient-layer {
+    transform: none !important;
+  }
+}

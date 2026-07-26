@@ -4,3 +4,4 @@ export * from './workflow';
 export * from './plugin';
 export * from './memory';
 export * from './config';
+export * from './notification';

@@ -1,18 +1,60 @@
-# Architecture Specification: GameDev Agent
+# Architecture Specification: Nova
+
+> Nova is an AI-native Game Development Studio. The user is the **Creative
+> Director**; Nova acts as the entire game development team. This document
+> specifies the subsystems that make up that studio. (See `ADRs/0001-nova-vision.md`
+> for the strategic rationale and `ROADMAP.md` for the build order.)
 
 ## 1. Design Philosophy
 
-GameDev Agent is built as a modular, event-driven operating system for game development. Every subsystem is an isolated, replaceable unit defined by a stable interface contract rather than a concrete implementation. The platform favors composition over inheritance, asynchronous messaging over synchronous coupling, and offline-first behavior over network-dependent operation. Subsystems communicate through a central event bus and well-defined APIs, never through hidden shared state. This design allows individual components to be upgraded, swapped, or extended without destabilizing the whole system over its multi-year lifecycle.
+Nova is built as a modular, event-driven operating system for game development. Every subsystem is an isolated, replaceable unit defined by a stable interface contract rather than a concrete implementation. The platform favors composition over inheritance, asynchronous messaging over synchronous coupling, and offline-first behavior over network-dependent operation. Subsystems communicate through a central event bus and well-defined APIs, never through hidden shared state. This design allows individual components to be upgraded, swapped, or extended without destabilizing the whole system over its multi-year lifecycle.
 
-## 2. High-level Architecture
+## 2. Studio Architecture
 
-The system is organized as a layered, service-oriented architecture. A thin **Core Kernel** provides process lifecycle, security boundaries, and the event bus. Around it sit domain services — Planner, Executor, Memory Manager, Project Manager, Plugin Manager, Model Router, Workflow Engine, Tool Manager — each operating as an independent service. A presentation tier (UI Layer, Desktop App, Website, VS Code Extension, CLI) and an API Layer provide external access. All access flows through the API Layer or the event bus, never by direct subsystem reach-through.
+Nova is organized as a single studio directed by the Creative Director. The canonical hierarchy is:
+
+```
+Nova
+ └── Workspace
+      └── Projects
+           └── Missions
+                └── Roles
+                     └── Execution
+                          └── Memory
+                               └── Knowledge
+                                    └── Planner
+                                         └── Workflow
+                                              └── Router
+                                                   └── Extensions
+```
+
+Key concepts:
+
+- **Workspace** — the Creative Director's working surface that groups their Projects.
+- **Projects** — the first-class root object. Memory, Knowledge, Missions, Plugins, Model configuration, Workspaces, and Git all belong to a Project.
+- **Missions** — the unit of planned work (replaces "task"). A Mission is a charter with intent, scope, and acceptance.
+- **Roles** — stable *responsibilities* (Producer, Lead Architect, Gameplay Engineer, …), not AI models. Models are interchangeable compute behind a Role.
+- **Execution** — carrying approved Missions into real changes in the Project.
+
+### Terminology
+
+| Avoid | Use |
+|-------|-----|
+| Agent | Role |
+| Assistant | Studio / Role |
+| Chat | Studio (communication surface) |
+| Prompt | Direction / Brief |
+| Task | Mission |
+
+## 3. High-level Architecture
+
+The system is organized as a layered, service-oriented architecture. A thin **Core Kernel** provides process lifecycle, security boundaries, and the event bus. Around it sit domain services — Planner, Orchestrator (Executor), Memory Manager, Project Manager, Plugin Manager, Model Router, Workflow Engine, Tool Manager — each operating as an independent service. A presentation tier (Nova Studio, Nova Web, Nova VS Code Extension, Nova CLI) and an API Layer provide external access. All access flows through the API Layer or the event bus, never by direct subsystem reach-through.
 
 The architecture enforces three invariants: (1) no subsystem may invoke another subsystem's internals directly; (2) every cross-subsystem interaction is observable through the event bus; (3) every subsystem must function in isolation when its collaborators are unavailable.
 
 ### Why it exists
 
-A monolithic game-development tool cannot survive years of engine, model, and tooling change. A modular, message-driven architecture lets GameDev Agent absorb new engines, models, and integrations as plugins rather than rewrites, and lets each capability evolve on its own release cadence.
+A monolithic game-development tool cannot survive years of engine, model, and tooling change. A modular, message-driven architecture lets Nova absorb new engines, models, and integrations as plugins rather than rewrites, and lets each capability evolve on its own release cadence.
 
 ## 3. Core Kernel
 
@@ -62,7 +104,7 @@ Without a central authority for lifecycle and security, a multi-agent, plugin-ex
 ### Responsibilities
 
 - Translate high-level objectives into dependency-aware, ordered development plans.
-- Decompose goals into tasks, estimate effort and risk, and identify required resources.
+- Decompose goals into Missions, estimate effort and risk, and identify required resources.
 - Generate, revise, and re-plan in response to changing project state or execution failure.
 - Produce plans that are reviewable, approvable, and traceable to execution.
 
@@ -81,7 +123,7 @@ Without a central authority for lifecycle and security, a multi-agent, plugin-ex
 
 ### Outputs
 
-- Structured plans with tasks, dependencies, estimates, and checkpoints.
+- Structured plans with Missions, dependencies, estimates, and checkpoints.
 - Plan revision events and re-planning requests.
 - Approval requests routed to the appropriate user role.
 
@@ -104,7 +146,7 @@ Game development requires coherent, long-horizon coordination. The Planner conve
 
 ### Responsibilities
 
-- Execute approved plans by driving agents, tools, plugins, and workflows.
+- Execute approved plans by driving Roles, tools, plugins, and workflows.
 - Manage checkpoints, pause, resume, rollback, and approval gates.
 - Capture execution traces for auditing and learning.
 - Detect failures and apply retry, fallback, and escalation policies.
@@ -131,7 +173,7 @@ Game development requires coherent, long-horizon coordination. The Planner conve
 ### Future scalability
 
 - Execution can be distributed across local and remote workers coordinated by the kernel.
-- Concurrent agent pools can be added to parallelize independent tasks.
+- Concurrent Role pools can be added to parallelize independent Missions.
 
 ### Failure handling
 
@@ -188,7 +230,8 @@ The defining value of an AI operating system is continuity. The Memory Manager g
 
 ### Responsibilities
 
-- Maintain the canonical project model: tasks, milestones, assets, bugs, decisions, and architecture.
+- Maintain the canonical project model — the **first-class root object** of Nova. Memory, Knowledge, Missions, Plugins, and Model configuration are all scoped to a Project.
+- Maintain the project model: missions, milestones, assets, bugs, decisions, and architecture.
 - Enforce links between tasks, assets, bugs, decisions, and documentation.
 - Produce project health reporting and lifecycle status.
 - Apply role-based visibility and permission scoping.
@@ -477,7 +520,7 @@ Game development depends on a wide toolchain. The Tool Manager unifies that tool
 
 Different users work in different contexts — desktop, browser, editor, terminal. A shared UI Layer ensures consistent experience and behavior across every surface while keeping presentation separate from domain logic.
 
-## 14. Desktop App
+## 14. Nova Studio (Desktop App)
 
 ### Responsibilities
 
@@ -516,7 +559,7 @@ Different users work in different contexts — desktop, browser, editor, termina
 
 The desktop app is the anchor of the offline-first promise. It gives developers a fast, native, always-available environment that does not depend on the cloud.
 
-## 15. Website
+## 15. Nova Web (Website)
 
 ### Responsibilities
 
@@ -559,7 +602,7 @@ Studios need accessible, shareable visibility without requiring every stakeholde
 
 ### Responsibilities
 
-- Embed GameDev Agent capabilities directly in the developer's code editor.
+- Embed Nova capabilities directly in the developer's code editor.
 - Surface plans, tasks, bugs, decisions, and memory inline with code.
 - Trigger planning, execution, and tool actions from the editor context.
 - Link code changes to project state and architecture tracking.

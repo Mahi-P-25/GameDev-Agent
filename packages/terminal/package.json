@@ -1,0 +1,40 @@
+{
+  "name": "@gamedev-agent/terminal",
+  "version": "0.1.0",
+  "description": "Nova Terminal Tool — the second Tool Runtime integration. Safely executes terminal commands under explicit user approval (run, stream output, cancel, working directory, environment variables, foreground/background processes, exit codes, timeouts) through the Tool Runtime, Event Bus, Coordinator, Capabilities, and Studio API only.",
+  "type": "module",
+  "license": "PROPRIETARY",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome check src",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@gamedev-agent/capabilities": "workspace:*",
+    "@gamedev-agent/coordinator": "workspace:*",
+    "@gamedev-agent/di": "workspace:*",
+    "@gamedev-agent/events": "workspace:*",
+    "@gamedev-agent/kernel": "workspace:*",
+    "@gamedev-agent/logging": "workspace:*",
+    "@gamedev-agent/shared": "workspace:*",
+    "@gamedev-agent/tool-runtime": "workspace:*"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.3",
+    "tsup": "^8.3.0",
+    "typescript": "^5.6.2",
+    "vitest": "^2.1.1"
+  }
+}

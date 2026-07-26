@@ -1,6 +1,9 @@
-# GameDev Agent — Workflow Engine Design
+# Nova — Workflow Engine Design
 
-> **Scope:** Design only. The Workflow Engine turns *user goals* into *production-ready workflows*. This is **not** a task scheduler (no cron, no queue, no job orchestration). It is a goal-driven, memory-aware composition engine that plans, executes, validates, gates, and learns.
+> **Scope:** Design only. The Workflow Engine turns the Creative Director's
+> *direction* into *production-ready workflows*. This is **not** a task scheduler
+> (no cron, no queue, no job orchestration). It is a goal-driven, memory-aware
+> composition engine that plans Missions, executes, validates, gates, and learns.
 
 ---
 

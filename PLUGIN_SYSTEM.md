@@ -1,8 +1,8 @@
-# Plugin System Specification: GameDev Agent
+# Plugin System Specification: Nova
 
 ## 1. Purpose
 
-The plugin system is the primary extensibility mechanism of GameDev Agent. It allows the platform to grow for years by adding engines, tools, editors, and services as governed, isolated extensions rather than core modifications. The system must support plugins for Blender, Three.js, VS Code, Git, Browser, Terminal, Godot, Unity, Unreal, and Roblox Studio, while remaining open to arbitrary future plugins through the same contract.
+The plugin system is the primary extensibility mechanism of Nova. It allows the studio to grow for years by adding engines, tools, editors, and services as governed, isolated extensions rather than core modifications. The system must support plugins for Blender, Three.js, VS Code, Git, Browser, Terminal, Godot, Unity, Unreal, and Roblox Studio, while remaining open to arbitrary future plugins through the same contract.
 
 ## 2. Plugin Contract
 
@@ -18,7 +18,7 @@ Static, declarative information identifying the plugin:
 - **author and maintainer** — ownership and support contact.
 - **target** — the integration target (Blender, Three.js, VS Code, Git, Browser, Terminal, Godot, Unity, Unreal, Roblox Studio, or generic).
 - **category** — classification such as engine, tool, editor, source-control, or transport.
-- **minPlatformVersion** — the minimum GameDev Agent version required.
+ - **minPlatformVersion** — the minimum Nova version required.
 - **signature** — cryptographic signature for integrity and authenticity verification.
 - **license** — declared distribution and usage license.
 
@@ -135,4 +135,4 @@ Each target plugin declares the platform capabilities it fulfills (for example, 
 
 ## 10. Governance and Extensibility
 
-The plugin system is intentionally open: any new engine, tool, or service—beyond the initial ten targets—can be integrated by implementing the same contract. The Plugin Manager, service registry, and capability-based routing ensure that new plugins become first-class participants in planning, execution, and workflows without changes to core subsystems. This is the mechanism by which GameDev Agent remains adaptable across the multi-year evolution of game-development tooling.
+The plugin system is intentionally open: any new engine, tool, or service—beyond the initial ten targets—can be integrated by implementing the same contract. The Plugin Manager, service registry, and capability-based routing ensure that new plugins become first-class participants in planning, execution, and workflows without changes to core subsystems. This is the mechanism by which Nova remains adaptable across the multi-year evolution of game-development tooling.

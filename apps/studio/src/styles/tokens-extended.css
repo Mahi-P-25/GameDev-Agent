@@ -1,0 +1,112 @@
+/**
+ * Nova Design System — Extended Tokens (Sprint 11: Visual Foundation).
+ *
+ * Adds the token categories required for the "premium creative OS" surface:
+ * glass, blur, glow, opacity, typography scale, spacing, timing & easing.
+ * This file is layered on top of `tokens.css`. The `@theme` block publishes
+ * every value as a first-class Tailwind utility (e.g. `bg-glass`, `blur-2xl`,
+ * `shadow-glow-accent`, `text-display`, `ease-spring`).
+ *
+ * Rule: no magic numbers in components. Reference a token here.
+ */
+
+@import "tailwindcss";
+
+@theme {
+  /* --- Typography roles (Display → Code) ----------------------------- */
+  --font-geist: "Geist", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Instrument Serif", "Inter", system-ui, sans-serif;
+  --font-headline: "Manrope Variable", "Inter", system-ui, sans-serif;
+  --font-body: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-serif: "Source Serif 4", Georgia, serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  /* Fluid type scale (clamp: min, preferred, max) — responsive by default. */
+  --text-2xs: 0.6875rem; /* 11px */
+  --text-xs: 0.75rem; /* 12px */
+  --text-sm: 0.8125rem; /* 13px */
+  --text-base: 0.875rem; /* 14px */
+  --text-md: 1rem; /* 16px */
+  --text-lg: 1.125rem; /* 18px */
+  --text-xl: 1.375rem; /* 22px */
+  --text-2xl: 1.75rem; /* 28px */
+  --text-3xl: 2.25rem; /* 36px */
+  --text-4xl: 3rem; /* 48px */
+  --text-display: clamp(3rem, 6vw, 5rem);
+  --text-hero: clamp(4rem, 9vw, 7.5rem);
+
+  --leading-tight: 1.1;
+  --leading-snug: 1.25;
+  --leading-normal: 1.5;
+  --tracking-tight: -0.02em;
+  --tracking-snug: -0.01em;
+  --tracking-normal: 0;
+  --tracking-wide: 0.04em;
+  --tracking-wider: 0.08em;
+
+  /* --- Spacing scale (beyond Tailwind defaults) ---------------------- */
+  --spacing-0_5: 0.125rem;
+  --spacing-13: 3.25rem;
+  --spacing-15: 3.75rem;
+  --spacing-18: 4.5rem;
+  --spacing-22: 5.5rem;
+  --spacing-30: 7.5rem;
+
+  /* --- Radius (augments tokens.css) ---------------------------------- */
+  --radius-2xl: 28px;
+  --radius-3xl: 36px;
+
+  /* --- Opacity steps ------------------------------------------------- */
+  --opacity-faint: 0.04;
+  --opacity-subtle: 0.08;
+  --opacity-soft: 0.16;
+  --opacity-medium: 0.32;
+  --opacity-strong: 0.56;
+  --opacity-bold: 0.8;
+
+  /* --- Glass / Translucency ------------------------------------------ */
+  --glass-bg: color-mix(in srgb, var(--color-bg-panel) 62%, transparent);
+  --glass-bg-strong: color-mix(in srgb, var(--color-bg-elevated) 82%, transparent);
+  --glass-border: color-mix(in srgb, var(--color-fg) 12%, transparent);
+  --glass-border-strong: color-mix(in srgb, var(--color-fg) 20%, transparent);
+  --glass-highlight: color-mix(in srgb, var(--color-fg) 8%, transparent);
+
+  /* --- Blur steps ---------------------------------------------------- */
+  --blur-xs: 2px;
+  --blur-sm: 6px;
+  --blur-md: 12px;
+  --blur-lg: 20px;
+  --blur-xl: 32px;
+  --blur-2xl: 48px;
+
+  /* --- Glow / Ambient ------------------------------------------------ */
+  --glow-accent: 0 0 0 1px color-mix(in srgb, var(--color-accent) 40%, transparent), 0 8px 40px
+    color-mix(in srgb, var(--color-accent) 22%, transparent);
+  --glow-primary: 0 0 0 1px color-mix(in srgb, var(--color-primary) 45%, transparent), 0 8px 40px
+    color-mix(in srgb, var(--color-primary) 24%, transparent);
+  --glow-soft: 0 0 40px color-mix(in srgb, var(--color-fg) 10%, transparent);
+  --glow-ring: 0 0 0 1px color-mix(in srgb, var(--color-fg) 14%, transparent), 0 12px 50px
+    rgba(0, 0, 0, 0.55);
+
+  /* --- Elevation (augments tokens.css) ------------------------------- */
+  --shadow-xl: 0 30px 80px rgba(0, 0, 0, 0.6);
+  --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.45), inset 0 1px 0
+    color-mix(in srgb, var(--color-fg) 8%, transparent);
+  --shadow-float: 0 20px 60px rgba(0, 0, 0, 0.55), inset 0 1px 0
+    color-mix(in srgb, var(--color-fg) 10%, transparent);
+
+  /* --- Timing (augments tokens.css) ---------------------------------- */
+  --duration-instant: 80ms;
+  --duration-fast: 140ms;
+  --duration-base: 200ms;
+  --duration-slow: 320ms;
+  --duration-slower: 480ms;
+  --duration-slowest: 720ms;
+
+  /* --- Easing (augments tokens.css) ---------------------------------- */
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-spring: linear(0, 0.02 2%, 0.18 8%, 0.52 18%, 0.82 32%, 1.02 48%, 1 62%, 1 100%);
+  --ease-emphasized: cubic-bezier(0.2, 0, 0, 1);
+}

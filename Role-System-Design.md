@@ -1,16 +1,20 @@
-# GameDev Agent — Specialist AI Role System
+# Nova — Specialist Role System
 
-> **Scope:** Design only. Instead of a single monolithic AI, the platform runs **multiple specialist roles** that share one **unified memory**. Roles are activated per workflow stage; they collaborate, hand off work, and resolve conflicts through defined protocols. No implementation.
+> **Scope:** Design only. Instead of a single monolithic AI, Nova is staffed by
+> **multiple specialist Roles** that share one **unified memory**. Roles are
+> activated per workflow stage; they collaborate, hand off work, and resolve
+> conflicts through defined protocols. A Role is a stable *responsibility*, not an
+> AI model — models are interchangeable compute behind the Role. No implementation.
 
 ---
 
 ## 1. Shared Foundations
 
 ### 1.1 Unified Memory
-All roles read from and write to the **same memory store** (codebase facts, decisions, conventions, asset registry, run history, metrics). Memory is the single source of truth that lets specialists stay consistent without direct coupling.
+All Roles read from and write to the **same memory store** (codebase facts, decisions, conventions, asset registry, run history, metrics). Memory is the single source of truth that lets specialists stay consistent without direct coupling.
 
 ### 1.2 Role Contract
-Every role is defined by: **Mission, Responsibilities, Knowledge, Decision Authority, Tools, Plugins, Interactions, Activation, Hand-off, Conflict Resolution.**
+A Role is a responsibility boundary, defined by: **Mission, Responsibilities, Knowledge, Decision Authority, Tools, Plugins, Interactions, Activation, Hand-off, Conflict Resolution.** The model that powers a Role is selected by the Router from a *capability* requirement and can change without altering the Role's mandate.
 
 ### 1.3 Activation Model
 - Roles are **activated by the Workflow Engine** per stage, not globally.

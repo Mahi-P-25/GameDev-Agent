@@ -1,6 +1,10 @@
-# GameDev Agent — Studio Operating System
+# Nova — Studio Operating System
 
-> **Vision:** GameDev Agent is the *operating system* of a game studio. Not a coding assistant — the runtime that schedules cognition, governs memory, routes work, and operates the full studio lifecycle from concept to live ops. One architecture scales from a solo developer to a 2,000-person AAA organization.
+> **Vision:** Nova is an AI-native Game Development Studio. Not a coding assistant
+> and not a chatbot — the runtime that schedules cognition, governs memory, routes
+> work, and operates the full studio lifecycle from concept to live ops. The user
+> is the Creative Director; Nova supplies the entire development team. One
+> architecture scales from a solo developer to a 2,000-person AAA organization.
 
 ---
 
@@ -10,7 +14,7 @@
 |-----------|---------|
 | **Everything is a resource** | Projects, teams, assets, models, plugins, build servers, and tests are addressable, versioned, and quota-governed resources. |
 | **Memory is the kernel** | A unified memory substrate is the single source of truth; isolation is a property of the namespace, not a separate system. |
-| **Roles are processes** | Specialist AI roles are schedulable units of cognition, activated on demand, terminated when idle. |
+| **Roles are responsibilities** | Specialist Roles are stable *responsibilities* — Producer, Lead Architect, Gameplay Engineer, and so on — not AI models. Models are interchangeable compute behind a Role; swapping the model never changes the Role's mandate. |
 | **Workflows are programs** | Declarative, composable workflow definitions are the "binaries" the OS executes. |
 | **Tenancy by namespace** | Isolation, billing, and policy are enforced at the namespace boundary — identical for one person or one studio. |
 | **Designed for 10 years** | Capability-agnostic: models, plugins, and toolchains are pluggable so the platform outlives any vendor or engine generation. |
@@ -53,9 +57,24 @@ A studio is provisioned in seconds from a declarative manifest. The same manifes
 
 ---
 
-## 4. Projects
+## 4. Workspace
 
-A **Project** is an isolated sub-namespace under the Studio. It represents a game, a DLC, a tool, or a live service.
+A **Workspace** is the Creative Director's working surface — the container that
+groups their Projects under one cohesive environment. A Workspace owns the
+default tooling, conventions, and shared resources that its Projects inherit, and
+provides the day-to-day surface the Creative Director operates from (Nova Studio,
+Nova Web, Nova CLI, or Nova VS Code).
+
+The hierarchy is: **Studio → Workspace → Projects → Missions → Roles →
+Execution**. A Workspace is the unit of "what I'm working on right now"; a Studio
+is the tenant that owns identity, policy, and billing across all Workspaces.
+
+## 5. Projects
+
+A **Project** is an isolated sub-namespace under the **Workspace**. It is the
+**first-class root object** of Nova: Memory, Knowledge, Missions, Plugins, Model
+configuration, and Git all belong to a Project. A Project represents a game, a
+DLC, a tool, or a live service.
 
 - **Project manifest** declares: engines, target platforms, pipelines, team bindings, budget caps, approval policies.
 - **Lifecycle states:** `concept → pre-production → production → release → live → sunset`.
@@ -69,9 +88,9 @@ A **Project** is an isolated sub-namespace under the Studio. It represents a gam
 **Teams** are dynamic, role-based groupings bound to projects (or cross-project programs).
 
 - **Team = policy + membership + quota slice**, not a fixed org chart.
-- Teams can be **human-only, AI-only, or hybrid**. The OS treats a human and a role as peers on the bus.
+- Teams can be **human-only, Role-only, or hybrid**. The OS treats a human and a Role as peers on the bus.
 - **Ephemeral teams:** spun up for a workflow (e.g. "minimap squad" = Architect + Builder + Technical Artist + QA) and dissolved on completion.
-- **Capability routing:** work is assigned by *capability*, not by person — the scheduler matches tasks to the cheapest sufficient role or human with the skill.
+- **Capability routing:** work is assigned by *capability*, not by person — the scheduler matches Missions to the cheapest sufficient Role or human with the skill.
 
 ---
 
@@ -248,4 +267,10 @@ The solo developer is not a "reduced" version — they are a studio with one mem
 
 ## 19. Summary
 
-GameDev Agent is not an assistant bolted onto a codebase. It is the **operating system of a game studio**: a namespaced memory kernel, a schedulable cognition layer of specialist roles, a declarative workflow runtime, and a federated fabric of plugins, build servers, deployment, live ops, and analytics. One architecture — isolated by namespace, shared by infrastructure — serves a lone developer and a AAA publisher with equal fidelity, and is built to outlast the next decade of tooling.
+Nova is not an assistant bolted onto a codebase. It is the **operating system of a
+game studio**: a namespaced memory kernel, a schedulable cognition layer of
+specialist Roles, a declarative workflow runtime, and a federated fabric of
+plugins, build servers, deployment, live ops, and analytics. One architecture —
+isolated by namespace, shared by infrastructure — serves a lone developer and a
+AAA publisher with equal fidelity, and is built to outlast the next decade of
+tooling.

@@ -1,24 +1,25 @@
-# Software Requirements Specification: GameDev Agent
+# Software Requirements Specification: Nova
 
 ## 1. Introduction
 
 ### 1.1 Purpose
 
-This Software Requirements Specification (SRS) defines the functional and non-functional requirements for **GameDev Agent**, an AI Operating System purpose-built for the domain of game development. GameDev Agent is not a conversational chatbot; it is a persistent, autonomous, and semi-autonomous software platform that plans, executes, tracks, and manages the full lifecycle of game development projects. The document establishes a shared, authoritative understanding between stakeholders, architects, and engineering teams, and serves as the long-term reference for product evolution.
+This Software Requirements Specification (SRS) defines the functional and non-functional requirements for **Nova**, an AI-native Game Development Studio purpose-built for the domain of game development. Nova is not a conversational chatbot; it is a persistent, autonomous, and semi-autonomous studio that plans, executes, tracks, and manages the full lifecycle of game development projects under the direction of a Creative Director. The document establishes a shared, authoritative understanding between stakeholders, architects, and engineering teams, and serves as the long-term reference for product evolution.
 
 ### 1.2 Scope
 
-This SRS covers the externally observable behavior, capabilities, constraints, and quality attributes of the GameDev Agent platform across all supported operating systems, game engines, and user roles. It specifies what the system shall do and the conditions under which it shall operate. This document explicitly excludes source-code-level design, internal architecture decisions, and implementation technology choices, which are captured in separate design and architecture documentation.
+This SRS covers the externally observable behavior, capabilities, constraints, and quality attributes of the Nova platform across all supported operating systems, game engines, and user Roles. It specifies what the system shall do and the conditions under which it shall operate. This document explicitly excludes source-code-level design, internal architecture decisions, and implementation technology choices, which are captured in separate design and architecture documentation.
 
 ### 1.3 Definitions
 
 | Term | Definition |
 |------|------------|
-| **AI Operating System** | A software platform that provides persistent orchestration, state management, and autonomous execution services for a specific domain. |
-| **Agent** | A bounded autonomous unit within GameDev Agent that performs planning or execution tasks against project state. |
+| **AI-native Game Development Studio** | A software platform that provides persistent orchestration, state management, and autonomous execution services for game development, staffed by Roles rather than a single assistant. |
+| **Role** | A stable responsibility within Nova (e.g. Producer, Lead Architect, Gameplay Engineer) that performs planning or execution work against project state. Models behind a Role are interchangeable. |
 | **Long-term Memory** | A durable, queryable store of project knowledge, decisions, artifacts, and context retained across sessions and restarts. |
-| **Model Routing** | The mechanism that selects and dispatches work to the most appropriate AI model based on task characteristics, cost, and capability. |
-| **Workflow** | A declarative, versioned sequence of steps that orchestrates agents, tools, and human approvals. |
+| **Model Routing** | The mechanism that selects and dispatches work to the most appropriate AI model based on capability, cost, and policy. |
+| **Workflow** | A declarative, versioned sequence of steps that orchestrates Roles, tools, and human approvals. |
+| **Mission** | A unit of planned work — a charter with intent, scope, and acceptance — directed by the Creative Director and carried out by Roles. |
 | **Plugin** | A self-contained, independently deployable extension that adds capabilities to the platform. |
 | **Tool Integration** | A connector that enables the platform to invoke external software, APIs, or services. |
 | **Decision Record** | An immutable, auditable entry describing a significant architectural or product decision and its rationale. |
@@ -37,14 +38,14 @@ This document is intended for the following audiences:
 
 ## 2. Product Vision
 
-GameDev Agent envisions a future in which game development is orchestrated by an intelligent operating system that understands the complete context of a project, remembers every decision, coordinates work across engines and tools, and executes routine and complex tasks with minimal human friction. The platform acts as a persistent teammate rather than a transient assistant: it maintains continuity across years of development, enforces architectural discipline, and amplifies the capability of individual developers and small studios to produce work at the quality and scale previously reserved for large teams.
+Nova envisions a future in which game development is orchestrated by an intelligent operating system that understands the complete context of a project, remembers every decision, coordinates work across engines and tools, and executes routine and complex Missions with minimal human friction. The platform acts as a persistent teammate rather than a transient assistant: it maintains continuity across years of development, enforces architectural discipline, and amplifies the capability of individual developers and small studios to produce work at the quality and scale previously reserved for large teams.
 
 The system shall be the connective tissue of a studio's toolchain, unifying project management, memory, planning, execution, asset handling, and documentation into a single coherent environment that operates natively across desktop platforms and integrates deeply with the engines and tools that developers already use.
 
 ## 3. Goals
 
 - Provide a persistent, context-aware AI operating system dedicated exclusively to game development.
-- Enable autonomous and human-supervised planning and execution of development tasks.
+- Enable autonomous and human-supervised planning and execution of development Missions.
 - Maintain durable long-term memory that preserves project knowledge, decisions, and history.
 - Route work intelligently across heterogeneous AI models to balance quality, latency, and cost.
 - Integrate natively with leading game engines and the broader creative toolchain.
@@ -54,7 +55,7 @@ The system shall be the connective tissue of a studio's toolchain, unifying proj
 
 ## 4. Non-Goals
 
-- GameDev Agent is not a game engine and shall not implement rendering, physics, or runtime simulation.
+- Nova is not a game engine and shall not implement rendering, physics, or runtime simulation.
 - The platform is not a general-purpose chatbot or a consumer AI assistant for non-game-domains.
 - It shall not replace human creative direction, design authorship, or final decision authority.
 - It shall not provide cloud-hosted multiplayer game infrastructure or live-ops services.
@@ -68,11 +69,11 @@ The system shall be the connective tissue of a studio's toolchain, unifying proj
 
 - The system shall allow users to create, open, archive, and delete game development projects.
 - The system shall maintain a project manifest containing name, identifier, engine binding, target platforms, and lifecycle status.
-- The system shall support task creation, assignment, estimation, dependency definition, and status tracking.
+- The system shall support Mission creation, assignment, estimation, dependency definition, and status tracking.
 - The system shall provide a milestone and release-planning structure with scheduling and progress visibility.
-- The system shall allow linking tasks to related assets, decisions, bugs, documentation, and architecture records.
+- The system shall allow linking Missions to related assets, decisions, bugs, documentation, and architecture records.
 - The system shall generate project health reports covering progress, blockers, risk exposure, and outstanding work.
-- The system shall support role-based visibility and permission scoping for tasks and artifacts.
+- The system shall support role-based visibility and permission scoping for Missions and artifacts.
 
 ### 5.2 Long-term Memory
 
@@ -86,8 +87,8 @@ The system shall be the connective tissue of a studio's toolchain, unifying proj
 
 ### 5.3 AI Planning
 
-- The system shall generate actionable development plans from high-level objectives or task descriptions.
-- The system shall decompose complex goals into ordered, dependency-aware sub-tasks.
+- The system shall generate actionable development plans from high-level objectives or Mission descriptions.
+- The system shall decompose complex goals into ordered, dependency-aware sub-Missions.
 - The system shall estimate effort, risk, and required resources for planned work.
 - The system shall support plan review, modification, approval, and rejection by human users.
 - The system shall re-plan automatically when project state changes, dependencies break, or execution fails.
@@ -105,7 +106,7 @@ The system shall be the connective tissue of a studio's toolchain, unifying proj
 ### 5.5 Model Routing
 
 - The system shall support registration of multiple AI model providers and endpoints.
-- The system shall route each task to a model selection based on capability, latency, cost, and policy constraints.
+- The system shall route each Mission to a model selection based on capability, latency, cost, and policy constraints.
 - The system shall allow users to define routing rules, fallbacks, and provider preferences.
 - The system shall monitor model availability, rate limits, and quality, and adjust routing dynamically.
 - The system shall record routing decisions and outcomes for cost and performance analysis.
@@ -114,7 +115,7 @@ The system shall be the connective tissue of a studio's toolchain, unifying proj
 ### 5.6 Tool Integrations
 
 - The system shall provide a standardized integration interface for connecting external tools and services.
-- The system shall integrate with version control systems to track changes and associate them with tasks and decisions.
+- The system shall integrate with version control systems to track changes and associate them with Missions and decisions.
 - The system shall support integration with build systems, continuous integration pipelines, and package managers.
 - The system shall integrate with communication and issue-tracking tools used by studios.
 - The system shall allow tool invocations to be triggered by workflows, agents, or users.
@@ -144,7 +145,7 @@ The system shall be the connective tissue of a studio's toolchain, unifying proj
 - The system shall capture asset metadata such as type, source, dependencies, version, and licensing.
 - The system shall detect and report missing, duplicated, orphaned, or conflicting assets.
 - The system shall support asset ingestion from external tools and engines with format normalization where feasible.
-- The system shall associate assets with tasks, bugs, and architecture records.
+- The system shall associate assets with Missions, bugs, and architecture records.
 - The system shall maintain an asset dependency graph to assess the impact of changes.
 
 ### 5.10 Documentation
@@ -158,7 +159,7 @@ The system shall be the connective tissue of a studio's toolchain, unifying proj
 ### 5.11 Bug Tracking
 
 - The system shall allow creation, classification, prioritization, assignment, and resolution of bugs.
-- The system shall link bugs to affected assets, tasks, commits, and releases.
+- The system shall link bugs to affected assets, Missions, commits, and releases.
 - The system shall support reproduction steps, expected versus actual behavior, and severity levels.
 - The system shall track bug lifecycle from report through triage, fix, verification, and closure.
 - The system shall support automated bug detection through integration with build and test tooling.
@@ -168,7 +169,7 @@ The system shall be the connective tissue of a studio's toolchain, unifying proj
 
 - The system shall record significant architectural, technical, and product decisions as Decision Records.
 - Each Decision Record shall capture context, options considered, chosen alternative, rationale, and consequences.
-- The system shall link Decision Records to affected components, tasks, and architecture records.
+- The system shall link Decision Records to affected components, Missions, and architecture records.
 - The system shall prevent silent overriding of decisions without creating a superseding record.
 - The system shall provide searchable and auditable history of all decisions for the project lifetime.
 
@@ -269,7 +270,7 @@ The system shall support the following user roles, each with tailored defaults, 
 - **Small Studio** — a multi-person team requiring collaboration, shared memory, and role-based coordination.
 - **Technical Artist** — a user focused on assets, pipelines, and engine integration; the system shall emphasize asset management and tool integration.
 - **Programmer** — a user focused on code, architecture, and execution; the system shall emphasize planning, execution, and architecture tracking.
-- **Designer** — a user focused on design intent and documentation; the system shall emphasize documentation, decision tracking, and task visibility.
+- **Designer** — a user focused on design intent and documentation; the system shall emphasize documentation, decision tracking, and Mission visibility.
 
 The system shall allow a single physical user to occupy multiple roles and shall support role reassignment over the project lifetime.
 
@@ -287,7 +288,7 @@ The system shall allow a single physical user to occupy multiple roles and shall
 
 - **Adoption** — number of active projects and registered users across solo and studio segments.
 - **Retention** — sustained multi-month usage indicating the system becomes part of the development routine.
-- **Autonomy** — percentage of planned tasks executed without human intervention beyond configured approval gates.
+- **Autonomy** — percentage of planned Missions executed without human intervention beyond configured approval gates.
 - **Memory utility** — frequency and relevance of long-term memory retrieval in planning and execution.
 - **Integration coverage** — number of supported engines, tools, and plugins actively used.
 - **Reliability** — mean time between data-integrity incidents and crash-free session rate.

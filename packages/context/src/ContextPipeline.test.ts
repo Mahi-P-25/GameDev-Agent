@@ -12,6 +12,7 @@ import {
   BUILT_IN_POLICIES,
   CREATIVE_DIRECTOR_POLICY,
   EXECUTOR_POLICY,
+  GENERAL_POLICY,
   REVIEWER_POLICY,
   findPolicyForRole,
 } from './ContextPolicy';
@@ -532,8 +533,8 @@ describe('ContextPolicy', () => {
     expect(findPolicyForRole(BUILT_IN_POLICIES, 'code-reviewer')).toBe(REVIEWER_POLICY);
   });
 
-  it('returns undefined for unknown role', () => {
-    expect(findPolicyForRole(BUILT_IN_POLICIES, 'unknown' as never)).toBeUndefined();
+  it('falls back to GENERAL_POLICY for unknown role', () => {
+    expect(findPolicyForRole(BUILT_IN_POLICIES, 'unknown' as never)).toBe(GENERAL_POLICY);
   });
 
   it('policies have valid weights that sum to 1', () => {

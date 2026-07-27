@@ -166,6 +166,48 @@ export class ContextManager implements Disposable {
   }
 
   /**
+   * Resolve the current context for a given execution scope. Sets the project,
+   * mission, and workflow execution IDs on the context if they differ from the
+   * current values. This is the integration point the ContextAssembler uses to
+   * synchronise the live context before assembling prompt material for a step.
+   */
+  async getCurrentContext(params: {
+    projectId?: unknown;
+    workflowExecutionId?: unknown;
+    missionId?: unknown;
+  }): Promise<CurrentContext> {
+    let current = this.currentOrInit();
+
+    if (params.projectId !== undefined && String(current.projectId) !== String(params.projectId)) {
+      current = await this.setProject(String(params.projectId));
+    }
+    if (params.missionId !== undefined && String(current.missionId) !== String(params.missionId)) {
+      current = await this.setMission(String(params.missionId));
+    }
+    if (params.workflowExecutionId !== undefined) {
+      const raw = String(params.workflowExecutionId);
+      if (String(current.workflowExecutionId ?? '') !== raw) {
+        current = await this.setWorkflowExecutionId(raw);
+      }
+    }
+
+    return current;
+  }
+
+  /**
+   * Set (or clear with `null`) the workflow execution id on the current context
+   * without changing the workflow definition id. Emits a context-changed event.
+   */
+  private async setWorkflowExecutionId(id: string | null): Promise<CurrentContext> {
+    const current = this.currentOrInit();
+    const patch: Partial<ContextInit> = { workflowExecutionId: (id ?? null) as never };
+    const next = this.factory.withPatch(current, patch);
+    this.registry.update(next);
+    await this.publishChanged(['workflowExecutionId'], next);
+    return next;
+  }
+
+  /**
    * Explicitly (re)establish the context. Used for deep-linking and boot restore.
    * Validates every non-null reference against the owning subsystem.
    */

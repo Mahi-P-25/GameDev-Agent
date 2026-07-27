@@ -14,7 +14,7 @@ import {
   MissionProposalReady,
 } from '@gamedev-agent/producer';
 import type { Disposable } from '@gamedev-agent/shared';
-import { WORKFLOW_MANAGER_TOKEN, type WorkflowManager, isTerminal } from '@gamedev-agent/workflow';
+import { WORKFLOW_MANAGER_TOKEN, type WorkflowManager } from '@gamedev-agent/workflow';
 
 /** DI token for the {@link StudioOrchestrator}. */
 export const STUDIO_ORCHESTRATOR_TOKEN = createServiceToken<StudioOrchestrator>(
@@ -173,31 +173,18 @@ export class StudioOrchestrator implements Disposable {
     await this.coordinator.startExecution(mission.id);
 
     // 2. Workflow execution: bridge the plan into a WorkflowSource, then run it.
+    //    When a StepExecutor is set on the WorkflowManager (e.g. the Execution
+    //    Engine), `start()` automatically drives every step through the executor
+    //    and the run reaches `completed` before the promise resolves.
+    //    Without an executor (e.g. in tests or vertical-slice mode), manually
+    //    succeed every step so the run completes deterministically.
     const execution = await this.workflow.createFromSource(plan.toWorkflowSource());
-    await this.workflow.start(execution.id);
-    await this.driveToCompletion(execution.id);
-  }
-
-  /**
-   * Drive a freshly-started workflow run to a terminal state using a deterministic,
-   * model-free step executor. The Workflow Engine owns the step machinery; we only
-   * report success for every step so the run reaches `completed`. This is the
-   * slice's stand-in for the future Execution Engine, kept behind the existing
-   * `succeedStep` seam so no Workflow internals leak into the orchestrator.
-   */
-  private async driveToCompletion(executionId: string): Promise<void> {
-    let current = this.workflow.find(executionId as never);
-    let guard = 0;
-    while (current !== undefined && !isTerminal(current.state) && guard < 1000) {
-      guard += 1;
-      const pending = [...current.steps.values()].filter(
-        (s) => s.state === 'pending' || s.state === 'running',
-      );
-      if (pending.length === 0) {
-        break;
-      }
-      for (const step of pending) {
-        current = await this.workflow.succeedStep(executionId as never, step.stepId as never);
+    const started = await this.workflow.start(execution.id);
+    if (started.state === 'running' && this.workflow.executor === undefined) {
+      let current = started;
+      for (const stepId of current.plan.order) {
+        if (current.state !== 'running' || current.paused) break;
+        current = await this.workflow.succeedStep(current.id, stepId);
       }
     }
   }

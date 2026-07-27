@@ -290,6 +290,30 @@ export class StudioApi implements Disposable {
     await this.projects.delete(id as never);
   }
 
+  // --- goals (producer pipeline) -------------------------------------------
+
+  /**
+   * Submit a new Goal. This is the entry point to the Producer pipeline:
+   *
+   *   submitted → analysing → objectives_generated → mission_tree_generated
+   *   → review_package_generated → waiting_for_approval → approved
+   *
+   * The Studio Orchestrator drives the pipeline automatically via bus events;
+   * the returned goal id can be used to track progress through the studio home.
+   */
+  async submitGoal(request: {
+    projectId: string;
+    title: string;
+    description: string;
+  }): Promise<{ goalId: string; projectId: string }> {
+    const goal = await this.producer.submit({
+      projectId: request.projectId as never,
+      title: request.title,
+      description: request.description,
+    } as never);
+    return { goalId: String(goal.id), projectId: String(goal.projectId) };
+  }
+
   // --- missions ------------------------------------------------------------
 
   async createMission(request: CreateMissionRequest): Promise<StudioMission> {

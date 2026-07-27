@@ -173,22 +173,50 @@ export const REVIEWER_POLICY: ContextPolicy = {
   compression: { enabled: true, maxItemTokens: 3_000 },
 };
 
+export const GENERAL_POLICY: ContextPolicy = {
+  name: 'general',
+  roles: ['*'],
+  providerConfig: {
+    ['current-context' as string]: { enabled: true, priorityOverride: 0.8 },
+    ['task-graph' as string]: { enabled: true, priorityOverride: 0.7 },
+    ['tool-results' as string]: { enabled: true, priorityOverride: 0.7 },
+    ['file' as string]: { enabled: true, priorityOverride: 0.6 },
+    ['git' as string]: { enabled: true, priorityOverride: 0.5 },
+    ['memory' as string]: { enabled: true, priorityOverride: 0.4 },
+    ['mission' as string]: { enabled: true, priorityOverride: 0.5 },
+    ['goal' as string]: { enabled: true, priorityOverride: 0.5 },
+    ['user-preferences' as string]: { enabled: true, priorityOverride: 0.3 },
+    ['strategy' as string]: { enabled: true, priorityOverride: 0.2 },
+    ['architecture' as string]: { enabled: true, priorityOverride: 0.2 },
+    ['documentation' as string]: { enabled: true, priorityOverride: 0.1 },
+  },
+  ranking: DEFAULT_RANKING_WEIGHTS,
+  budget: DEFAULT_BUDGET_CONFIG,
+  compression: DEFAULT_COMPRESSION_CONFIG,
+};
+
 export const BUILT_IN_POLICIES: readonly ContextPolicy[] = [
   EXECUTOR_POLICY,
   ANALYST_POLICY,
   ARCHITECT_POLICY,
   CREATIVE_DIRECTOR_POLICY,
   REVIEWER_POLICY,
+  GENERAL_POLICY,
 ];
 
 export function findPolicyForRole(
   policies: readonly ContextPolicy[],
   role: AgentRole,
-): ContextPolicy | undefined {
+): ContextPolicy {
   for (const policy of policies) {
     if (policy.roles.includes(role)) {
       return policy;
     }
   }
-  return undefined;
+  for (const policy of policies) {
+    if (policy.roles.includes('*')) {
+      return policy;
+    }
+  }
+  return GENERAL_POLICY;
 }

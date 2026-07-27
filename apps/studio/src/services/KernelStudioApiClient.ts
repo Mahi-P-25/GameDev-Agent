@@ -1,9 +1,13 @@
+import { agentRuntimeModule } from '@gamedev-agent/agent-runtime';
 import { capabilityModule } from '@gamedev-agent/capabilities';
 import { MemoryConfigSource } from '@gamedev-agent/config';
 import { coordinatorModule } from '@gamedev-agent/coordinator';
 import { InMemoryEventBus } from '@gamedev-agent/events';
+import { executionEngineModule } from '@gamedev-agent/execution-engine';
 import { Kernel } from '@gamedev-agent/kernel';
 import { ConsoleLogSink, RootLogger } from '@gamedev-agent/logging';
+import { memoryModule } from '@gamedev-agent/memory';
+import { modelProvidersModule } from '@gamedev-agent/model-providers';
 import { plannerModule } from '@gamedev-agent/planner';
 import { producerModule } from '@gamedev-agent/producer';
 import { projectModule } from '@gamedev-agent/project';
@@ -61,9 +65,13 @@ async function bootStudioApi(): Promise<{ api: StudioApi; runtime: Runtime | nul
       producerModule,
       plannerModule,
       projectModule,
+      modelProvidersModule,
+      memoryModule,
+      agentRuntimeModule,
       toolRuntimeModule,
       browserTerminalModule,
       workflowModule,
+      executionEngineModule,
       intelligenceModule,
       runtimeModule,
       studioModule,

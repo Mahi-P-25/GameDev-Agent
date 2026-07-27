@@ -30,9 +30,6 @@ export class ContextResolver {
 
   resolve(request: ContextRequest): ResolvedProviders {
     const policy = findPolicyForRole(this.policies, request.role);
-    if (policy === undefined) {
-      throw new ContextPolicyError(request.role, `No policy registered for role "${request.role}"`);
-    }
 
     const requiredOverride = request.requiredSources;
     const excludedOverride = request.excludeSources;

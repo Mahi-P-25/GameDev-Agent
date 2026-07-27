@@ -14,7 +14,7 @@ Models executed on the user's own machine through the desktop runtime. They requ
 
 ### 2.2 Cloud Models
 
-Models hosted by external providers and accessed over the network. They offer larger capacity, broader context, and specialized capabilities (such as image or 3D generation) at the cost of latency, per-call pricing, and connectivity dependence.
+Models hosted by external providers and accessed over the network. They offer larger capacity, broader context, and specialized capabilities (such as image or 3D generation) at the cost of latency, per-call pricing, and connectivity dependence.    
 
 ### 2.3 Free Models
 

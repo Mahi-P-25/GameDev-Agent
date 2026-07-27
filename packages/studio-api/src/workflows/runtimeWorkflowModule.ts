@@ -32,7 +32,7 @@ import type { StudioKernel } from '@gamedev-agent/kernel';
 import { RUNTIME_TOKEN, type Runtime } from '@gamedev-agent/runtime';
 import { WorkflowCompleted, WorkflowFailed } from '@gamedev-agent/workflow';
 import type { WorkflowManager } from '@gamedev-agent/workflow';
-import { WORKFLOW_MANAGER_TOKEN } from '@gamedev-agent/workflow';
+import { WORKFLOW_EXECUTOR_TOKEN, WORKFLOW_MANAGER_TOKEN } from '@gamedev-agent/workflow';
 import { RuntimeWorkflowExecutor } from './RuntimeWorkflowExecutor';
 import { registerRuntimeWorkflowTemplates } from './RuntimeWorkflowTemplates';
 import { WorkflowRunner } from './WorkflowRunner';
@@ -59,20 +59,22 @@ export const runtimeWorkflowModule: {
     const manager = await kernel.services.resolve<WorkflowManager>(WORKFLOW_MANAGER_TOKEN);
 
     // The Runtime-backed step performer. The engine auto-drives any run once the
-    // executor is attached (it is constructed with no executor by workflowModule,
-    // so we attach it here).
-    const executor = new RuntimeWorkflowExecutor({
-      runtime,
-      workflow: manager,
-      bus: kernel.events,
-      logger: kernel.logger.child('runtime-workflow'),
-    });
-    manager.setExecutor(executor);
-    kernel.registerService({
-      token: RUNTIME_WORKFLOW_EXECUTOR_TOKEN,
-      singleton: true,
-      factory: () => executor,
-    });
+    // executor is attached. When a dedicated executor (e.g. Execution Engine) is
+    // already present via WORKFLOW_EXECUTOR_TOKEN, do not overwrite it.
+    if (!kernel.services.has(WORKFLOW_EXECUTOR_TOKEN)) {
+      const executor = new RuntimeWorkflowExecutor({
+        runtime,
+        workflow: manager,
+        bus: kernel.events,
+        logger: kernel.logger.child('runtime-workflow'),
+      });
+      manager.setExecutor(executor);
+      kernel.registerService({
+        token: RUNTIME_WORKFLOW_EXECUTOR_TOKEN,
+        singleton: true,
+        factory: () => executor,
+      });
+    }
 
     // Register the eight Runtime Workflow templates with the engine.
     await registerRuntimeWorkflowTemplates((definition) => manager.register(definition));

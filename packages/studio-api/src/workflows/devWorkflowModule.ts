@@ -47,10 +47,11 @@ export const devWorkflowModule: {
     const projectManager = await kernel.services.resolve<ProjectManager>(PROJECT_MANAGER_TOKEN);
 
     // Register the step executor (tool-invoking performer) for the Workflow Engine.
-    // The `WorkflowManager` is constructed by `workflowModule` before this module
-    // runs, so we attach the executor explicitly (the engine auto-drives any run
-    // once it is present). We also publish it as a token for discoverability.
-    if (kernel.services.has(TOOL_RUNTIME_TOKEN)) {
+    // Only register when no executor token exists yet (e.g. when the
+    // Execution Engine module is absent). When a dedicated AI-execution module
+    // provides WORKFLOW_EXECUTOR_TOKEN, prefer it over the deterministic
+    // tool-invoking performer.
+    if (kernel.services.has(TOOL_RUNTIME_TOKEN) && !kernel.services.has(WORKFLOW_EXECUTOR_TOKEN)) {
       const toolManager = await kernel.services.resolve<ToolManager>(TOOL_RUNTIME_TOKEN);
       const executor = new DevelopmentWorkflowExecutor(toolManager, projectManager);
       manager.setExecutor(executor);

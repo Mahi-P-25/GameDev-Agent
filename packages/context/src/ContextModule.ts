@@ -58,19 +58,53 @@ export const CONTEXT_CACHE_TOKEN = createServiceToken<ContextCache>('nova.contex
 export const contextModule: KernelModule = {
   name: 'nova.context',
   async register(kernel: StudioKernel): Promise<void> {
-    const workspaceManager = await resolveOptional<WorkspaceManager>(
-      kernel,
-      WORKSPACE_MANAGER_TOKEN,
-    );
-    const projectManager = await resolveOptional<ProjectManager>(kernel, PROJECT_MANAGER_TOKEN);
-    const producerManager = await resolveOptional<ProducerManager>(kernel, PRODUCER_MANAGER_TOKEN);
-    const coordinatorManager = await resolveOptional<CoordinatorManager>(
-      kernel,
-      COORDINATOR_MANAGER_TOKEN,
-    );
-    const workflowManager = await resolveOptional<WorkflowManager>(kernel, WORKFLOW_MANAGER_TOKEN);
+    // Register every token FIRST so lazy factory chains that resolve during
+    // the optional-dependency lookups below can find them.  The CONTEXT_PIPELINE
+    // factory is self-contained (no container resolves).  CONTEXT_MANAGER's
+    // factory captures the *bindings* of the optional managers; when the factory
+    // is called during the lookups the bindings are still undefined, so any
+    // existence guards are skipped (harmless — they only gate validation for
+    // callers that supply the managers).
+    kernel.registerService({
+      token: CONTEXT_PROVIDER_REGISTRY_TOKEN,
+      singleton: true,
+      factory: () => new ProviderRegistry(),
+    });
+    kernel.registerService({
+      token: CONTEXT_CACHE_TOKEN,
+      singleton: true,
+      factory: () => new ContextCache(),
+    });
+    kernel.registerService({
+      token: CONTEXT_POLICIES_TOKEN,
+      singleton: true,
+      factory: () => BUILT_IN_POLICIES,
+    });
+    kernel.registerService({
+      token: CONTEXT_PIPELINE_TOKEN,
+      factory: (_container) => {
+        const registry = new ProviderRegistry();
+        const policies = BUILT_IN_POLICIES;
+        const builder = new ContextBuilder();
+        const ranker = new ContextRanker();
+        const budget = new TokenBudget();
+        const deduplicator = new ContextDeduplicator();
+        const compressor = new ContextCompressor();
+        const resolver = new ContextResolver(registry, policies);
+        return new ContextPipeline(resolver, builder, deduplicator, ranker, budget, compressor);
+      },
+      singleton: true,
+    });
 
-    // --- ContextManager (existing) ---
+    let workspaceManager: WorkspaceManager | undefined;
+    let projectManager: ProjectManager | undefined;
+    let producerManager: ProducerManager | undefined;
+    let coordinatorManager: CoordinatorManager | undefined;
+    let workflowManager: WorkflowManager | undefined;
+
+    // Register CONTEXT_MANAGER before the resolves so the lazy chain can find
+    // it.  The factory closure reads the `let` variables which are still
+    // undefined here — the ContextManager handles absent guards gracefully.
     kernel.registerService({
       token: CONTEXT_MANAGER_TOKEN,
       singleton: true,
@@ -101,47 +135,26 @@ export const contextModule: KernelModule = {
         }),
     });
 
-    // --- Provider Registry ---
-    kernel.registerService({
-      token: CONTEXT_PROVIDER_REGISTRY_TOKEN,
-      singleton: true,
-      factory: () => new ProviderRegistry(),
-    });
+    // Resolve optional dependencies AFTER all tokens are registered so any
+    // lazy resolution chain triggered by the lookups can find every token.
+    await Promise.all([
+      resolveOptional<WorkspaceManager>(kernel, WORKSPACE_MANAGER_TOKEN).then((v) => {
+        workspaceManager = v;
+      }),
+      resolveOptional<ProjectManager>(kernel, PROJECT_MANAGER_TOKEN).then((v) => {
+        projectManager = v;
+      }),
+      resolveOptional<ProducerManager>(kernel, PRODUCER_MANAGER_TOKEN).then((v) => {
+        producerManager = v;
+      }),
+      resolveOptional<CoordinatorManager>(kernel, COORDINATOR_MANAGER_TOKEN).then((v) => {
+        coordinatorManager = v;
+      }),
+      resolveOptional<WorkflowManager>(kernel, WORKFLOW_MANAGER_TOKEN).then((v) => {
+        workflowManager = v;
+      }),
+    ]);
 
-    // --- Context Cache ---
-    kernel.registerService({
-      token: CONTEXT_CACHE_TOKEN,
-      singleton: true,
-      factory: () => new ContextCache(),
-    });
-
-    // --- Built-in Policies ---
-    kernel.registerService({
-      token: CONTEXT_POLICIES_TOKEN,
-      singleton: true,
-      factory: () => BUILT_IN_POLICIES,
-    });
-
-    // --- Lazy Pipeline (resolves dependencies on first execute) ---
-    kernel.registerService({
-      token: CONTEXT_PIPELINE_TOKEN,
-      factory: (_container) => {
-        const registry = new ProviderRegistry();
-        const policies = BUILT_IN_POLICIES;
-        const builder = new ContextBuilder();
-        const ranker = new ContextRanker();
-        const budget = new TokenBudget();
-        const deduplicator = new ContextDeduplicator();
-        const compressor = new ContextCompressor();
-        const resolver = new ContextResolver(registry, policies);
-
-        return new ContextPipeline(resolver, builder, deduplicator, ranker, budget, compressor);
-      },
-      singleton: true,
-    });
-
-    // Start subscriptions only after the full boot so the bus is fully wired and
-    // sibling subsystems are present. `ContextManager.start()` is idempotent.
     kernel.lifecycle.on('running', () => {
       void kernel.services.resolve(CONTEXT_MANAGER_TOKEN).then((manager) => {
         manager.start();

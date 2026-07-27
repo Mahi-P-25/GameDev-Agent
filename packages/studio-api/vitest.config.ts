@@ -20,6 +20,11 @@ export default defineConfig({
       '@gamedev-agent/vscode': resolve('../vscode/src/index.ts'),
       '@gamedev-agent/workflow': resolve('../workflow/src/index.ts'),
       '@gamedev-agent/studio-api': resolve('./src/index.ts'),
+      '@gamedev-agent/context': resolve('../context/src/index.ts'),
+      '@gamedev-agent/memory': resolve('../memory/src/index.ts'),
+      '@gamedev-agent/model-providers': resolve('../model-providers/src/index.ts'),
+      '@gamedev-agent/agent-runtime': resolve('../agent-runtime/src/index.ts'),
+      '@gamedev-agent/execution-engine': resolve('../execution-engine/src/index.ts'),
     },
   },
   test: {

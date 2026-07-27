@@ -37,11 +37,14 @@ import { runtimeWorkflowModule } from './workflows/runtimeWorkflowModule';
 export const studioModule: KernelModule = {
   name: 'nova.studio-api',
   async register(kernel: StudioKernel): Promise<void> {
-    // Register the subsystems that contribute their own tokens (the orchestrator
-    // and the Development Workflows runner) *before* we resolve everything, so
-    // their tokens exist when we read them below. This module runs in the
-    // `service-registry` stage alongside the others, so ordering within this
-    // hook is what guarantees availability.
+    // Register *all* token-owning subsystems before resolving anything, so
+    // every lazy factory chain triggered by a resolve finds every token it
+    // needs.  contextModule must come first because resolving WORKFLOW_MANAGER
+    // (in studioOrchestratorModule) triggers the Execution Engine's lazy chain
+    // which reaches into CONTEXT_PIPELINE — registered by contextModule.
+    if (contextModule.register !== undefined) {
+      await contextModule.register(kernel);
+    }
     if (studioOrchestratorModule.register !== undefined) {
       await studioOrchestratorModule.register(kernel);
     }
@@ -50,9 +53,6 @@ export const studioModule: KernelModule = {
     }
     if (runtimeWorkflowModule.register !== undefined) {
       await runtimeWorkflowModule.register(kernel);
-    }
-    if (contextModule.register !== undefined) {
-      await contextModule.register(kernel);
     }
 
     const [

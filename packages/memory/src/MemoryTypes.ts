@@ -23,7 +23,8 @@ export type MemoryCategory =
   | 'workflow'
   | 'preference'
   | 'pattern'
-  | 'note';
+  | 'note'
+  | 'execution';
 
 export type MemoryConfidence = 'low' | 'medium' | 'high' | 'verified';
 
@@ -123,6 +124,7 @@ export const MEMORY_CATEGORIES: ReadonlyArray<MemoryCategory> = [
   'preference',
   'pattern',
   'note',
+  'execution',
 ];
 
 export const MEMORY_CONFIDENCE_ORDER: Readonly<Record<MemoryConfidence, number>> = {

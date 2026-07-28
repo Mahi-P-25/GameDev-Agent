@@ -28,6 +28,7 @@
     "@gamedev-agent/events": "workspace:*",
     "@gamedev-agent/kernel": "workspace:*",
     "@gamedev-agent/logging": "workspace:*",
+    "@gamedev-agent/runtime": "workspace:*",
     "@gamedev-agent/shared": "workspace:*",
     "@gamedev-agent/vscode": "workspace:*"
   },

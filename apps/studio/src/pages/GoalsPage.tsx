@@ -2,10 +2,6 @@ import type { GoalStatus } from '../adapters/types';
 import { Page } from '../components/layout/Page';
 import {
   Badge,
-  Card,
-  EmptyState,
-  PlaceholderBadge,
-  ProgressBar,
   intentColor,
 } from '../components/ui/primitives';
 import { useStudioData } from '../studio/StudioDataProvider';
@@ -23,49 +19,44 @@ export function GoalsPage(): React.ReactNode {
   const items = goals.list();
 
   return (
-    <Page title="Goals" status="ready">
-      <div className="nova-col--12">
-        <Card
-          title="Goals"
-          subtitle="Studio-level objectives for the current sprint"
-          actions={<PlaceholderBadge />}
-        >
-          {items.length === 0 ? (
-            <EmptyState title="No goals defined" />
-          ) : (
-            <div className="nova-list">
-              {items.map((g) => (
-                <div key={g.id} className="nova-list__item">
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div className="nova-row" style={{ gap: 8 }}>
-                      <div style={{ fontWeight: 500 }}>{g.title}</div>
-                      <Badge intent={GOAL_INTENT[g.status]} dot>
-                        {g.status}
-                      </Badge>
-                    </div>
-                    <div className="nova-subtle" style={{ fontSize: 12.5, marginTop: 2 }}>
-                      {g.description}
-                    </div>
-                    <div className="nova-row" style={{ marginTop: 8, gap: 10, maxWidth: 360 }}>
-                      <div style={{ flex: 1 }}>
-                        <ProgressBar value={g.progress} intent={GOAL_INTENT[g.status]} />
-                      </div>
-                      <span
-                        className="nova-mono"
-                        style={{ color: intentColor(GOAL_INTENT[g.status]) }}
-                      >
-                        {g.progress}%
-                      </span>
-                    </div>
+    <Page title="Goals">
+      <div className="glass-panel p-6">
+        <h2 className="text-sm font-semibold text-[#f5f5f5]">Goals</h2>
+        <p className="mt-0.5 text-xs text-[#8a8a8a]">Studio-level objectives for the current sprint</p>
+        {items.length === 0 ? (
+          <p className="mt-4 text-sm text-[#5c5c5c]">No goals defined.</p>
+        ) : (
+          <div className="mt-4 divide-y divide-[rgba(255,255,255,0.06)]">
+            {items.map((g) => (
+              <div key={g.id} className="flex items-start gap-4 py-3">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-[#f5f5f5]">{g.title}</span>
+                    <Badge intent={GOAL_INTENT[g.status]} dot>
+                      {g.status}
+                    </Badge>
                   </div>
-                  <div className="nova-subtle" style={{ fontSize: 11.5, whiteSpace: 'nowrap' }}>
-                    {g.dueLabel}
+                  <div className="mt-0.5 text-xs text-[#5c5c5c]">{g.description}</div>
+                  <div className="mt-2 flex items-center gap-2.5" style={{ maxWidth: 360 }}>
+                    <div className="flex-1">
+                      <div className="h-1.5 overflow-hidden rounded-full bg-[rgba(255,255,255,0.06)]">
+                        <div
+                          className="h-full rounded-full transition-all duration-300"
+                          style={{
+                            width: `${g.progress}%`,
+                            background: intentColor(GOAL_INTENT[g.status]),
+                          }}
+                        />
+                      </div>
+                    </div>
+                    <span className="text-[11px] font-mono text-[#8a8a8a]">{g.progress}%</span>
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
-        </Card>
+                <div className="shrink-0 text-xs text-[#5c5c5c]">{g.dueLabel}</div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </Page>
   );

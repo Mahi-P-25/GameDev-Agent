@@ -11,6 +11,7 @@
       "@gamedev-agent/kernel": ["packages/kernel/dist/index.d.ts"],
       "@gamedev-agent/coordinator": ["packages/coordinator/dist/index.d.ts"],
       "@gamedev-agent/capabilities": ["packages/capabilities/dist/index.d.ts"],
+      "@gamedev-agent/runtime": ["packages/runtime/dist/index.d.ts"],
       "@gamedev-agent/vscode": ["packages/vscode/dist/index.d.ts"]
     }
   },

@@ -320,7 +320,7 @@ describe('ExecutionEngine', () => {
         return makeResponse({
           content: 'Calling tools...',
           toolCalls: [
-            { id: 'tc-1', type: 'function', function: { name: 'filesystem.read', arguments: '{}' } },
+            { id: 'tc-1', type: 'function', function: { name: 'read', arguments: '{}' } },
           ],
           finishReason: 'tool_calls',
         });
@@ -352,7 +352,7 @@ describe('ExecutionEngine', () => {
         if (callCount <= 1) {
           return Promise.resolve(makeResponse({
             toolCalls: [
-              { id: 'tc-1', type: 'function', function: { name: 'fs.read', arguments: '{}' } } as ToolCall,
+              { id: 'tc-1', type: 'function', function: { name: 'read', arguments: '{}' } } as ToolCall,
             ],
             finishReason: 'tool_calls',
           }));
@@ -526,7 +526,7 @@ describe('ExecutionEngine', () => {
       generate: vi.fn().mockResolvedValue(makeResponse({
         content: 'Calling tool...',
         toolCalls: [
-          { id: 'tc-1', type: 'function', function: { name: 'test', arguments: '{}' } } as ToolCall,
+          { id: 'tc-1', type: 'function', function: { name: 'run', arguments: '{}' } } as ToolCall,
         ],
         finishReason: 'tool_calls',
       })),
@@ -562,32 +562,310 @@ describe('ExecutionEngine', () => {
 });
 
 describe('ToolBridge', () => {
-  it('invokes a single tool', async () => {
-    const toolManager = {
-      invoke: vi.fn().mockResolvedValue({
-        ok: true,
-        toolId: 'fs.read',
-        action: 'read',
-        durationMs: 50,
-        output: { content: 'data' },
-      }),
-    } as unknown as ToolManager;
+  it('resolves a tool name through the action registry', async () => {
+    const invoke = vi.fn().mockResolvedValue({
+      ok: true,
+      toolId: 'nova.tool.vscode',
+      action: 'files.write',
+      durationMs: 50,
+      output: null,
+    });
+    const toolManager = { invoke } as unknown as ToolManager;
     const bus = new InMemoryEventBus('test');
-    const bridge = new ToolBridge(
-      toolManager,
-      bus,
-      'exec-1',
-      'step-1',
-      1,
-      noopLogger,
-    );
+    const registry = new Map([
+      ['files.write', { toolId: 'nova.tool.vscode', action: 'files.write' }],
+    ]);
+    const bridge = new ToolBridge(toolManager, bus, 'exec-1', 'step-1', 1, registry, noopLogger);
 
     const toolCalls: ToolCall[] = [
-      { id: 'tc-1', type: 'function', function: { name: 'fs.read', arguments: '{}' } },
+      { id: 'tc-1', type: 'function', function: { name: 'files.write', arguments: '{"path":"src/main.js","content":"import * as THREE from \"three\";"}' } },
     ];
 
     const results = await bridge.invokeAll(toolCalls);
     expect(results).toHaveLength(1);
     expect(results[0]?.ok).toBe(true);
+    expect(invoke).toHaveBeenCalledWith(
+      expect.objectContaining({
+        toolId: 'nova.tool.vscode',
+        action: 'files.write',
+      }),
+    );
+  });
+
+  it('returns ok: false for an unknown action name', async () => {
+    const toolManager = { invoke: vi.fn() } as unknown as ToolManager;
+    const bus = new InMemoryEventBus('test');
+    const registry = new Map<string, { toolId: string; action: string }>();
+    const bridge = new ToolBridge(toolManager, bus, 'exec-1', 'step-1', 1, registry);
+
+    const toolCalls: ToolCall[] = [
+      { id: 'tc-1', type: 'function', function: { name: 'nonexistent.action', arguments: '{}' } },
+    ];
+
+    const results = await bridge.invokeAll(toolCalls);
+    expect(results).toHaveLength(1);
+    expect(results[0]?.ok).toBe(false);
+    expect(toolManager.invoke).not.toHaveBeenCalled();
+  });
+});
+
+// ─── Integration: Action Registry + Project Generation Flow ─────────────────
+
+describe('Action registry (loadTools flattens actions)', () => {
+  it('creates one ToolDefinition per action with action name as tool name', async () => {
+    const toolManager = {
+      list: vi.fn().mockReturnValue([
+        {
+          descriptor: {
+            id: 'nova.tool.vscode',
+            description: 'VS Code editor',
+            capabilities: [
+              { id: 'filesystem', name: 'Filesystem', actions: ['files.create', 'files.write', 'files.read'] },
+            ],
+          },
+        },
+        {
+          descriptor: {
+            id: 'nova.tool.terminal',
+            description: 'Terminal',
+            capabilities: [
+              { id: 'shell', name: 'Shell', actions: ['terminal.run', 'terminal.start'] },
+            ],
+          },
+        },
+        {
+          descriptor: {
+            id: 'nova.tool.git',
+            description: 'Git',
+            capabilities: [
+              { id: 'repository', name: 'Repository', actions: ['git.init'] },
+              { id: 'commits', name: 'Commits', actions: ['git.commit'] },
+            ],
+          },
+        },
+      ]),
+      invoke: vi.fn(),
+    } as unknown as ToolManager;
+
+    const modelProviders = {
+      generate: vi.fn().mockResolvedValue(makeResponse()),
+      findModels: vi.fn().mockReturnValue([{ id: 'gpt-4o', provider: 'openai' }]),
+    } as unknown as ModelProvidersService;
+
+    const pipeline = { execute: vi.fn().mockResolvedValue(makeContextPackage()) } as unknown as ContextPipeline;
+    const contextManager = { getCurrentContext: vi.fn().mockResolvedValue({} as any) } as any;
+    const assembler = new ContextAssembler(pipeline, contextManager, modelProviders, noopLogger);
+    const dispatcher = new AgentDispatcher({} as any, modelProviders, noopLogger);
+    const recorder = new MemoryRecorder({ storeEntry: vi.fn() } as any, noopLogger);
+    const bus = new InMemoryEventBus('test');
+
+    const engine = new ExecutionEngine({
+      contextAssembler: assembler,
+      agentDispatcher: dispatcher,
+      toolManager,
+      memoryRecorder: recorder,
+      eventBus: bus,
+      logger: noopLogger,
+      defaultTimeoutMs: 10_000,
+      maxToolRounds: 5,
+    });
+
+    const result = await engine.execute(
+      aStep({ requiredCapability: 'code-generation' }),
+      aContext(),
+    );
+
+    expect(result.ok).toBe(true);
+    // The model returned no tool calls, so loadTools was exercised but no tools invoked
+    expect(toolManager.invoke).not.toHaveBeenCalled();
+  });
+});
+
+describe('Project generation flow', () => {
+  it('routes filesystem + terminal + git tool calls through the full tool loop', async () => {
+    const roundPlan: Array<{ content: string; tools: Array<{ name: string; args: Record<string, unknown> }>; finish: 'tool_calls' | 'stop' }> = [
+      {
+        content: 'Creating project files...',
+        tools: [
+          { name: 'files.create', args: { path: '/project', kind: 'directory' } },
+          { name: 'files.write', args: { path: '/project/package.json', content: '{"name":"test"}' } },
+          { name: 'files.write', args: { path: '/project/index.html', content: '<html></html>' } },
+          { name: 'files.write', args: { path: '/project/src/main.js', content: 'import * as THREE from "three";' } },
+        ],
+        finish: 'tool_calls',
+      },
+      {
+        content: 'Installing dependencies...',
+        tools: [
+          { name: 'terminal.run', args: { command: 'npm', args: ['init', '-y'], cwd: '/project' } },
+        ],
+        finish: 'tool_calls',
+      },
+      {
+        content: 'Initializing git...',
+        tools: [
+          { name: 'git.init', args: {} },
+        ],
+        finish: 'tool_calls',
+      },
+      {
+        content: 'Committing...',
+        tools: [
+          { name: 'git.commit', args: { message: 'Initial commit' } },
+        ],
+        finish: 'tool_calls',
+      },
+      {
+        content: 'Done!',
+        tools: [],
+        finish: 'stop',
+      },
+    ];
+
+    let roundIndex = 0;
+
+    const registeredTools = [
+      {
+        descriptor: {
+          id: 'nova.tool.vscode',
+          description: 'VS Code editor',
+          capabilities: [
+            { id: 'filesystem', name: 'Filesystem', actions: ['files.create', 'files.write', 'files.read', 'files.list', 'files.delete', 'files.rename'] },
+          ],
+        },
+      },
+      {
+        descriptor: {
+          id: 'nova.tool.terminal',
+          description: 'Terminal',
+          capabilities: [
+            { id: 'shell', name: 'Shell', actions: ['terminal.run', 'terminal.start', 'terminal.stop', 'terminal.output'] },
+          ],
+        },
+      },
+      {
+        descriptor: {
+          id: 'nova.tool.git',
+          description: 'Git',
+          capabilities: [
+            { id: 'repository', name: 'Repository', actions: ['git.init'] },
+            { id: 'status', name: 'Status', actions: ['git.status'] },
+            { id: 'commits', name: 'Commits', actions: ['git.commit'] },
+          ],
+        },
+      },
+    ];
+
+    const toolManager = {
+      list: vi.fn().mockReturnValue(registeredTools),
+      invoke: vi.fn().mockImplementation((request: { toolId: string; action: string; input: Record<string, unknown> }) => {
+        return Promise.resolve({
+          ok: true,
+          toolId: request.toolId,
+          action: request.action,
+          durationMs: 10,
+          output: request.action === 'git.commit' ? { hash: 'abc123', message: (request.input.message as string) ?? 'Nova commit' } : null,
+        });
+      }),
+    } as unknown as ToolManager;
+
+    const modelProviders = {
+      generate: vi.fn().mockImplementation(() => {
+        const plan = roundPlan[roundIndex];
+        if (plan === undefined) {
+          return Promise.resolve(makeResponse({ content: 'Done.', finishReason: 'stop' }));
+        }
+        roundIndex += 1;
+        return Promise.resolve(makeResponse({
+          content: plan.content,
+          toolCalls: plan.tools.map((t, i) => ({
+            id: `tc-${roundIndex}-${i}`,
+            type: 'function' as const,
+            function: { name: t.name, arguments: JSON.stringify(t.args) },
+          })),
+          finishReason: plan.finish,
+        }));
+      }),
+      findModels: vi.fn().mockReturnValue([{ id: 'gpt-4o', provider: 'openai' }]),
+    } as unknown as ModelProvidersService;
+
+    const pipeline = { execute: vi.fn().mockResolvedValue(makeContextPackage()) } as unknown as ContextPipeline;
+    const contextManager = { getCurrentContext: vi.fn().mockResolvedValue({} as any) } as any;
+    const assembler = new ContextAssembler(pipeline, contextManager, modelProviders, noopLogger);
+    const dispatcher = new AgentDispatcher({} as any, modelProviders, noopLogger);
+    const recorder = new MemoryRecorder({ storeEntry: vi.fn() } as any, noopLogger);
+    const bus = new InMemoryEventBus('test');
+
+    const engine = new ExecutionEngine({
+      contextAssembler: assembler,
+      agentDispatcher: dispatcher,
+      toolManager,
+      memoryRecorder: recorder,
+      eventBus: bus,
+      logger: noopLogger,
+      defaultTimeoutMs: 10_000,
+      maxToolRounds: 10,
+    });
+
+    const result = await engine.execute(
+      aStep({ requiredCapability: 'code-generation' }),
+      aContext(),
+    );
+
+    expect(result.ok).toBe(true);
+    expect(roundIndex).toBe(5);
+
+    // Verify each invoke call received the correct (toolId, action, input)
+    const invokeCalls = (toolManager.invoke as ReturnType<typeof vi.fn>).mock.calls;
+
+    // Round 1: files.create
+    expect(invokeCalls[0]?.[0]).toMatchObject({
+      toolId: 'nova.tool.vscode',
+      action: 'files.create',
+      input: { path: '/project', kind: 'directory' },
+    });
+
+    // Round 1: files.write (first)
+    expect(invokeCalls[1]?.[0]).toMatchObject({
+      toolId: 'nova.tool.vscode',
+      action: 'files.write',
+      input: { path: '/project/package.json', content: '{"name":"test"}' },
+    });
+
+    // Round 1: files.write (second)
+    expect(invokeCalls[2]?.[0]).toMatchObject({
+      toolId: 'nova.tool.vscode',
+      action: 'files.write',
+      input: { path: '/project/index.html', content: '<html></html>' },
+    });
+
+    // Round 1: files.write (third)
+    expect(invokeCalls[3]?.[0]).toMatchObject({
+      toolId: 'nova.tool.vscode',
+      action: 'files.write',
+      input: { path: '/project/src/main.js', content: 'import * as THREE from "three";' },
+    });
+
+    // Round 2: terminal.run
+    expect(invokeCalls[4]?.[0]).toMatchObject({
+      toolId: 'nova.tool.terminal',
+      action: 'terminal.run',
+      input: { command: 'npm', args: ['init', '-y'], cwd: '/project' },
+    });
+
+    // Round 3: git.init
+    expect(invokeCalls[5]?.[0]).toMatchObject({
+      toolId: 'nova.tool.git',
+      action: 'git.init',
+    });
+
+    // Round 4: git.commit
+    expect(invokeCalls[6]?.[0]).toMatchObject({
+      toolId: 'nova.tool.git',
+      action: 'git.commit',
+      input: { message: 'Initial commit' },
+    });
+
+    expect(invokeCalls).toHaveLength(7);
   });
 });

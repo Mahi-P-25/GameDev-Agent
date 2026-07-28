@@ -1,5 +1,5 @@
 import { Page } from '../components/layout/Page';
-import { Badge, Card, PlaceholderBadge, StatusDot } from '../components/ui/primitives';
+import { Badge, StatusDot } from '../components/ui/primitives';
 import { useStudioData } from '../studio/StudioDataProvider';
 
 /**
@@ -15,19 +15,25 @@ export function SettingsPage(): React.ReactNode {
   const workspace = api.getWorkspace();
 
   return (
-    <Page title="Settings" status="ready">
-      <div className="nova-col--6">
-        <Card title="Workspace" subtitle="Studio-wide configuration">
-          <div className="nova-kv">
-            <div className="nova-kv__key">Projects</div>
-            <div className="nova-kv__val">{workspace.projectCount}</div>
-            <div className="nova-kv__key">Missions</div>
-            <div className="nova-kv__val">{workspace.missionCount}</div>
-            <div className="nova-kv__key">Dependencies</div>
-            <div className="nova-kv__val">
-              <div className="nova-row" style={{ gap: 8, flexWrap: 'wrap' }}>
+    <Page title="Settings">
+      <div className="glass-panel grid gap-6 p-6 md:grid-cols-2">
+        <div className="rounded-xl border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.02)] p-5">
+          <h2 className="text-sm font-semibold text-[#f5f5f5]">Workspace</h2>
+          <p className="mt-0.5 text-xs text-[#8a8a8a]">Studio-wide configuration</p>
+          <div className="mt-4 space-y-3">
+            <div className="flex justify-between text-sm">
+              <span className="text-[#8a8a8a]">Projects</span>
+              <span className="text-[#f5f5f5]">{workspace.projectCount}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-[#8a8a8a]">Missions</span>
+              <span className="text-[#f5f5f5]">{workspace.missionCount}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-[#8a8a8a]">Dependencies</span>
+              <div className="flex flex-wrap gap-2">
                 {workspace.dependencies.map((d) => (
-                  <span key={d.name} className="nova-row" style={{ fontSize: 12.5, gap: 6 }}>
+                  <span key={d.name} className="flex items-center gap-1.5 text-xs text-[#8a8a8a]">
                     <StatusDot
                       intent={
                         d.status === 'up'
@@ -37,56 +43,37 @@ export function SettingsPage(): React.ReactNode {
                             : 'danger'
                       }
                     />
-                    <span className="nova-muted">{d.name}</span>
+                    {d.name}
                   </span>
                 ))}
               </div>
             </div>
-            <div className="nova-kv__key">Readiness</div>
-            <div className="nova-kv__val">
+            <div className="flex justify-between text-sm">
+              <span className="text-[#8a8a8a]">Readiness</span>
               <Badge intent={workspace.ready ? 'success' : 'neutral'} dot>
                 {workspace.ready ? 'Ready' : 'Connecting…'}
               </Badge>
             </div>
           </div>
-        </Card>
-      </div>
+        </div>
 
-      <div className="nova-col--6">
-        <Card title="Appearance" subtitle="Theme preferences" actions={<PlaceholderBadge />}>
-          <div className="nova-stack">
-            <div className="nova-row" style={{ justifyContent: 'space-between' }}>
+        <div className="rounded-xl border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.02)] p-5">
+          <h2 className="text-sm font-semibold text-[#f5f5f5]">Appearance</h2>
+          <p className="mt-0.5 text-xs text-[#8a8a8a]">Theme preferences</p>
+          <div className="mt-4 space-y-3">
+            <div className="flex items-center justify-between">
               <div>
-                <div style={{ fontWeight: 500 }}>Theme</div>
-                <div className="nova-subtle" style={{ fontSize: 12.5 }}>
-                  Nova Studio is dark-first. A theme picker arrives with the Workspace settings API.
-                </div>
+                <div className="text-sm font-medium text-[#f5f5f5]">Theme</div>
+                <div className="text-xs text-[#5c5c5c]">Nova Studio is dark-first.</div>
               </div>
               <Badge intent="neutral">dark</Badge>
             </div>
-            <div
-              className="nova-row"
-              style={{
-                gap: 8,
-                padding: 'var(--space-3)',
-                background: 'var(--color-bg-hover)',
-                borderRadius: 'var(--radius-md)',
-              }}
-            >
-              <span
-                style={{
-                  width: 28,
-                  height: 28,
-                  borderRadius: 6,
-                  background: 'linear-gradient(135deg, var(--color-primary), var(--color-accent))',
-                }}
-              />
-              <span className="nova-subtle" style={{ fontSize: 12 }}>
-                Theme customization is a placeholder in Sprint 10.
-              </span>
+            <div className="flex items-center gap-3 rounded-lg bg-[rgba(255,255,255,0.03)] p-3">
+              <span className="h-7 w-7 shrink-0 rounded-md bg-gradient-to-br from-[#d4af37] to-[#5b7cfa]" />
+              <span className="text-xs text-[#5c5c5c]">Theme customization placeholder.</span>
             </div>
           </div>
-        </Card>
+        </div>
       </div>
     </Page>
   );

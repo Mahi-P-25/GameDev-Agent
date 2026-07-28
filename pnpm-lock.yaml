@@ -50,15 +50,66 @@ importers:
       '@fontsource/source-serif-4':
         specifier: ^5.3.0
         version: 5.3.0
+      '@gamedev-agent/agent-runtime':
+        specifier: workspace:*
+        version: link:../../packages/agent-runtime
+      '@gamedev-agent/capabilities':
+        specifier: workspace:*
+        version: link:../../packages/capabilities
+      '@gamedev-agent/config':
+        specifier: workspace:*
+        version: link:../../packages/config
+      '@gamedev-agent/coordinator':
+        specifier: workspace:*
+        version: link:../../packages/coordinator
+      '@gamedev-agent/events':
+        specifier: workspace:*
+        version: link:../../packages/events
+      '@gamedev-agent/execution-engine':
+        specifier: workspace:*
+        version: link:../../packages/execution-engine
+      '@gamedev-agent/intelligence':
+        specifier: workspace:*
+        version: link:../../packages/intelligence
       '@gamedev-agent/kernel':
         specifier: workspace:*
         version: link:../../packages/kernel
+      '@gamedev-agent/logging':
+        specifier: workspace:*
+        version: link:../../packages/logging
+      '@gamedev-agent/memory':
+        specifier: workspace:*
+        version: link:../../packages/memory
+      '@gamedev-agent/model-providers':
+        specifier: workspace:*
+        version: link:../../packages/model-providers
+      '@gamedev-agent/planner':
+        specifier: workspace:*
+        version: link:../../packages/planner
+      '@gamedev-agent/producer':
+        specifier: workspace:*
+        version: link:../../packages/producer
+      '@gamedev-agent/project':
+        specifier: workspace:*
+        version: link:../../packages/project
+      '@gamedev-agent/runtime':
+        specifier: workspace:*
+        version: link:../../packages/runtime
       '@gamedev-agent/shared':
         specifier: workspace:*
         version: link:../../packages/shared
       '@gamedev-agent/studio-api':
         specifier: workspace:*
         version: link:../../packages/studio-api
+      '@gamedev-agent/terminal':
+        specifier: workspace:*
+        version: link:../../packages/terminal
+      '@gamedev-agent/tool-runtime':
+        specifier: workspace:*
+        version: link:../../packages/tool-runtime
+      '@gamedev-agent/workflow':
+        specifier: workspace:*
+        version: link:../../packages/workflow
       '@hookform/resolvers':
         specifier: ^5.4.0
         version: 5.4.0(react-hook-form@7.82.0(react@18.3.1))
@@ -420,6 +471,55 @@ importers:
         specifier: ^2.1.1
         version: 2.1.9(@types/node@22.20.1)(lightningcss@1.32.0)
 
+  packages/execution-engine:
+    dependencies:
+      '@gamedev-agent/agent-runtime':
+        specifier: workspace:*
+        version: link:../agent-runtime
+      '@gamedev-agent/context':
+        specifier: workspace:*
+        version: link:../context
+      '@gamedev-agent/di':
+        specifier: workspace:*
+        version: link:../di
+      '@gamedev-agent/events':
+        specifier: workspace:*
+        version: link:../events
+      '@gamedev-agent/kernel':
+        specifier: workspace:*
+        version: link:../kernel
+      '@gamedev-agent/logging':
+        specifier: workspace:*
+        version: link:../logging
+      '@gamedev-agent/memory':
+        specifier: workspace:*
+        version: link:../memory
+      '@gamedev-agent/model-providers':
+        specifier: workspace:*
+        version: link:../model-providers
+      '@gamedev-agent/shared':
+        specifier: workspace:*
+        version: link:../shared
+      '@gamedev-agent/tool-runtime':
+        specifier: workspace:*
+        version: link:../tool-runtime
+      '@gamedev-agent/workflow':
+        specifier: workspace:*
+        version: link:../workflow
+    devDependencies:
+      '@biomejs/biome':
+        specifier: ^1.9.3
+        version: 1.9.4
+      tsup:
+        specifier: ^8.3.0
+        version: 8.5.1(jiti@2.7.0)(postcss@8.5.19)(typescript@5.9.3)
+      typescript:
+        specifier: ^5.6.2
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.1
+        version: 2.1.9(@types/node@22.20.1)(lightningcss@1.32.0)
+
   packages/intelligence:
     dependencies:
       '@gamedev-agent/di':
@@ -505,6 +605,37 @@ importers:
         version: 2.1.9(@types/node@22.20.1)(lightningcss@1.32.0)
 
   packages/memory:
+    dependencies:
+      '@gamedev-agent/di':
+        specifier: workspace:*
+        version: link:../di
+      '@gamedev-agent/events':
+        specifier: workspace:*
+        version: link:../events
+      '@gamedev-agent/kernel':
+        specifier: workspace:*
+        version: link:../kernel
+      '@gamedev-agent/logging':
+        specifier: workspace:*
+        version: link:../logging
+      '@gamedev-agent/shared':
+        specifier: workspace:*
+        version: link:../shared
+    devDependencies:
+      '@biomejs/biome':
+        specifier: ^1.9.3
+        version: 1.9.4
+      tsup:
+        specifier: ^8.3.0
+        version: 8.5.1(jiti@2.7.0)(postcss@8.5.19)(typescript@5.9.3)
+      typescript:
+        specifier: ^5.6.2
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.1
+        version: 2.1.9(@types/node@22.20.1)(lightningcss@1.32.0)
+
+  packages/model-providers:
     dependencies:
       '@gamedev-agent/di':
         specifier: workspace:*
@@ -847,6 +978,9 @@ importers:
       '@gamedev-agent/logging':
         specifier: workspace:*
         version: link:../logging
+      '@gamedev-agent/runtime':
+        specifier: workspace:*
+        version: link:../runtime
       '@gamedev-agent/shared':
         specifier: workspace:*
         version: link:../shared

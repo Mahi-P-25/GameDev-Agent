@@ -14,24 +14,25 @@ export type Intent = 'neutral' | 'primary' | 'accent' | 'success' | 'warning' | 
 export const buttonVariants = cva(
   [
     'inline-flex items-center justify-center gap-2 select-none',
-    'font-medium whitespace-nowrap rounded-md',
+    'font-medium whitespace-nowrap rounded-xl',
     'transition-[background,border-color,color,box-shadow,transform] duration-fast ease-standard',
-    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-base',
+    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-base',
     'disabled:opacity-50 disabled:pointer-events-none active:translate-y-px',
   ],
   {
     variants: {
       variant: {
         primary:
-          'bg-primary text-fg-on-primary border border-primary hover:bg-primary-strong shadow-sm',
-        accent: 'bg-accent text-fg-on-accent border border-accent hover:bg-accent-strong shadow-sm',
+          'bg-primary text-white border border-primary hover:bg-primary-strong shadow-sm',
+        accent:
+          'bg-accent text-bg-base border border-accent hover:bg-accent-strong shadow-sm shadow-accent/20',
         secondary:
           'bg-bg-hover text-fg border border-border hover:bg-bg-active hover:border-border-strong',
         ghost:
           'bg-transparent text-fg-muted border border-transparent hover:bg-bg-hover hover:text-fg',
         danger: 'bg-danger-soft text-danger border border-danger/40 hover:bg-danger/20',
         outline:
-          'bg-transparent text-fg border border-border-strong hover:border-primary hover:text-primary',
+          'bg-transparent text-fg border border-border-strong hover:border-accent hover:text-accent',
       },
       size: {
         sm: 'h-7 px-2.5 text-xs',

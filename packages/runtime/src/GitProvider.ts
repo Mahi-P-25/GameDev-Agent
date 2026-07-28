@@ -6,7 +6,7 @@ import type { ProcessExecutor } from './executor';
 import type { ProviderCapability, ProviderStatus } from './types';
 
 /** Capability ids owned by the Git provider. */
-export type GitCapabilityId = 'git.status' | 'git.commit' | 'git.branch';
+export type GitCapabilityId = 'git.init' | 'git.status' | 'git.commit' | 'git.branch';
 
 export interface GitProviderStatus extends ProviderStatus {
   readonly branch: string | null;
@@ -59,6 +59,7 @@ export class GitProvider extends BaseProvider<GitProviderStatus, GitCapabilityId
 
   protected capabilities(): ReadonlyArray<ProviderCapability & { readonly id: GitCapabilityId }> {
     return [
+      { id: 'git.init', label: 'Initialize a git repository', available: true },
       { id: 'git.status', label: 'Read git status', available: true },
       { id: 'git.commit', label: 'Create git commit', available: true },
       { id: 'git.branch', label: 'Read current branch', available: true },
@@ -211,6 +212,20 @@ export class GitProvider extends BaseProvider<GitProviderStatus, GitCapabilityId
     });
     await this.refresh();
     return hash;
+  }
+
+  /**
+   * Initialize a new git repository at `workspaceRoot`. Throws if `git init`
+   * fails (e.g. directory does not exist or git is not installed).
+   * After a successful init, calls {@link refresh()} so the provider's status
+   * immediately reflects the new repository.
+   */
+  async init(): Promise<void> {
+    const res = await this.executor.exec('git', ['init'], { cwd: this.workspaceRoot });
+    if (res.exitCode !== 0) {
+      throw new Error(`git init failed: ${res.stderr.trim() || res.stdout.trim()}`);
+    }
+    await this.refresh();
   }
 
   /** The currently observed branch, or null if unknown. */

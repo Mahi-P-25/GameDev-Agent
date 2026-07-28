@@ -129,7 +129,9 @@ export class ExecutionEngine implements StepExecutor {
 
     // 2. Tool-call loop
     let messages = [...assembled.messages];
-    const stepTools: ToolDefinition[] | undefined = await this.loadTools(step);
+    const loaded = await this.loadTools(step);
+    const stepTools = loaded?.tools;
+    const actionRegistry = loaded?.registry ?? new Map();
     let round = 0;
     let finalUsage = { promptTokens: 0, completionTokens: 0, totalTokens: 0 };
     const allToolCalls: import('@gamedev-agent/model-providers').ToolCall[] = [];
@@ -163,6 +165,7 @@ export class ExecutionEngine implements StepExecutor {
           context.executionId as string,
           step.id as string,
           round,
+          actionRegistry,
           this.logger,
         );
 
@@ -216,7 +219,7 @@ export class ExecutionEngine implements StepExecutor {
     return stepResult;
   }
 
-  private async loadTools(step: WorkflowStep): Promise<ToolDefinition[] | undefined> {
+  private async loadTools(step: WorkflowStep): Promise<{ tools: ToolDefinition[]; registry: Map<string, { toolId: string; action: string }> } | undefined> {
     if (step.requiredCapability === undefined) {
       return undefined;
     }
@@ -225,33 +228,158 @@ export class ExecutionEngine implements StepExecutor {
       const registeredTools = this.toolManager.list();
       if (registeredTools.length === 0) return undefined;
 
-      return registeredTools.map((t) => ({
-        name: t.descriptor.id,
-        description: t.descriptor.description,
-        inputSchema: this.buildToolSchema(t),
-      }));
+      const registry = new Map<string, { toolId: string; action: string }>();
+      const tools: ToolDefinition[] = [];
+
+      for (const tool of registeredTools) {
+        for (const cap of tool.descriptor.capabilities) {
+          for (const action of cap.actions) {
+            registry.set(action, { toolId: tool.descriptor.id, action });
+            tools.push({
+              name: action,
+              description: `${cap.name}: ${action}`,
+              inputSchema: this.buildActionSchema(action),
+            });
+          }
+        }
+      }
+
+      return { tools, registry };
     } catch {
       return undefined;
     }
   }
 
-  private buildToolSchema(tool: { descriptor: { capabilities: ReadonlyArray<{ id: string; actions: ReadonlyArray<string> }> } }): Record<string, unknown> {
-    if (tool.descriptor.capabilities.length === 0) {
-      return { type: 'object', properties: {} };
+  private buildActionSchema(action: string): Record<string, unknown> {
+    switch (action) {
+      case 'files.create':
+        return {
+          type: 'object',
+          properties: {
+            path: { type: 'string', description: 'Path to create' },
+            kind: { type: 'string', description: 'Kind: "file" or "directory"' },
+            content: { type: 'string', description: 'Initial content for file' },
+          },
+          required: ['path'],
+          additionalProperties: false,
+        };
+      case 'files.write':
+        return {
+          type: 'object',
+          properties: {
+            path: { type: 'string', description: 'File path to write' },
+            content: { type: 'string', description: 'File content' },
+            force: { type: 'boolean', description: 'Overwrite if exists' },
+          },
+          required: ['path', 'content'],
+          additionalProperties: false,
+        };
+      case 'files.read':
+        return {
+          type: 'object',
+          properties: {
+            path: { type: 'string', description: 'File path to read' },
+          },
+          required: ['path'],
+          additionalProperties: false,
+        };
+      case 'files.list':
+        return {
+          type: 'object',
+          properties: {
+            dirPath: { type: 'string', description: 'Directory path (defaults to workspace root)' },
+          },
+          additionalProperties: false,
+        };
+      case 'files.delete':
+        return {
+          type: 'object',
+          properties: {
+            path: { type: 'string', description: 'Path to delete' },
+            recursive: { type: 'boolean', description: 'Delete recursively' },
+          },
+          required: ['path'],
+          additionalProperties: false,
+        };
+      case 'files.rename':
+        return {
+          type: 'object',
+          properties: {
+            from: { type: 'string', description: 'Source path' },
+            to: { type: 'string', description: 'Destination path' },
+          },
+          required: ['from', 'to'],
+          additionalProperties: false,
+        };
+      case 'terminal.run':
+        return {
+          type: 'object',
+          properties: {
+            command: { type: 'string', description: 'Command to execute' },
+            args: { type: 'array', items: { type: 'string' }, description: 'Command arguments' },
+            cwd: { type: 'string', description: 'Working directory' },
+            timeoutMs: { type: 'number', description: 'Timeout in milliseconds' },
+          },
+          required: ['command'],
+          additionalProperties: false,
+        };
+      case 'terminal.start':
+        return {
+          type: 'object',
+          properties: {
+            command: { type: 'string', description: 'Command to start' },
+            args: { type: 'array', items: { type: 'string' }, description: 'Command arguments' },
+            cwd: { type: 'string', description: 'Working directory' },
+          },
+          required: ['command'],
+          additionalProperties: false,
+        };
+      case 'terminal.stop':
+        return {
+          type: 'object',
+          properties: {
+            processId: { type: 'string', description: 'Process ID to stop' },
+            signal: { type: 'string', description: 'Signal to send (e.g. SIGTERM)' },
+          },
+          required: ['processId'],
+          additionalProperties: false,
+        };
+      case 'terminal.output':
+        return {
+          type: 'object',
+          properties: {
+            processId: { type: 'string', description: 'Process ID' },
+          },
+          required: ['processId'],
+          additionalProperties: false,
+        };
+      case 'git.init':
+        return {
+          type: 'object',
+          properties: {},
+          additionalProperties: false,
+        };
+      case 'git.status':
+        return {
+          type: 'object',
+          properties: {},
+          additionalProperties: false,
+        };
+      case 'git.commit':
+        return {
+          type: 'object',
+          properties: {
+            message: { type: 'string', description: 'Commit message' },
+          },
+          additionalProperties: false,
+        };
+      default:
+        return {
+          type: 'object',
+          properties: {},
+          additionalProperties: true,
+        };
     }
-
-    const props: Record<string, unknown> = {};
-    for (const cap of tool.descriptor.capabilities) {
-      for (const action of cap.actions) {
-        props[action] = { type: 'string', description: `${cap.id}: ${action}` };
-      }
-    }
-
-    return {
-      type: 'object',
-      properties: props,
-      required: [],
-    };
   }
 
   private getTimeoutMs(step: WorkflowStep): number {

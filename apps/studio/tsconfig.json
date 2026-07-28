@@ -31,7 +31,11 @@
       "@gamedev-agent/workspace": ["../../packages/workspace/src/index.ts"],
       "@gamedev-agent/studio-api": ["../../packages/studio-api/src/index.ts"],
       "@gamedev-agent/intelligence": ["../../packages/intelligence/src/index.ts"],
-      "@gamedev-agent/runtime": ["../../packages/runtime/src/index.ts"]
+      "@gamedev-agent/runtime": ["../../packages/runtime/src/index.ts"],
+      "@gamedev-agent/agent-runtime": ["../../packages/agent-runtime/src/index.ts"],
+      "@gamedev-agent/memory": ["../../packages/memory/src/index.ts"],
+      "@gamedev-agent/execution-engine": ["../../packages/execution-engine/src/index.ts"],
+      "@gamedev-agent/model-providers": ["../../packages/model-providers/src/index.ts"]
     }
   },
   "include": ["src"]

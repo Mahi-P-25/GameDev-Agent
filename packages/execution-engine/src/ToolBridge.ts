@@ -16,6 +16,7 @@ export class ToolBridge {
     private readonly executionId: string,
     private readonly stepId: string,
     private readonly round: number,
+    private readonly actionRegistry: ReadonlyMap<string, { readonly toolId: string; readonly action: string }>,
     private readonly logger?: Logger,
   ) {}
 
@@ -34,29 +35,38 @@ export class ToolBridge {
     const { name, arguments: argsStr } = toolCall.function;
     const startTime = Date.now();
 
+    const entry = this.actionRegistry.get(name);
+    if (entry === undefined) {
+      return {
+        toolCall,
+        result: JSON.stringify({ error: `unknown action: ${name}` }),
+        ok: false,
+        durationMs: 0,
+      };
+    }
+
     let parsedArgs: Record<string, unknown> = {};
     try {
       parsedArgs = JSON.parse(argsStr) as Record<string, unknown>;
     } catch {
-      // If arguments can't be parsed, pass them as-is
     }
 
     await this.eventBus.publish(ExecutionToolInvoked, {
       executionId: this.executionId as any,
       stepId: this.stepId as any,
-      toolId: name,
-      action: name,
+      toolId: entry.toolId,
+      action: entry.action,
       round: this.round,
       timestamp: Date.now(),
     });
 
-    this.logger?.debug('Tool invoked', { toolId: name, action: name, round: this.round });
+    this.logger?.debug('Tool invoked', { toolId: entry.toolId, action: entry.action, round: this.round });
 
     let result: ToolInvocationResult;
     try {
       result = await this.toolManager.invoke({
-        toolId: asToolId(name),
-        action: name,
+        toolId: asToolId(entry.toolId),
+        action: entry.action,
         input: parsedArgs as any,
         actor: { kind: 'execution-engine', id: this.executionId },
         correlationId: null,
@@ -64,8 +74,8 @@ export class ToolBridge {
     } catch (error) {
       result = {
         ok: false,
-        toolId: asToolId(name),
-        action: name,
+        toolId: asToolId(entry.toolId),
+        action: entry.action,
         durationMs: Date.now() - startTime,
         output: null,
         error: {
@@ -80,8 +90,8 @@ export class ToolBridge {
     await this.eventBus.publish(ExecutionToolResult, {
       executionId: this.executionId as any,
       stepId: this.stepId as any,
-      toolId: name,
-      action: name,
+      toolId: entry.toolId,
+      action: entry.action,
       ok: result.ok,
       round: this.round,
       durationMs,
@@ -89,7 +99,7 @@ export class ToolBridge {
     });
 
     this.logger?.debug('Tool result', {
-      toolId: name,
+      toolId: entry.toolId,
       ok: result.ok,
       durationMs,
     });

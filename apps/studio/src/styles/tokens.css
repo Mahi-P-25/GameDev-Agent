@@ -1,68 +1,55 @@
 /**
- * Nova Design System — Token Source (Tailwind v4, CSS-first).
+ * Nova Design System v2 — Premium Token Source.
  *
- * This file is the single source of truth for Nova's visual language. It is the
- * Tailwind v4 entry point: `@import "tailwindcss"` pulls in the engine, and the
- * `@theme` block publishes every design token as a first-class Tailwind utility
- * (e.g. `bg-surface-panel`, `text-fg-muted`, `rounded-xl`, `shadow-elevated`).
+ * Tailwind v4 CSS-first configuration. All visual tokens are defined here
+ * and published as Tailwind utilities via `@theme`.
  *
- * Design language — "Iron workshop at night":
- *   Deep Black base · Charcoal elevated surfaces · Steel accents · Soft Gold
- *   highlight · White typography. Premium, minimal, intent-dense.
- *
- * The raw `:root` custom properties are kept in sync so the pre-existing
- * `nova-*` utility classes (Sidebar, App shell) continue to resolve against the
- * same values during the migration. Never edit token values in two places —
- * `@theme` is authoritative; the `:root` block mirrors it for legacy CSS.
+ * Design language — "Premium AI-native desktop OS":
+ *   Near-black #050505 base · Glass translucency · Gold accent
+ *   Minimal · Elegant · Dark · Premium · Fast · Focused
  */
 
 @import "tailwindcss";
 
-/* ------------------------------------------------------------------ *
- * Theme tokens — published as Tailwind utilities + CSS variables.
- * Naming: --color-<role>, --font-<role>, --radius-<scale>,
- *         --spacing-<scale> (Tailwind already owns spacing), --shadow-<role>,
- *         --ease-*, --duration-* for motion.
- * ------------------------------------------------------------------ */
 @theme {
-  /* --- Color: backgrounds (Deep Black → Charcoal) ------------------- */
-  --color-bg-base: #08090c;
-  --color-bg-sunken: #050608;
-  --color-bg-elevated: #0f1117;
-  --color-bg-panel: #15171f;
-  --color-bg-inset: #1b1e28;
-  --color-bg-hover: #20242f;
-  --color-bg-active: #262b38;
+  /* --- Backgrounds --------------------------------------------------- */
+  --color-bg-base: #050505;
+  --color-bg-sunken: #030303;
+  --color-bg-elevated: #0a0a0a;
+  --color-bg-panel: #0d0d0d;
+  --color-bg-inset: #111111;
+  --color-bg-hover: #1a1a1a;
+  --color-bg-active: #222222;
 
-  /* --- Color: borders ---------------------------------------------- */
-  --color-border: #232733;
-  --color-border-strong: #323849;
-  --color-border-accent: #3a3320;
+  /* --- Borders ------------------------------------------------------- */
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-border-strong: rgba(255, 255, 255, 0.12);
+  --color-border-accent: rgba(212, 175, 55, 0.3);
 
-  /* --- Color: foreground (White typography) ------------------------ */
-  --color-fg: #f4f6fb;
-  --color-fg-muted: #9aa3b6;
-  --color-fg-subtle: #646d82;
-  --color-fg-on-accent: #1a1407;
+  /* --- Foreground (text) -------------------------------------------- */
+  --color-fg: #f5f5f5;
+  --color-fg-muted: #8a8a8a;
+  --color-fg-subtle: #5c5c5c;
+  --color-fg-on-accent: #050505;
   --color-fg-on-primary: #ffffff;
 
-  /* --- Color: brand (Steel primary + Soft Gold accent) ------------ */
+  /* --- Brand colors ------------------------------------------------- */
   --color-primary: #5b7cfa;
-  --color-primary-strong: #4361e8;
-  --color-primary-soft: #1b2440;
-  --color-accent: #e3c27e;
-  --color-accent-strong: #d4ad5e;
-  --color-accent-soft: #2a2415;
+  --color-primary-strong: #7a94ff;
+  --color-primary-soft: rgba(91, 124, 250, 0.1);
+  --color-accent: #d4af37;
+  --color-accent-strong: #e4c458;
+  --color-accent-soft: rgba(212, 175, 55, 0.1);
 
-  /* --- Color: semantic states -------------------------------------- */
-  --color-success: #4ade80;
-  --color-success-soft: #14271c;
+  /* --- Semantic states ---------------------------------------------- */
+  --color-success: #5bd88a;
+  --color-success-soft: rgba(91, 216, 138, 0.1);
   --color-warning: #f5c451;
-  --color-warning-soft: #2a2310;
-  --color-danger: #f26d6d;
-  --color-danger-soft: #2c1818;
+  --color-warning-soft: rgba(245, 196, 81, 0.1);
+  --color-danger: #ff5e5e;
+  --color-danger-soft: rgba(255, 94, 94, 0.1);
   --color-info: #6ba8f5;
-  --color-info-soft: #142233;
+  --color-info-soft: rgba(107, 168, 245, 0.1);
 
   /* --- Typography --------------------------------------------------- */
   --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -70,18 +57,19 @@
 
   /* --- Radius ------------------------------------------------------- */
   --radius-xs: 4px;
-  --radius-sm: 7px;
-  --radius-md: 10px;
-  --radius-lg: 14px;
-  --radius-xl: 20px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-2xl: 32px;
+  --radius-3xl: 40px;
   --radius-full: 999px;
 
-  /* --- Elevation (shadows) ----------------------------------------- */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.45);
-  --shadow-md: 0 6px 22px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 18px 50px rgba(0, 0, 0, 0.5);
-  --shadow-glow: 0 0 0 1px color-mix(in srgb, var(--color-accent) 40%, transparent), 0 8px 30px
-    color-mix(in srgb, var(--color-accent) 18%, transparent);
+  /* --- Shadows ------------------------------------------------------- */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 8px 30px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.5);
+  --shadow-xl: 0 40px 100px rgba(0, 0, 0, 0.6);
 
   /* --- Motion tokens (durations) ----------------------------------- */
   --duration-instant: 80ms;
@@ -89,12 +77,14 @@
   --duration-base: 200ms;
   --duration-slow: 320ms;
   --duration-slower: 480ms;
+  --duration-slowest: 720ms;
 
   /* --- Motion tokens (easings) ------------------------------------- */
   --ease-standard: cubic-bezier(0.2, 0, 0, 1);
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in: cubic-bezier(0.4, 0, 1, 1);
   --ease-spring: linear(0, 0.02 2%, 0.18 8%, 0.52 18%, 0.82 32%, 1.02 48%, 1 62%, 1 100%);
+  --ease-emphasized: cubic-bezier(0.2, 0, 0, 1);
 }
 
 /* ------------------------------------------------------------------ *
@@ -141,8 +131,8 @@
   --shadow-md: var(--shadow-md);
   --shadow-lg: var(--shadow-lg);
 
-  --rail-width: 220px;
-  --topbar-height: 56px;
+  --rail-width: 64px;
+  --topbar-height: 0px;
 }
 
 /* ------------------------------------------------------------------ *

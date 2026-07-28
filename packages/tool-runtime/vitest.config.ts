@@ -13,6 +13,7 @@ export default defineConfig({
       '@gamedev-agent/kernel': resolve('../kernel/src/index.ts'),
       '@gamedev-agent/coordinator': resolve('../coordinator/src/index.ts'),
       '@gamedev-agent/capabilities': resolve('../capabilities/src/index.ts'),
+      '@gamedev-agent/runtime': resolve('../runtime/src/index.ts'),
       '@gamedev-agent/vscode': resolve('../vscode/src/index.ts'),
     },
   },

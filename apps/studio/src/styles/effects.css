@@ -1,21 +1,13 @@
-/**
- * Nova Design System — Reusable Visual Systems (Sprint 11).
- *
- * Self-contained utility classes for the cinematic surface language.
- * Composable: stack `.glass` + `.glow-accent` + `.noise` on any element.
- * All tokens resolve from tokens.css / tokens-extended.css. Animation honors
- * `prefers-reduced-motion` (handled globally in tokens.css).
- */
-
 @layer components {
   /* ----------------------------------------------------------------- *
-   * Liquid Glass — frosted translucent surface with top highlight.
+   * Premium Glass — frosted architectural glass.
+   * Subtle blur, low opacity, soft highlight, thin border.
    * ----------------------------------------------------------------- */
   .glass {
     background: var(--glass-bg);
     border: 1px solid var(--glass-border);
-    backdrop-filter: blur(var(--blur-lg)) saturate(150%);
-    -webkit-backdrop-filter: blur(var(--blur-lg)) saturate(150%);
+    backdrop-filter: blur(20px) saturate(120%);
+    -webkit-backdrop-filter: blur(20px) saturate(120%);
     box-shadow: var(--shadow-glass);
   }
   .glass::before {
@@ -24,23 +16,77 @@
     inset: 0;
     border-radius: inherit;
     padding: 1px;
-    background: linear-gradient(180deg, var(--glass-highlight), transparent 40%);
+    background: linear-gradient(180deg, var(--glass-highlight), transparent 50%);
     -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
     -webkit-mask-composite: xor;
     mask-composite: exclude;
     pointer-events: none;
   }
 
-  /* Stronger variant for elevated floating UI (command palette, docks). */
   .glass-strong {
     background: var(--glass-bg-strong);
     border: 1px solid var(--glass-border-strong);
-    backdrop-filter: blur(var(--blur-xl)) saturate(160%);
-    -webkit-backdrop-filter: blur(var(--blur-xl)) saturate(160%);
-    box-shadow: var(--shadow-float);
+    backdrop-filter: blur(32px) saturate(130%);
+    -webkit-backdrop-filter: blur(32px) saturate(130%);
+    box-shadow: var(--shadow-glass-lg);
   }
 
-  /* Glass pill — compact, rounded control (chips, status, toggles). */
+  .glass-panel {
+    position: relative;
+    border-radius: var(--radius-2xl);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(24px) saturate(120%);
+    -webkit-backdrop-filter: blur(24px) saturate(120%);
+    box-shadow: var(--shadow-glass-lg);
+  }
+  .glass-panel::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(180deg, var(--glass-highlight), transparent 50%);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+
+  .glass-panel-premium {
+    position: relative;
+    border-radius: var(--radius-2xl);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(48px) saturate(140%);
+    -webkit-backdrop-filter: blur(48px) saturate(140%);
+    box-shadow:
+      0 0 0 1px rgba(212, 175, 55, 0.04),
+      0 40px 100px rgba(0, 0, 0, 0.6),
+      0 10px 40px rgba(0, 0, 0, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  }
+  .glass-panel-premium::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 40%);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+  .glass-panel-premium::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, transparent 50%, rgba(212, 175, 55, 0.015) 100%);
+    pointer-events: none;
+  }
+
   .glass-pill {
     display: inline-flex;
     align-items: center;
@@ -49,54 +95,160 @@
     border-radius: var(--radius-full);
     background: var(--glass-bg);
     border: 1px solid var(--glass-border);
-    backdrop-filter: blur(var(--blur-md)) saturate(140%);
-    -webkit-backdrop-filter: blur(var(--blur-md)) saturate(140%);
+    backdrop-filter: blur(12px) saturate(120%);
+    -webkit-backdrop-filter: blur(12px) saturate(120%);
     box-shadow: var(--shadow-glass);
   }
 
-  /* Glass card — elevated translucent content surface. */
   .glass-card {
     position: relative;
     border-radius: var(--radius-xl);
     background: var(--glass-bg);
     border: 1px solid var(--glass-border);
-    backdrop-filter: blur(var(--blur-lg)) saturate(150%);
-    -webkit-backdrop-filter: blur(var(--blur-lg)) saturate(150%);
+    backdrop-filter: blur(20px) saturate(120%);
+    -webkit-backdrop-filter: blur(20px) saturate(120%);
     box-shadow: var(--shadow-glass);
   }
 
   /* ----------------------------------------------------------------- *
-   * Noise — fine film grain overlay. Uses an inline SVG turbulence so
-   * there is zero asset dependency. Apply as an absolutely-positioned
-   * layer inside a `relative` parent.
+   * Glass Input — the hero mission input.
+   * ----------------------------------------------------------------- */
+  .glass-input {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(12px) saturate(120%);
+    -webkit-backdrop-filter: blur(12px) saturate(120%);
+    box-shadow: var(--shadow-glass);
+    transition: border-color 200ms ease, box-shadow 200ms ease, background 200ms ease;
+  }
+  .glass-input:focus-within {
+    border-color: rgba(212, 175, 55, 0.4);
+    box-shadow: 0 0 0 1px rgba(212, 175, 55, 0.2), var(--shadow-glass);
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  /* ----------------------------------------------------------------- *
+   * Noise — fine film grain overlay.
    * ----------------------------------------------------------------- */
   .noise::after {
     content: "";
     position: absolute;
     inset: 0;
     border-radius: inherit;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
     background-size: 160px 160px;
-    opacity: var(--opacity-subtle);
+    opacity: 0.035;
     mix-blend-mode: overlay;
     pointer-events: none;
   }
 
   /* ----------------------------------------------------------------- *
-   * Gradient overlays & vignette — depth cues.
+   * Background system — layered premium canvas.
    * ----------------------------------------------------------------- */
-  .gradient-overlay {
-    background: radial-gradient(
-      120% 120% at 50% 0%,
-      color-mix(in srgb, var(--color-primary) 14%, transparent),
-      transparent 55%
-    );
+  .nova-bg {
+    position: fixed;
+    inset: 0;
+    background: var(--color-bg-base);
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 0;
   }
-  .vignette {
-    box-shadow: inset 0 0 180px 40px rgba(0, 0, 0, 0.55);
+
+  .nova-bg__gradient {
+    position: absolute;
+    inset: -40%;
+    background:
+      radial-gradient(50% 50% at 15% 20%, rgba(212, 175, 55, 0.08), transparent 60%),
+      radial-gradient(40% 40% at 85% 15%, rgba(91, 124, 250, 0.06), transparent 55%),
+      radial-gradient(60% 60% at 50% 80%, rgba(255, 255, 255, 0.03), transparent 60%);
+    filter: blur(80px);
+    pointer-events: none;
   }
-  .vignette-soft {
-    box-shadow: inset 0 0 120px 10px rgba(0, 0, 0, 0.35);
+
+  .nova-bg__sphere {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.4;
+    pointer-events: none;
+  }
+
+  .nova-bg__sphere--1 {
+    width: 500px;
+    height: 500px;
+    top: -10%;
+    right: -5%;
+    background: radial-gradient(circle at 30% 30%, rgba(212, 175, 55, 0.15), transparent 70%);
+    animation: sphere-float-1 25s ease-in-out infinite alternate;
+  }
+
+  .nova-bg__sphere--2 {
+    width: 350px;
+    height: 350px;
+    bottom: -5%;
+    left: -3%;
+    background: radial-gradient(circle at 40% 40%, rgba(91, 124, 250, 0.1), transparent 70%);
+    animation: sphere-float-2 30s ease-in-out infinite alternate;
+  }
+
+  .nova-bg__sphere--3 {
+    width: 200px;
+    height: 200px;
+    top: 40%;
+    left: 50%;
+    background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.04), transparent 70%);
+    animation: sphere-float-3 20s ease-in-out infinite alternate;
+  }
+
+  .nova-bg__sphere--4 {
+    width: 600px;
+    height: 600px;
+    top: -20%;
+    left: 20%;
+    background: radial-gradient(circle at 40% 30%, rgba(212, 175, 55, 0.06), transparent 70%);
+    animation: sphere-float-4 35s ease-in-out infinite alternate;
+  }
+
+  .nova-bg__sphere--5 {
+    width: 400px;
+    height: 400px;
+    bottom: -10%;
+    right: 10%;
+    background: radial-gradient(circle at 60% 50%, rgba(255, 255, 255, 0.03), transparent 70%);
+    animation: sphere-float-5 28s ease-in-out infinite alternate;
+  }
+
+  .nova-bg__radial-light {
+    position: absolute;
+    inset: -60%;
+    background:
+      radial-gradient(40% 40% at 25% 30%, rgba(212, 175, 55, 0.04), transparent 60%),
+      radial-gradient(35% 35% at 75% 20%, rgba(91, 124, 250, 0.03), transparent 55%),
+      radial-gradient(50% 50% at 50% 70%, rgba(255, 255, 255, 0.02), transparent 60%),
+      radial-gradient(30% 30% at 15% 60%, rgba(212, 175, 55, 0.02), transparent 50%);
+    filter: blur(120px);
+    pointer-events: none;
+  }
+
+  @keyframes sphere-float-1 {
+    0% { transform: translate(0, 0) scale(1); }
+    100% { transform: translate(-60px, 40px) scale(1.1); }
+  }
+  @keyframes sphere-float-2 {
+    0% { transform: translate(0, 0) scale(1); }
+    100% { transform: translate(50px, -30px) scale(1.08); }
+  }
+  @keyframes sphere-float-3 {
+    0% { transform: translate(0, 0) scale(1); opacity: 0.3; }
+    100% { transform: translate(-30px, -20px) scale(1.15); opacity: 0.5; }
+  }
+  @keyframes sphere-float-4 {
+    0% { transform: translate(0, 0) scale(1); opacity: 0.3; }
+    100% { transform: translate(40px, -50px) scale(1.12); opacity: 0.5; }
+  }
+  @keyframes sphere-float-5 {
+    0% { transform: translate(0, 0) scale(1); opacity: 0.2; }
+    100% { transform: translate(-50px, 30px) scale(1.15); opacity: 0.35; }
   }
 
   /* ----------------------------------------------------------------- *
@@ -116,64 +268,41 @@
   }
 
   /* ----------------------------------------------------------------- *
-   * Animated background — slow drifting aurora behind the app canvas.
+   * Gradient overlays & vignette.
    * ----------------------------------------------------------------- */
-  .bg-aurora {
-    position: relative;
-    background: var(--color-bg-base);
-    overflow: hidden;
-  }
-  .bg-aurora::before {
-    content: "";
-    position: absolute;
-    inset: -30%;
+  .gradient-overlay {
     background: radial-gradient(
-        40% 40% at 20% 25%,
-        color-mix(in srgb, var(--color-primary) 22%, transparent),
-        transparent 70%
-      ),
-      radial-gradient(
-        45% 45% at 80% 30%,
-        color-mix(in srgb, var(--color-accent) 16%, transparent),
-        transparent 70%
-      ),
-      radial-gradient(
-        50% 50% at 50% 90%,
-        color-mix(in srgb, var(--color-info) 14%, transparent),
-        transparent 70%
-      );
-    filter: blur(60px);
-    animation: nova-drift 28s var(--ease-standard) infinite alternate;
-    pointer-events: none;
+      120% 120% at 50% 0%,
+      rgba(255, 255, 255, 0.04),
+      transparent 55%
+    );
   }
-  @keyframes nova-drift {
-    0% {
-      transform: translate3d(-4%, -2%, 0) scale(1);
-    }
-    100% {
-      transform: translate3d(4%, 3%, 0) scale(1.08);
-    }
+  .vignette {
+    box-shadow: inset 0 0 180px 40px rgba(0, 0, 0, 0.55);
+  }
+  .vignette-soft {
+    box-shadow: inset 0 0 120px 10px rgba(0, 0, 0, 0.35);
   }
 
   /* ----------------------------------------------------------------- *
-   * Scrollbar — slim, theme-aware.
+   * Scrollbar — theme-aware, minimal.
    * ----------------------------------------------------------------- */
   .scrollbar-thin {
     scrollbar-width: thin;
-    scrollbar-color: var(--color-border-strong) transparent;
+    scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
   }
   .scrollbar-thin::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
+    width: 6px;
+    height: 6px;
   }
   .scrollbar-thin::-webkit-scrollbar-thumb {
-    background: var(--color-border-strong);
+    background: rgba(255, 255, 255, 0.1);
     border-radius: 8px;
-    border: 2px solid transparent;
+    border: 1px solid transparent;
     background-clip: padding-box;
   }
   .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-    background: var(--color-fg-subtle);
+    background: rgba(255, 255, 255, 0.18);
     background-clip: padding-box;
   }
 
@@ -182,7 +311,7 @@
    * ----------------------------------------------------------------- */
   .selection-accent::selection,
   .selection-accent *::selection {
-    background: color-mix(in srgb, var(--color-primary) 36%, transparent);
+    background: rgba(212, 175, 55, 0.2);
     color: var(--color-fg);
   }
   .focus-ring {
@@ -190,12 +319,11 @@
     transition: box-shadow var(--duration-fast) var(--ease-standard);
   }
   .focus-ring:focus-visible {
-    box-shadow: 0 0 0 2px var(--color-bg-base), 0 0 0 4px
-      color-mix(in srgb, var(--color-primary) 70%, transparent);
+    box-shadow: 0 0 0 2px var(--color-bg-base), 0 0 0 4px rgba(212, 175, 55, 0.4);
   }
 
   /* ----------------------------------------------------------------- *
-   * Hover transitions — composable, consistent timing.
+   * Hover transitions.
    * ----------------------------------------------------------------- */
   .hover-lift {
     transition: transform var(--duration-base) var(--ease-out), box-shadow var(--duration-base)
@@ -219,33 +347,27 @@
     animation: nova-page-enter var(--duration-slow) var(--ease-out) both;
   }
   @keyframes nova-page-enter {
-    from {
-      opacity: 0;
-      transform: translateY(8px);
-    }
-    to {
-      opacity: 1;
-      transform: none;
-    }
+    from { opacity: 0; transform: translateY(12px) scale(0.98); }
+    to { opacity: 1; transform: none; }
   }
   .fade-in {
     animation: nova-fade-in var(--duration-base) var(--ease-standard) both;
   }
 
-  /* Shimmer sweep for loading skeletons. */
   .animate-shimmer {
     animation: nova-shimmer 1.4s var(--ease-standard) infinite;
   }
   @keyframes nova-shimmer {
-    100% {
-      transform: translateX(100%);
-    }
+    100% { transform: translateX(100%); }
   }
 }
 
-/* Honor reduced motion for the custom keyframe animations above. */
 @media (prefers-reduced-motion: reduce) {
-  .bg-aurora::before,
+  .nova-bg__sphere--1,
+  .nova-bg__sphere--2,
+  .nova-bg__sphere--3,
+  .nova-bg__sphere--4,
+  .nova-bg__sphere--5,
   .page-enter,
   .fade-in,
   .animate-shimmer {

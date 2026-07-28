@@ -2,9 +2,6 @@ import type { Notification } from '../adapters/types';
 import { Page } from '../components/layout/Page';
 import {
   Badge,
-  Card,
-  EmptyState,
-  PlaceholderBadge,
   intentColor,
 } from '../components/ui/primitives';
 import { useStudioData } from '../studio/StudioDataProvider';
@@ -28,84 +25,68 @@ export function InboxPage(): React.ReactNode {
   const items = notifications.list();
 
   return (
-    <Page title="Inbox" status="ready">
-      <div className="nova-col--6">
-        <Card
-          title="Pending Approvals"
-          subtitle="Missions awaiting your sign-off"
-          actions={
-            pendingApprovals.length > 0 ? (
+    <Page title="Inbox">
+      <div className="glass-panel grid gap-6 p-6 md:grid-cols-2">
+        <div className="rounded-xl border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.02)] p-5">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-sm font-semibold text-[#f5f5f5]">Pending Approvals</h2>
+              <p className="mt-0.5 text-xs text-[#8a8a8a]">Missions awaiting your sign-off</p>
+            </div>
+            {pendingApprovals.length > 0 && (
               <Badge intent="warning" dot>
                 {pendingApprovals.length}
               </Badge>
-            ) : undefined
-          }
-        >
+            )}
+          </div>
           {pendingApprovals.length === 0 ? (
-            <EmptyState title="Inbox zero" hint="No missions are waiting for approval." />
+            <p className="mt-4 text-sm text-[#5c5c5c]">No missions are waiting for approval.</p>
           ) : (
-            <div className="nova-list">
+            <div className="mt-4 divide-y divide-[rgba(255,255,255,0.06)]">
               {pendingApprovals.map((m) => (
-                <div key={m.id} className="nova-list__item">
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontWeight: 500 }}>{m.title}</div>
-                    <div className="nova-subtle" style={{ fontSize: 12 }}>
-                      {missionStatusLabel(m.status)} · {m.id}
-                    </div>
+                <div key={m.id} className="flex items-center gap-4 py-3">
+                  <div className="min-w-0 flex-1">
+                    <div className="text-sm font-medium text-[#f5f5f5]">{m.title}</div>
+                    <div className="text-xs text-[#5c5c5c]">{missionStatusLabel(m.status)} · {m.id}</div>
                   </div>
                   <Badge intent="warning">review</Badge>
                 </div>
               ))}
             </div>
           )}
-        </Card>
-      </div>
+        </div>
 
-      <div className="nova-col--6">
-        <Card
-          title="Notifications"
-          subtitle="Studio alerts and digests"
-          actions={<PlaceholderBadge />}
-        >
+        <div className="rounded-xl border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.02)] p-5">
+          <h2 className="text-sm font-semibold text-[#f5f5f5]">Notifications</h2>
+          <p className="mt-0.5 text-xs text-[#8a8a8a]">Studio alerts and digests</p>
           {items.length === 0 ? (
-            <EmptyState title="No notifications" />
+            <p className="mt-4 text-sm text-[#5c5c5c]">No notifications.</p>
           ) : (
-            <div className="nova-list">
+            <div className="mt-4 divide-y divide-[rgba(255,255,255,0.06)]">
               {items.map((n) => (
-                <div key={n.id} className="nova-list__item">
+                <div key={n.id} className="flex items-start gap-3 py-3">
                   <span
+                    className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md text-xs font-bold"
                     style={{
-                      width: 22,
-                      height: 22,
-                      borderRadius: 6,
-                      display: 'grid',
-                      placeItems: 'center',
-                      fontSize: 12,
-                      fontWeight: 700,
                       color: intentColor(NOTIFICATION_INTENT[n.kind]),
                       background: `color-mix(in srgb, ${intentColor(NOTIFICATION_INTENT[n.kind])} 16%, transparent)`,
-                      flexShrink: 0,
                     }}
                   >
                     {notificationIcon(n.kind)}
                   </span>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div className="nova-row" style={{ gap: 8 }}>
-                      <div style={{ fontWeight: 500, fontSize: 13 }}>{n.title}</div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-[#f5f5f5]">{n.title}</span>
                       {!n.read && <Badge intent="primary">new</Badge>}
                     </div>
-                    <div className="nova-subtle" style={{ fontSize: 12.5 }}>
-                      {n.body}
-                    </div>
+                    <div className="text-xs text-[#5c5c5c]">{n.body}</div>
                   </div>
-                  <span className="nova-subtle" style={{ fontSize: 11.5, whiteSpace: 'nowrap' }}>
-                    {timeAgo(n.timestamp)}
-                  </span>
+                  <span className="shrink-0 text-[11px] text-[#5c5c5c]">{timeAgo(n.timestamp)}</span>
                 </div>
               ))}
             </div>
           )}
-        </Card>
+        </div>
       </div>
     </Page>
   );

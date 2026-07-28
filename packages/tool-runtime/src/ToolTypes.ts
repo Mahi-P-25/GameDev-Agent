@@ -314,5 +314,130 @@ export interface CoordinatorLink {
   resolveMission(correlationId: UUID): { readonly missionId: string } | null;
 }
 
+// --- Tool Orchestrator types ---------------------------------------------------
+
+/**
+ * Functional categories for game-development tool capabilities.
+ * More granular than the coarse {@link ToolCategory} used for discovery.
+ */
+export type CapabilityCategory =
+  | 'filesystem'
+  | 'vcs'
+  | 'shell'
+  | 'editor'
+  | '3d'
+  | 'game-engine'
+  | 'browser'
+  | 'asset-pipeline'
+  | 'build'
+  | 'test'
+  | 'network'
+  | (string & {});
+
+/**
+ * Abstract ability a mission requires — never coupled to a concrete tool.
+ * The Mission Planner emits these; the Capability Planner resolves them
+ * to specific tool capabilities at execution time.
+ */
+export type MissionAbility =
+  | 'read-files'
+  | 'write-files'
+  | 'edit-files'
+  | 'list-files'
+  | 'delete-files'
+  | 'rename-files'
+  | 'run-commands'
+  | 'run-terminal'
+  | 'execute-script'
+  | 'inspect-workspace'
+  | 'version-control-status'
+  | 'version-control-init'
+  | 'version-control-commit'
+  | 'version-control-branch'
+  | 'version-control-diff'
+  | 'search-files'
+  | 'search-text'
+  | 'open-editor'
+  | 'edit-code'
+  | 'open-workspace'
+  | 'close-workspace'
+  | 'browse-web'
+  | 'preview-project'
+  | '3d-model'
+  | 'render-scene'
+  | 'build-project'
+  | 'test-project'
+  | 'install-packages'
+  | 'remove-packages'
+  | (string & {});
+
+/** How closely a resolved capability matches the requested ability. */
+export type ResolutionConfidence = 'exact' | 'partial' | 'fallback';
+
+/** Result of resolving a mission ability to a concrete tool capability. */
+export interface ResolvedCapability {
+  readonly ability: MissionAbility;
+  readonly toolId: ToolId;
+  readonly capabilityId: string;
+  readonly capabilityName: string;
+  readonly confidence: ResolutionConfidence;
+  readonly requiresSession: boolean;
+  readonly inputSchema: Record<string, unknown>;
+}
+
+// --- ToolSession types ---------------------------------------------------------
+
+/** A stateful session on a tool, spanning multiple capability invocations. */
+export interface ToolSession {
+  readonly sessionId: string;
+  readonly toolId: ToolId;
+  readonly state: Readonly<Record<string, Json>>;
+  readonly createdAt: Timestamp;
+  readonly lastActivityAt: Timestamp;
+  readonly isActive: boolean;
+  readonly metadata: Readonly<Record<string, Json>>;
+}
+
+/** Options for creating a new tool session. */
+export interface ToolSessionOptions {
+  readonly toolId: ToolId;
+  readonly initialState?: Readonly<Record<string, Json>>;
+  readonly metadata?: Readonly<Record<string, Json>>;
+}
+
+/** A request to execute a capability (used by ToolOrchestrator). */
+export interface CapabilityExecutionRequest {
+  readonly capabilityId: string;
+  readonly input: Json;
+  readonly actor: ToolActor;
+  readonly correlationId: UUID | null;
+  readonly sessionId?: string;
+  readonly signal?: AbortSignal;
+}
+
+/** Options for the ToolOrchestrator. */
+export interface ToolOrchestratorOptions {
+  readonly toolManager: ToolManager;
+  readonly eventBus: EventBusContract;
+  readonly logger?: Logger;
+  readonly defaultSessionTimeoutMs?: number;
+}
+
+/** Options for the CapabilityPlanner. */
+export interface CapabilityPlannerOptions {
+  readonly toolManager: ToolManager;
+  readonly logger?: Logger;
+  readonly customMappings?: ReadonlyArray<AbilityMapping>;
+}
+
+/** Maps a mission ability to a tool capability pattern. */
+export interface AbilityMapping {
+  readonly ability: MissionAbility;
+  readonly capabilityPattern: string;
+  readonly preferredToolIds?: ReadonlyArray<string>;
+  readonly requiresSession?: boolean;
+  readonly category: CapabilityCategory;
+}
+
 // --- re-exports of external contracts used across the package -----------------
 export type { EventBusContract, Logger, Disposable, Json, Timestamp, UUID };

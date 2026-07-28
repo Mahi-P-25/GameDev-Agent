@@ -4,11 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Page } from '../components/layout/Page';
 import {
   Badge,
-  Card,
-  EmptyState,
-  ProgressBar,
   StatusDot,
-  Tag,
   intentColor,
 } from '../components/ui/primitives';
 import { useStudioData } from '../studio/StudioDataProvider';
@@ -108,41 +104,30 @@ export function WorkflowsPage(): React.ReactNode {
   );
 
   return (
-    <Page
-      title="Workflows"
-      status={api.ready ? 'ready' : 'offline'}
-      gridClass="nova-grid--dashboard"
-    >
-      <div className="nova-page-grid">
+    <Page title="Workflows">
+      <div className="glass-panel space-y-6 p-6">
         {/* Available workflows */}
-        <Card
-          title="Available Workflows"
-          subtitle="Reusable developer tasks"
-          className="nova-col--4"
-        >
+        <div className="rounded-xl border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.02)] p-5">
+          <h2 className="text-sm font-semibold text-[#f5f5f5]">Available Workflows</h2>
+          <p className="mt-0.5 text-xs text-[#8a8a8a]">Reusable developer tasks</p>
           {templates.length === 0 ? (
-            <EmptyState
-              title="No workflows available"
-              hint="The workflow engine is still booting."
-            />
+            <p className="mt-4 text-sm text-[#5c5c5c]">No workflows available. The workflow engine is still booting.</p>
           ) : (
-            <div className="nova-stack">
+            <div className="mt-4 divide-y divide-[rgba(255,255,255,0.06)]">
               {templates.map((t) => (
-                <div key={t.id} className="nova-list__item" style={{ alignItems: 'flex-start' }}>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontWeight: 600 }}>{t.name}</div>
-                    <div className="nova-subtle" style={{ fontSize: 12.5, marginTop: 2 }}>
-                      {t.description}
-                    </div>
-                    <div className="nova-row" style={{ marginTop: 8, gap: 6, flexWrap: 'wrap' }}>
+                <div key={t.id} className="flex items-start gap-4 py-3">
+                  <div className="min-w-0 flex-1">
+                    <div className="text-sm font-semibold text-[#f5f5f5]">{t.name}</div>
+                    <div className="mt-0.5 text-xs text-[#5c5c5c]">{t.description}</div>
+                    <div className="mt-2 flex flex-wrap gap-1.5">
                       {t.steps.map((s) => (
-                        <Tag key={s}>{s}</Tag>
+                        <span key={s} className="inline-flex items-center rounded-full border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.03)] px-2 py-0.5 text-[10px] text-[#8a8a8a]">{s}</span>
                       ))}
                     </div>
                   </div>
                   <button
                     type="button"
-                    className="nova-btn nova-btn--primary"
+                    className="flex shrink-0 items-center gap-2 rounded-xl bg-[#d4af37] px-4 py-2 text-xs font-semibold text-[#050505] transition-all duration-200 hover:bg-[#e4c458] hover:shadow-[0_0_30px_rgba(212,175,55,0.3)] disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]"
                     disabled={busy !== null || activeProjectId === null}
                     onClick={() => start(t.kind)}
                   >
@@ -153,15 +138,17 @@ export function WorkflowsPage(): React.ReactNode {
             </div>
           )}
           {projects.length > 1 && (
-            <div className="nova-row" style={{ marginTop: 12, gap: 8, flexWrap: 'wrap' }}>
-              <span className="nova-subtle" style={{ fontSize: 12 }}>
-                Project:
-              </span>
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <span className="text-xs text-[#5c5c5c]">Project:</span>
               {projects.map((p) => (
                 <button
                   key={p.id}
                   type="button"
-                  className={`nova-btn nova-btn--ghost${p.id === activeProjectId ? ' nova-btn--active' : ''}`}
+                  className={`rounded-lg border px-3 py-1 text-xs font-medium transition-all duration-200 ${
+                    p.id === activeProjectId
+                      ? 'border-[#d4af37] bg-[rgba(212,175,55,0.1)] text-[#d4af37]'
+                      : 'border-[rgba(255,255,255,0.08)] text-[#8a8a8a] hover:border-[rgba(255,255,255,0.14)] hover:text-[#f5f5f5]'
+                  }`}
                   onClick={() => setProjectId(p.id)}
                 >
                   {p.name}
@@ -170,29 +157,27 @@ export function WorkflowsPage(): React.ReactNode {
             </div>
           )}
           {projects.length === 0 && (
-            <div className="nova-subtle" style={{ fontSize: 12, marginTop: 10 }}>
-              Create a project first to run a workflow against it.
-            </div>
+            <p className="mt-3 text-xs text-[#5c5c5c]">Create a project first to run a workflow against it.</p>
           )}
-        </Card>
+        </div>
 
         {/* Running workflows */}
-        <Card
-          title="Running Workflows"
-          subtitle="Live runs with progress"
-          className="nova-col--8"
-          actions={
-            running.length > 0 ? (
-              <Badge intent="info" dot>
+        <div className="rounded-xl border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.02)] p-5">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-sm font-semibold text-[#f5f5f5]">Running Workflows</h2>
+              <p className="mt-0.5 text-xs text-[#8a8a8a]">Live runs with progress</p>
+            </div>
+            {running.length > 0 && (
+              <span className="inline-flex items-center rounded-full border border-[rgba(91,124,250,0.3)] bg-[rgba(91,124,250,0.1)] px-2 py-0.5 text-[10px] font-medium text-[#6ba8f5]">
                 {running.length}
-              </Badge>
-            ) : undefined
-          }
-        >
+              </span>
+            )}
+          </div>
           {running.length === 0 ? (
-            <EmptyState title="Nothing running" hint="Start a workflow from Available Workflows." />
+            <p className="mt-4 text-sm text-[#5c5c5c]">Nothing running. Start a workflow from Available Workflows.</p>
           ) : (
-            <div className="nova-stack">
+            <div className="mt-4 space-y-4">
               {running.map((run) => (
                 <RunCard
                   key={run.id}
@@ -203,41 +188,38 @@ export function WorkflowsPage(): React.ReactNode {
               ))}
             </div>
           )}
-        </Card>
+        </div>
 
-        {/* Completed workflows */}
-        <Card
-          title="Completed Workflows"
-          subtitle="Finished runs this session"
-          className="nova-col--6"
-        >
-          {completed.length === 0 ? (
-            <EmptyState title="No completed runs yet" />
-          ) : (
-            <div className="nova-list">
-              {completed.map((run) => (
-                <RunRow key={run.id} run={run} onOpen={() => navigate('/workflows')} />
-              ))}
-            </div>
-          )}
-        </Card>
+        {/* Completed workflows + History */}
+        <div className="grid gap-6 md:grid-cols-2">
+          <div className="rounded-xl border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.02)] p-5">
+            <h2 className="text-sm font-semibold text-[#f5f5f5]">Completed Workflows</h2>
+            <p className="mt-0.5 text-xs text-[#8a8a8a]">Finished runs this session</p>
+            {completed.length === 0 ? (
+              <p className="mt-4 text-sm text-[#5c5c5c]">No completed runs yet.</p>
+            ) : (
+              <div className="mt-4 divide-y divide-[rgba(255,255,255,0.06)]">
+                {completed.map((run) => (
+                  <RunRow key={run.id} run={run} onOpen={() => navigate('/workflows')} />
+                ))}
+              </div>
+            )}
+          </div>
 
-        {/* History */}
-        <Card
-          title="History"
-          subtitle="Past runs (oldest outcomes preserved)"
-          className="nova-col--6"
-        >
-          {history.length === 0 ? (
-            <EmptyState title="No history yet" />
-          ) : (
-            <div className="nova-list">
-              {history.map((run) => (
-                <RunRow key={run.id} run={run} onOpen={() => navigate('/workflows')} />
-              ))}
-            </div>
-          )}
-        </Card>
+          <div className="rounded-xl border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.02)] p-5">
+            <h2 className="text-sm font-semibold text-[#f5f5f5]">History</h2>
+            <p className="mt-0.5 text-xs text-[#8a8a8a]">Past runs (oldest outcomes preserved)</p>
+            {history.length === 0 ? (
+              <p className="mt-4 text-sm text-[#5c5c5c]">No history yet.</p>
+            ) : (
+              <div className="mt-4 divide-y divide-[rgba(255,255,255,0.06)]">
+                {history.map((run) => (
+                  <RunRow key={run.id} run={run} onOpen={() => navigate('/workflows')} />
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </Page>
   );
@@ -254,18 +236,18 @@ function RunCard({
   cancelling: boolean;
 }): React.ReactNode {
   return (
-    <div className="nova-card nova-card--inset">
-      <div className="nova-row" style={{ justifyContent: 'space-between', gap: 8 }}>
-        <div className="nova-row" style={{ gap: 8 }}>
+    <div className="rounded-lg border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.02)] p-4">
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
           <StatusDot intent={workflowRunIntent(run.state)} />
-          <div style={{ fontWeight: 600 }}>{workflowKindLabel(run.kind)}</div>
+          <span className="text-sm font-semibold text-[#f5f5f5]">{workflowKindLabel(run.kind)}</span>
           <Badge intent={workflowRunIntent(run.state)} dot>
             {workflowRunLabel(run.state)}
           </Badge>
         </div>
         <button
           type="button"
-          className="nova-btn nova-btn--danger"
+          className="rounded-lg border border-[rgba(255,94,94,0.3)] bg-[rgba(255,94,94,0.1)] px-3 py-1 text-xs font-medium text-[#ff5e5e] transition-all duration-200 hover:bg-[rgba(255,94,94,0.2)] disabled:opacity-50"
           disabled={cancelling}
           onClick={onCancel}
         >
@@ -273,25 +255,29 @@ function RunCard({
         </button>
       </div>
 
-      <div className="nova-row" style={{ marginTop: 10, gap: 10 }}>
-        <div style={{ flex: 1 }}>
-          <ProgressBar value={run.progress} intent={workflowRunIntent(run.state)} />
+      <div className="mt-2.5 flex items-center gap-2.5">
+        <div className="flex-1">
+          <div className="h-1.5 overflow-hidden rounded-full bg-[rgba(255,255,255,0.06)]">
+            <div
+              className="h-full rounded-full transition-all duration-300"
+              style={{
+                width: `${run.progress}%`,
+                background: intentColor(workflowRunIntent(run.state)),
+              }}
+            />
+          </div>
         </div>
-        <span className="nova-mono" style={{ color: intentColor(workflowRunIntent(run.state)) }}>
-          {run.progress}%
-        </span>
+        <span className="text-[11px] font-mono text-[#8a8a8a]">{run.progress}%</span>
       </div>
 
-      <div className="nova-stack" style={{ marginTop: 12, gap: 6 }}>
+      <div className="mt-3 space-y-1.5">
         {run.steps.map((step) => (
-          <div key={step.stepId} className="nova-row" style={{ gap: 8, fontSize: 12.5 }}>
+          <div key={step.stepId} className="flex items-center gap-2 text-xs">
             <StatusDot intent={workflowStepIntent(step.state)} />
-            <span style={{ flex: 1 }}>{step.title}</span>
-            <span className="nova-subtle">{workflowRunLabel(step.state)}</span>
+            <span className="flex-1 text-[#f5f5f5]">{step.title}</span>
+            <span className="text-[#5c5c5c]">{workflowRunLabel(step.state)}</span>
             {step.error !== undefined && (
-              <span className="nova-subtle" style={{ color: intentColor('danger') }}>
-                {step.error}
-              </span>
+              <span className="text-[#ff5e5e]">{step.error}</span>
             )}
           </div>
         ))}
@@ -303,21 +289,14 @@ function RunCard({
 /** A compact row for a finished run (Completed / History). */
 function RunRow({ run, onOpen }: { run: StudioWorkflowRun; onOpen: () => void }): React.ReactNode {
   return (
-    <button type="button" className="nova-list__item nova-list__item--button" onClick={onOpen}>
+    <button type="button" className="flex w-full items-center gap-3 py-3 text-left transition-all duration-200 hover:opacity-80" onClick={onOpen}>
       <span
-        style={{
-          width: 6,
-          height: 6,
-          borderRadius: 999,
-          background: intentColor(workflowRunIntent(run.state)),
-          flexShrink: 0,
-        }}
+        className="h-1.5 w-1.5 shrink-0 rounded-full"
+        style={{ background: intentColor(workflowRunIntent(run.state)) }}
       />
-      <div style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
-        <div style={{ fontWeight: 500 }}>{workflowKindLabel(run.kind)}</div>
-        <div className="nova-subtle" style={{ fontSize: 11.5 }}>
-          {run.steps.length} steps · {timeAgo(run.updatedAt)}
-        </div>
+      <div className="min-w-0 flex-1">
+        <div className="text-sm font-medium text-[#f5f5f5]">{workflowKindLabel(run.kind)}</div>
+        <div className="text-[11px] text-[#5c5c5c]">{run.steps.length} steps · {timeAgo(run.updatedAt)}</div>
       </div>
       <Badge intent={workflowRunIntent(run.state)} dot>
         {workflowRunLabel(run.state)}

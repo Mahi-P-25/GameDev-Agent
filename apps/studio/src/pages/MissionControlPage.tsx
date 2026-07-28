@@ -8,8 +8,10 @@ import { MissionControlModule } from '../modules/mission-control';
  */
 export function MissionControlPage(): React.ReactNode {
   return (
-    <Page title="Mission Control" status="ready" gridClass="nova-grid--home">
-      <MissionControlModule />
+    <Page title="Mission Control">
+      <div className="glass-panel p-6">
+        <MissionControlModule />
+      </div>
     </Page>
   );
 }

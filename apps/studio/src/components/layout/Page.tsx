@@ -1,31 +1,29 @@
+import { motion } from 'motion/react';
 import type { ReactNode } from 'react';
 import { GlobalOverlays } from './GlobalOverlays';
 import { Sidebar } from './Sidebar';
-import { TopBar, type TopBarProps } from './TopBar';
+import { TopBar } from './TopBar';
 
 export interface PageProps {
-  readonly title: string;
-  readonly status?: TopBarProps['status'];
-  /** Optional grid modifier class (e.g. `nova-grid--home`). Defaults to the 12-col dashboard grid. */
-  readonly gridClass?: string;
+  readonly title?: string;
   readonly children: ReactNode;
 }
 
-/**
- * A standard page frame: the app chrome (sidebar) plus a top bar carrying the
- * page title and a live studio-status pill, followed by the scrollable content
- * region. Every page renders inside this so layout stays consistent.
- */
-export function Page({ title, status, gridClass, children }: PageProps): ReactNode {
+export function Page({ title, children }: PageProps): ReactNode {
   return (
     <div className="nova-app">
       <Sidebar />
       <div className="nova-main">
-        <TopBar title={title} status={status ?? 'ready'} />
+        {title && <TopBar title={title} />}
         <main className="nova-content">
-          <div className={`nova-page-grid${gridClass ? ` ${gridClass}` : ' nova-grid--dashboard'}`}>
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+            className="nova-panel"
+          >
             {children}
-          </div>
+          </motion.div>
         </main>
       </div>
       <GlobalOverlays />

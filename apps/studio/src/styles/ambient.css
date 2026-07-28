@@ -1,101 +1,13 @@
-/**
- * Nova Ambient Presence — environmental lighting (Operation Presence).
- *
- * The studio canvas carries a single, quiet atmospheric light. Its warmth and
- * focus shift with real studio state — not a glow, not a hologram, just the room
- * subtly acknowledging that work is happening (or resting). Driven entirely by a
- * `data-studio` attribute on `.nova-stage`; no JS animation loop, no spectacle.
- *
- *   data-studio="working"  → a touch more focused light, studio is active
- *   data-studio="waiting"  → neutral, patient
- *   data-studio="blocked"  → cooler, attention needed
- *   data-studio="idle"     → calm, dim, at rest
- *
- * Honors prefers-reduced-motion (the light is static under that setting).
- */
-
 @layer components {
   .nova-stage {
-    /* Default (idle): calm, dim, at rest. */
-    --stage-light: color-mix(in srgb, var(--color-primary) 8%, transparent);
+    --stage-light: rgba(212, 175, 55, 0.04);
     --stage-light-strength: 60%;
     transition: --stage-light-strength 600ms var(--ease-standard);
   }
-
-  .nova-stage[data-studio="working"] {
-    --stage-light: color-mix(in srgb, var(--color-primary) 14%, transparent);
-    --stage-light-strength: 75%;
-  }
-
-  /* building — active construction: focused primary wash, slightly brighter */
-  .nova-stage[data-studio="building"] {
-    --stage-light: color-mix(in srgb, var(--color-primary) 15%, transparent);
-    --stage-light-strength: 80%;
-  }
-
-  /* reviewing — a human decision is pending: patient gold, never alarmist */
-  .nova-stage[data-studio="reviewing"] {
-    --stage-light: color-mix(in srgb, var(--color-accent) 10%, transparent);
-    --stage-light-strength: 62%;
-  }
-
-  /* planning — direction forming: a calm primary, mid strength */
-  .nova-stage[data-studio="planning"] {
-    --stage-light: color-mix(in srgb, var(--color-primary) 11%, transparent);
-    --stage-light-strength: 66%;
-  }
-
-  .nova-stage[data-studio="waiting"] {
-    --stage-light: color-mix(in srgb, var(--color-accent) 9%, transparent);
-    --stage-light-strength: 60%;
-  }
-
-  /* blocked — something cannot proceed: cooler, a touch dimmer, attention without alarm */
-  .nova-stage[data-studio="blocked"] {
-    --stage-light: color-mix(in srgb, var(--color-danger) 7%, transparent);
-    --stage-light-strength: 54%;
-  }
-
-  /* The living signature — the gold rule gently acknowledges state by width. */
-  .nova-signature-rule {
-    transition: width 480ms var(--ease-standard);
-  }
-  .nova-stage[data-studio="building"] .nova-signature-rule--live,
-  .nova-stage[data-studio="reviewing"] .nova-signature-rule--live,
-  .nova-stage[data-studio="planning"] .nova-signature-rule--live {
-    width: 88px;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .nova-stage,
-  .nova-signature-rule {
+  .nova-stage {
     transition: none !important;
-  }
-}
-
-/* ------------------------------------------------------------------ *
- * Arrival — a single, calm "settle" when the studio opens. The room
- * brightens from rest and the light finds its mode. No splash, no logo
- * animation; just the confidence of a space coming into focus. Plays once.
- * ------------------------------------------------------------------ */
-@keyframes nova-arrival {
-  from {
-    opacity: 0;
-    --stage-light-strength: 0%;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-.nova-stage[data-arrival='true'] {
-  animation: nova-arrival 720ms var(--ease-out) both;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .nova-stage[data-arrival='true'] {
-    animation: none !important;
-    opacity: 1;
   }
 }

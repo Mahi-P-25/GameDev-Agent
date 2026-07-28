@@ -11,6 +11,7 @@
       "@gamedev-agent/kernel": ["packages/kernel/src/index.ts"],
       "@gamedev-agent/coordinator": ["packages/coordinator/src/index.ts"],
       "@gamedev-agent/capabilities": ["packages/capabilities/src/index.ts"],
+      "@gamedev-agent/runtime": ["packages/runtime/src/index.ts"],
       "@gamedev-agent/vscode": ["packages/vscode/src/index.ts"],
       "@gamedev-agent/tool-runtime": ["packages/tool-runtime/src/index.ts"]
     }

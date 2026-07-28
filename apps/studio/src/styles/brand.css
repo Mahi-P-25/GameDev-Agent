@@ -1,25 +1,9 @@
-/**
- * Nova Brand System — signature language (Sprint 12+).
- *
- * Carries the identity beyond tokens: the recurring "you are here" gold rule,
- * the mark treatment, and the studio opening rhythm. Everything resolves from
- * the existing `--color-*` / `--radius-*` / `--space-*` tokens. No new palette.
- *
- * Policy (see product experience strategy):
- *   - Exactly ONE `.nova-signature-rule` (gold) per screen — the only accent
- *     moment. It anchors the active hero/context.
- *   - The mark is flat, single-color, never gradient or glowing.
- *   - Spacing rhythm is the only structural grid: 8px base, 4px half-step.
- */
-
 @layer components {
-  /* The Nova mark — inherits currentColor; calm, no fill, no gradient. */
   .nova-mark {
     display: block;
     color: var(--color-fg);
   }
 
-  /* Signature accent — a single 1px gold rule. The one gold moment per screen. */
   .nova-signature-rule {
     display: block;
     height: 1px;
@@ -27,7 +11,7 @@
     background: linear-gradient(
       90deg,
       var(--color-accent),
-      color-mix(in srgb, var(--color-accent) 0%, transparent)
+      transparent
     );
     border-radius: 999px;
   }
@@ -35,35 +19,16 @@
     width: 100%;
   }
 
-  /* Wordmark lockup rhythm. */
   .nova-wordmark {
     user-select: none;
   }
 }
 
-/* ------------------------------------------------------------------ *
- * Studio opening rhythm — spacing scale for the OS opening scene.
- * 8px base unit; half-step 4px. Used by the layout primitives so every
- * screen shares one vertical cadence. No magic numbers in components.
- * ------------------------------------------------------------------ */
 @layer utilities {
-  .nova-rhythm-y > * + * {
-    margin-top: var(--space-5);
-  }
-  .nova-rhythm-y-lg > * + * {
-    margin-top: var(--space-6);
-  }
-  /* Generous hero breathing room — first viewport is mostly the project. */
-  .nova-hero-pad {
-    padding-block: clamp(2.5rem, 6vh, 5rem);
-  }
-  /* The studio canvas: a near-black field with a single quiet vignette so the
-     hero reads as "entering a room," not "opening a window." The light color is
-     owned by ambient.css (state-driven), defaulting to a calm primary wash. */
   @property --stage-light {
     syntax: "<color>";
     inherits: true;
-    initial-value: color-mix(in srgb, #5b7cfa 8%, transparent);
+    initial-value: rgba(212, 175, 55, 0.04);
   }
   .nova-stage {
     background: radial-gradient(120% 80% at 50% -10%, var(--stage-light), transparent 62%),

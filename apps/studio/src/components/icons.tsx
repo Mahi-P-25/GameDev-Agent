@@ -22,7 +22,9 @@ export type IconName =
   | 'clock'
   | 'alert'
   | 'spark'
-  | 'mission';
+  | 'mission'
+  | 'memory'
+  | 'agents';
 
 const PATHS: Record<IconName, ReactNode> = {
   home: (
@@ -108,6 +110,19 @@ const PATHS: Record<IconName, ReactNode> = {
       <circle cx="12" cy="12" r="8" />
       <path d="M12 8v4l3 2" />
       <path d="M12 4v2M12 18v2M4 12h2M18 12h2" />
+    </>
+  ),
+  memory: (
+    <>
+      <rect x="4" y="4" width="16" height="16" rx="2" />
+      <path d="M9 8v8M12 8v8M15 8v8" />
+    </>
+  ),
+  agents: (
+    <>
+      <circle cx="8" cy="8" r="3" />
+      <path d="M14 8h6M14 12h4M14 16h2" />
+      <circle cx="8" cy="16" r="2" />
     </>
   ),
 };

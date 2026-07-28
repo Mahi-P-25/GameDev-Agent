@@ -1,5 +1,5 @@
 import type { ContextManager, ContextPipeline, CurrentContext } from '@gamedev-agent/context';
-import type { ContextRequest, ContextPurpose } from '@gamedev-agent/context';
+import type { ContextRequest } from '@gamedev-agent/context';
 import type { Logger } from '@gamedev-agent/logging';
 import type { ModelProvidersService } from '@gamedev-agent/model-providers';
 import type { Message } from '@gamedev-agent/model-providers';

@@ -165,7 +165,7 @@ export interface ToolInvocationRequest {
   /** Correlation id linking the invocation to a Mission / run on the bus. */
   readonly correlationId: UUID | null;
   /** Optional abort signal (the runtime forwards it to the handler). */
-  readonly signal?: AbortSignal;
+  readonly signal?: AbortSignal | undefined;
 }
 
 /** The result of an invocation. Never throws for expected failures. */
@@ -224,7 +224,7 @@ export interface ToolHandler {
 /** Per-invocation context handed to a {@link ToolHandler}. */
 export interface ToolInvocationContext {
   readonly correlationId: UUID | null;
-  readonly signal?: AbortSignal;
+  readonly signal?: AbortSignal | undefined;
 }
 
 /** One line in the runtime's immutable audit trail. */
@@ -411,8 +411,8 @@ export interface CapabilityExecutionRequest {
   readonly input: Json;
   readonly actor: ToolActor;
   readonly correlationId: UUID | null;
-  readonly sessionId?: string;
-  readonly signal?: AbortSignal;
+  readonly sessionId?: string | undefined;
+  readonly signal?: AbortSignal | undefined;
 }
 
 /** Options for the ToolOrchestrator. */
@@ -437,6 +437,92 @@ export interface AbilityMapping {
   readonly preferredToolIds?: ReadonlyArray<string>;
   readonly requiresSession?: boolean;
   readonly category: CapabilityCategory;
+}
+
+// --- Tool Schema (self-describing, owned by adapters) -----------------------
+
+/**
+ * JSON Schema definition for a tool action's input/output.
+ * Owned by each adapter — the runtime never constructs these.
+ */
+export interface ToolSchema {
+  readonly input: Record<string, unknown>;
+  readonly output?: Record<string, unknown>;
+}
+
+/**
+ * A schema-enriched capability that replaces the runtime's switch-based
+ * `buildActionSchema`. Each adapter declares its own schemas.
+ */
+export interface ToolCapabilityWithSchema extends ToolCapability {
+  readonly schemas: Readonly<Record<string, ToolSchema>>;
+}
+
+/**
+ * Validate that a capability's actions all have corresponding schemas.
+ */
+export function validateCapabilitySchemas(cap: ToolCapabilityWithSchema): void {
+  for (const action of cap.actions) {
+    if (cap.schemas[action] === undefined) {
+      throw new Error(`capability "${cap.id}" declares action "${action}" but no schema`);
+    }
+  }
+}
+
+// --- Permission types -------------------------------------------------------
+
+export type PermissionPolicy = 'allow' | 'prompt' | 'deny';
+
+export interface PermissionRule {
+  readonly permission: ToolPermission;
+  readonly policy: PermissionPolicy;
+  readonly reason?: string;
+}
+
+export interface PermissionManagerOptions {
+  readonly rules?: ReadonlyArray<PermissionRule>;
+  readonly defaultPolicy?: PermissionPolicy;
+  readonly onPermissionPrompt?: (request: PermissionPromptRequest) => Promise<boolean>;
+  readonly logger?: Logger;
+}
+
+export interface PermissionPromptRequest {
+  readonly permission: ToolPermission;
+  readonly toolId: ToolId;
+  readonly action: string;
+  readonly actor: ToolActor;
+  readonly correlationId: UUID | null;
+}
+
+export interface PermissionCheckResult {
+  readonly granted: boolean;
+  readonly policy: PermissionPolicy;
+  readonly reason?: string | undefined;
+}
+
+// --- Lifecycle types --------------------------------------------------------
+
+export type ToolLifecycleStage =
+  | 'discovered'
+  | 'registered'
+  | 'connected'
+  | 'ready'
+  | 'disconnected'
+  | 'unregistered'
+  | 'error';
+
+export interface LifecycleState {
+  readonly toolId: ToolId;
+  readonly stage: ToolLifecycleStage;
+  readonly startedAt: Timestamp;
+  readonly error?: string;
+}
+
+export interface LifecycleManagerOptions {
+  readonly toolManager: ToolManager;
+  readonly eventBus: EventBusContract;
+  readonly logger?: Logger;
+  readonly autoConnect?: boolean;
 }
 
 // --- re-exports of external contracts used across the package -----------------

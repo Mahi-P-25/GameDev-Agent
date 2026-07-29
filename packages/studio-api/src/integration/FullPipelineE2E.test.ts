@@ -23,7 +23,7 @@ import { PROJECT_MANAGER_TOKEN, projectModule } from '@gamedev-agent/project';
 import type { ProjectManager } from '@gamedev-agent/project';
 import { STUDIO_API_TOKEN, studioModule } from '@gamedev-agent/studio-api';
 import type { StudioApi } from '@gamedev-agent/studio-api';
-import { executionEngineModule } from '@gamedev-agent/execution-engine';
+import { executionEngineModule, missionAgentModule } from '@gamedev-agent/execution-engine';
 import { toolRuntimeModule } from '@gamedev-agent/tool-runtime';
 import { WORKFLOW_MANAGER_TOKEN, workflowModule } from '@gamedev-agent/workflow';
 import type { WorkflowManager } from '@gamedev-agent/workflow';
@@ -71,6 +71,7 @@ const sharedModules = [
   toolRuntimeModule,
   workflowModule,
   executionEngineModule,
+  missionAgentModule,
   studioModule,
 ] as const;
 

@@ -1,9 +1,9 @@
+import type { StudioKernel } from '@gamedev-agent/kernel';
 import { RUNTIME_TOKEN } from '@gamedev-agent/runtime';
 import type { Runtime } from '@gamedev-agent/runtime';
-import type { StudioKernel } from '@gamedev-agent/kernel';
 import { GitToolAdapter, gitDescriptor } from './GitToolAdapter';
-import { TOOL_RUNTIME_TOKEN } from './ToolTypes';
 import type { ToolManager } from './ToolManager';
+import { TOOL_RUNTIME_TOKEN } from './ToolTypes';
 
 export const gitModule: {
   readonly name: string;

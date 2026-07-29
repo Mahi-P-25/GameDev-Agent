@@ -1,6 +1,7 @@
 import { COORDINATOR_MANAGER_TOKEN, type CoordinatorManager } from '@gamedev-agent/coordinator';
 import { createServiceToken } from '@gamedev-agent/di';
 import type { KernelModule, StudioKernel } from '@gamedev-agent/kernel';
+import { MISSION_AGENT_TOKEN, type MissionAgent } from '@gamedev-agent/execution-engine';
 import { PLANNER_MANAGER_TOKEN, type PlannerManager } from '@gamedev-agent/planner';
 import { PlanCreated } from '@gamedev-agent/planner';
 import { PRODUCER_MANAGER_TOKEN, type ProducerManager } from '@gamedev-agent/producer';
@@ -13,6 +14,7 @@ import {
   GoalSubmitted,
   MissionProposalReady,
 } from '@gamedev-agent/producer';
+import type { Logger } from '@gamedev-agent/logging';
 import type { Disposable } from '@gamedev-agent/shared';
 import { WORKFLOW_MANAGER_TOKEN, type WorkflowManager } from '@gamedev-agent/workflow';
 
@@ -36,14 +38,13 @@ export const STUDIO_ORCHESTRATOR_TOKEN = createServiceToken<StudioOrchestrator>(
  *   GoalReviewPackageGenerated → Producer.requestApproval
  *   GoalApprovalRequested      → Producer.approve            (auto-approve slice)
  *   MissionProposalReady       → Planner.plan                (approved tree → plan)
- *   PlanCreated                → Coordinator Mission + Workflow execution
+ *   PlanCreated                → Coordinator Mission + MissionAgent
  *
- * The last hop is where the slice demonstrates the architecture pays off: a
- * single `plan.created` event fans out into a Coordinator Mission (started) and
- * a Workflow Engine execution (driven to completion by the deterministic
- * executor). Because everything flows through the bus, the Studio UI updates
- * automatically from the resulting event stream — no polling, no direct
- * coupling between subsystems.
+ * The last hop is the MissionAgent — Nova's autonomous mission brain. Instead
+ * of executing a predefined workflow step-by-step, the agent receives the plan,
+ * observes the environment, thinks about the next action, executes through the
+ * Tool Runtime, and verifies the result. The MissionAgent orchestrates existing
+ * systems; it never replaces them.
  *
  * This reuses the existing KernelModule + EventBus + DI pattern; it introduces
  * no new architecture, only the wiring between existing systems.
@@ -53,6 +54,8 @@ export class StudioOrchestrator implements Disposable {
   private readonly planner: PlannerManager;
   private readonly workflow: WorkflowManager;
   private readonly coordinator: CoordinatorManager;
+  private readonly missionAgent: MissionAgent;
+  private readonly logger: Logger | undefined;
   private readonly disposers: Array<Disposable> = [];
   private disposed = false;
 
@@ -61,11 +64,15 @@ export class StudioOrchestrator implements Disposable {
     planner: PlannerManager;
     workflow: WorkflowManager;
     coordinator: CoordinatorManager;
+    missionAgent: MissionAgent;
+    logger?: Logger;
   }) {
     this.producer = params.producer;
     this.planner = params.planner;
     this.workflow = params.workflow;
     this.coordinator = params.coordinator;
+    this.missionAgent = params.missionAgent;
+    this.logger = params.logger;
   }
 
   /** Subscribe to every pipeline event. Idempotent. */
@@ -150,9 +157,9 @@ export class StudioOrchestrator implements Disposable {
   }
 
   /**
-   * Plan produced: start a Coordinator Mission for it and create + run a Workflow
-   * execution from the plan's `WorkflowSource` bridge. This is the fan-out that
-   * proves the architecture connects Planning → Workflow → Coordinator.
+   * Plan produced: start a Coordinator Mission for it and launch the MissionAgent
+   * to autonomously execute the plan. The agent owns the decision loop:
+   * observe → think → decide → execute → verify → repeat.
    */
   private async onPlanCreated(planId: string): Promise<void> {
     const plan = this.planner.getPlan(planId as never);
@@ -160,6 +167,7 @@ export class StudioOrchestrator implements Disposable {
     const title = goal?.title ?? `Execute ${plan.proposalId}`;
 
     // 1. Coordinator Mission: submit → accept → analyse → approve → ready → start.
+    this.logger?.info('Starting Coordinator Mission', { title, planId });
     const mission = await this.coordinator.submit({
       projectId: plan.projectId as never,
       title,
@@ -172,20 +180,27 @@ export class StudioOrchestrator implements Disposable {
     await this.coordinator.markReady(mission.id);
     await this.coordinator.startExecution(mission.id);
 
-    // 2. Workflow execution: bridge the plan into a WorkflowSource, then run it.
-    //    When a StepExecutor is set on the WorkflowManager (e.g. the Execution
-    //    Engine), `start()` automatically drives every step through the executor
-    //    and the run reaches `completed` before the promise resolves.
-    //    Without an executor (e.g. in tests or vertical-slice mode), manually
-    //    succeed every step so the run completes deterministically.
-    const execution = await this.workflow.createFromSource(plan.toWorkflowSource());
-    const started = await this.workflow.start(execution.id);
-    if (started.state === 'running' && this.workflow.executor === undefined) {
-      let current = started;
-      for (const stepId of current.plan.order) {
-        if (current.state !== 'running' || current.paused) break;
-        current = await this.workflow.succeedStep(current.id, stepId);
-      }
+    // 2. Launch the MissionAgent — the autonomous brain that owns execution.
+    //    It receives the plan (as a WorkflowSource), observes the workspace,
+    //    decides each action, executes through the Tool Runtime, verifies
+    //    results, and continues until the mission is complete, failed, or
+    //    cancelled.
+    this.logger?.info('Launching MissionAgent', { planId, missionId: mission.id });
+    const source = plan.toWorkflowSource();
+    const report = await this.missionAgent.run(source);
+    this.logger?.info('MissionAgent completed', {
+      planId,
+      status: report.status,
+      actions: report.actionCount,
+      durationMs: report.totalDurationMs,
+    });
+
+    // 3. Complete the coordinator mission based on the agent's result.
+    if (report.status === 'completed') {
+      await this.coordinator.review(mission.id);
+      await this.coordinator.complete(mission.id);
+    } else if (report.status === 'failed') {
+      await this.coordinator.fail(mission.id, report.finalSummary);
     }
   }
 }
@@ -194,13 +209,14 @@ export class StudioOrchestrator implements Disposable {
 export const studioOrchestratorModule: KernelModule = {
   name: 'nova.studio-orchestrator',
   async register(kernel: StudioKernel): Promise<void> {
-    const [producer, planner, workflow, coordinator] = await Promise.all([
+    const [producer, planner, workflow, coordinator, missionAgent] = await Promise.all([
       kernel.services.resolve(PRODUCER_MANAGER_TOKEN),
       kernel.services.resolve(PLANNER_MANAGER_TOKEN),
       kernel.services.resolve(WORKFLOW_MANAGER_TOKEN),
       kernel.services.resolve(COORDINATOR_MANAGER_TOKEN),
+      kernel.services.resolve(MISSION_AGENT_TOKEN),
     ]);
-    const orchestrator = new StudioOrchestrator({ producer, planner, workflow, coordinator });
+    const orchestrator = new StudioOrchestrator({ producer, planner, workflow, coordinator, missionAgent, logger: kernel.logger.child('studio-orchestrator') });
     kernel.registerService({
       token: STUDIO_ORCHESTRATOR_TOKEN,
       singleton: true,

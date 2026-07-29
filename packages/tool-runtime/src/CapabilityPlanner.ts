@@ -82,11 +82,9 @@ export class CapabilityPlanner {
 
   constructor(options: CapabilityPlannerOptions) {
     this.toolManager = options.toolManager;
-    this.logger = options.logger ?? new RootLogger('nova.capability-planner', [new ConsoleLogSink()]);
-    const allMappings = [
-      ...DEFAULT_ABILITY_MAPPINGS,
-      ...(options.customMappings ?? []),
-    ];
+    this.logger =
+      options.logger ?? new RootLogger('nova.capability-planner', [new ConsoleLogSink()]);
+    const allMappings = [...DEFAULT_ABILITY_MAPPINGS, ...(options.customMappings ?? [])];
     const grouped = new Map<MissionAbility, AbilityMapping[]>();
     for (const mapping of allMappings) {
       const group = grouped.get(mapping.ability) ?? [];
@@ -129,9 +127,7 @@ export class CapabilityPlanner {
     for (const [ability, mappings] of this.mappings) {
       const canResolve = mappings.some((m) =>
         registeredTools.some((tool) =>
-          tool.descriptor.capabilities.some((cap) =>
-            cap.actions.includes(m.capabilityPattern),
-          ),
+          tool.descriptor.capabilities.some((cap) => cap.actions.includes(m.capabilityPattern)),
         ),
       );
       if (canResolve) {

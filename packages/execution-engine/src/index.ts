@@ -58,6 +58,45 @@ export { ProgressTracker } from './ProgressTracker';
 export { ExecutionEngine } from './ExecutionEngine';
 export type { ExecutionEngineOptions } from './ExecutionEngine';
 
+// ─── MissionAgent ─────────────────────────────────────────────────────────
+export { MissionAgent } from './MissionAgent';
+export type { MissionAgentOptions } from './MissionAgentTypes';
+export type {
+  AgentState,
+  AgentDecision as AgentDecisionType,
+  AgentObservation as AgentObservationType,
+  AgentThought as AgentThoughtType,
+  AgentAction,
+  AgentVerification as AgentVerificationType,
+  ShortTermMemory,
+  MissionReport,
+} from './MissionAgentTypes';
+export {
+  AgentStateChanged,
+  AgentThought,
+  AgentObservation,
+  AgentDecisionEvent,
+  AgentActionStarted,
+  AgentActionResult,
+  AgentVerification,
+  AgentProgress,
+  AgentMissionComplete,
+  AgentArtifactCreated,
+} from './MissionAgentEvents';
+export type {
+  AgentStateChangedPayload,
+  AgentThoughtPayload,
+  AgentObservationPayload,
+  AgentDecisionPayload,
+  AgentActionStartedPayload,
+  AgentActionResultPayload,
+  AgentVerificationPayload,
+  AgentProgressPayload,
+  AgentMissionCompletePayload,
+  AgentArtifactCreatedPayload,
+  AgentEventPayloads,
+} from './MissionAgentEvents';
+
 // ─── DI Module ─────────────────────────────────────────────────────────────
 export {
   executionEngineModule,
@@ -66,3 +105,7 @@ export {
   AGENT_DISPATCHER_TOKEN,
   MEMORY_RECORDER_TOKEN,
 } from './ExecutionModule';
+export {
+  missionAgentModule,
+  MISSION_AGENT_TOKEN,
+} from './MissionAgentModule';

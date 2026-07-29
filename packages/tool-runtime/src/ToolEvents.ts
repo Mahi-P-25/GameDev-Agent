@@ -1,5 +1,11 @@
 import type { EventDefinition } from '@gamedev-agent/events';
-import type { ToolConnectionState, ToolHealth, ToolId, ToolPlatform } from './ToolTypes';
+import type {
+  ToolConnectionState,
+  ToolHealth,
+  ToolId,
+  ToolLifecycleStage,
+  ToolPlatform,
+} from './ToolTypes';
 
 /**
  * Strongly-typed event catalog for the Nova Tool Runtime.
@@ -12,6 +18,15 @@ import type { ToolConnectionState, ToolHealth, ToolId, ToolPlatform } from './To
  * Bus — it never calls other packages directly. This is how the Studio API,
  * Coordinator, Memory, and UI observe tool activity without the runtime
  * depending on them.
+ *
+ * Event streaming hierarchy:
+ * - tool.connected / tool.disconnected — connection lifecycle
+ * - tool.session.started / tool.session.closed — session lifecycle
+ * - tool.session.timed-out — session expiration
+ * - tool.capability.started / tool.capability.completed / tool.capability.failed — capability execution
+ * - tool.permission.denied — authorization failures
+ * - tool.health.changed — health transitions
+ * - tool.lifecycle.changed — lifecycle stage transitions
  */
 
 export interface ToolRegisteredPayload {
@@ -86,6 +101,75 @@ export const ToolInvocationSucceeded = define<ToolInvocationSucceededPayload>(
 export const ToolInvocationFailed = define<ToolInvocationFailedPayload>('tool.invocation-failed');
 export const ToolPermissionDenied = define<ToolPermissionDeniedPayload>('tool.permission-denied');
 
+// --- Session Events ------------------------------------------------------------
+
+export interface ToolSessionStartedPayload {
+  readonly toolId: ToolId;
+  readonly sessionId: string;
+  readonly timestamp: number;
+}
+
+export interface ToolSessionClosedPayload {
+  readonly toolId: ToolId;
+  readonly sessionId: string;
+  readonly timestamp: number;
+}
+
+export interface ToolSessionTimedOutPayload {
+  readonly toolId: ToolId;
+  readonly sessionId: string;
+  readonly timestamp: number;
+}
+
+// --- Capability Execution Events -----------------------------------------------
+
+export interface ToolCapabilityStartedPayload {
+  readonly toolId: ToolId;
+  readonly capabilityId: string;
+  readonly correlationId: string | null;
+  readonly timestamp: number;
+}
+
+export interface ToolCapabilityCompletedPayload {
+  readonly toolId: ToolId;
+  readonly capabilityId: string;
+  readonly correlationId: string | null;
+  readonly durationMs: number;
+  readonly timestamp: number;
+}
+
+export interface ToolCapabilityFailedPayload {
+  readonly toolId: ToolId;
+  readonly capabilityId: string;
+  readonly correlationId: string | null;
+  readonly code: string;
+  readonly message: string;
+  readonly durationMs: number;
+  readonly timestamp: number;
+}
+
+// --- Lifecycle Events ----------------------------------------------------------
+
+export interface ToolLifecycleChangedPayload {
+  readonly toolId: ToolId;
+  readonly stage: ToolLifecycleStage;
+  readonly previous: ToolLifecycleStage;
+  readonly timestamp: number;
+}
+
+export const ToolSessionStarted = define<ToolSessionStartedPayload>('tool.session.started');
+export const ToolSessionClosed = define<ToolSessionClosedPayload>('tool.session.closed');
+export const ToolSessionTimedOut = define<ToolSessionTimedOutPayload>('tool.session.timed-out');
+
+export const ToolCapabilityStarted =
+  define<ToolCapabilityStartedPayload>('tool.capability.started');
+export const ToolCapabilityCompleted = define<ToolCapabilityCompletedPayload>(
+  'tool.capability.completed',
+);
+export const ToolCapabilityFailed = define<ToolCapabilityFailedPayload>('tool.capability.failed');
+
+export const ToolLifecycleChanged = define<ToolLifecycleChangedPayload>('tool.lifecycle.changed');
+
 /** All Tool Runtime event payloads, for consumers that need a union. */
 export type ToolEventPayloads =
   | ToolRegisteredPayload
@@ -95,7 +179,14 @@ export type ToolEventPayloads =
   | ToolInvokedPayload
   | ToolInvocationSucceededPayload
   | ToolInvocationFailedPayload
-  | ToolPermissionDeniedPayload;
+  | ToolPermissionDeniedPayload
+  | ToolSessionStartedPayload
+  | ToolSessionClosedPayload
+  | ToolSessionTimedOutPayload
+  | ToolCapabilityStartedPayload
+  | ToolCapabilityCompletedPayload
+  | ToolCapabilityFailedPayload
+  | ToolLifecycleChangedPayload;
 
 function define<T>(type: string): EventDefinition<T> {
   return { type, version: 1 };

@@ -3,21 +3,22 @@ import type { Logger } from '@gamedev-agent/logging';
 import { ConsoleLogSink, RootLogger } from '@gamedev-agent/logging';
 import type { Json, UUID } from '@gamedev-agent/shared';
 import { CapabilityPlanner } from './CapabilityPlanner';
+import { ToolCapabilityCompleted, ToolCapabilityFailed, ToolCapabilityStarted } from './ToolEvents';
 import type { ToolManager } from './ToolManager';
+import { ToolSchemaRegistry } from './ToolSchemaRegistry';
 import { ToolSessionManager } from './ToolSession';
 import type { SessionId } from './ToolSession';
 import type {
   CapabilityExecutionRequest,
-  CapabilityPlannerOptions,
   MissionAbility,
   ResolvedCapability,
   ToolActor,
   ToolId,
   ToolOrchestratorOptions,
+  ToolSchema,
   ToolSession,
   ToolSessionOptions,
 } from './ToolTypes';
-import { asToolId } from './ToolTypes';
 
 /**
  * Model tool definition shape consumed by AI model providers.
@@ -60,21 +61,18 @@ export class ToolOrchestrator {
   private readonly logger: Logger;
   private readonly planner: CapabilityPlanner;
   private readonly sessions: ToolSessionManager;
+  private readonly schemas: ToolSchemaRegistry;
 
   constructor(options: ToolOrchestratorOptions) {
     this.toolManager = options.toolManager;
     this.bus = options.eventBus;
-    this.logger = options.logger ?? new RootLogger('nova.tool-orchestrator', [new ConsoleLogSink()]);
-    this.sessions = new ToolSessionManager(
-      (event) => {
-        void this.bus.publish(
-          { type: 'tool.session-event', version: 1 } as any,
-          event as any,
-        );
-      },
-      options.defaultSessionTimeoutMs,
-    );
+    this.logger =
+      options.logger ?? new RootLogger('nova.tool-orchestrator', [new ConsoleLogSink()]);
+    this.sessions = new ToolSessionManager((event) => {
+      void this.bus.publish({ type: 'tool.session-event', version: 1 } as any, event as any);
+    }, options.defaultSessionTimeoutMs);
     this.planner = new CapabilityPlanner({ toolManager: this.toolManager, logger: this.logger });
+    this.schemas = new ToolSchemaRegistry();
   }
 
   // --- Capability Execution ----------------------------------------------------
@@ -94,15 +92,26 @@ export class ToolOrchestrator {
         capabilityId,
         output: null,
         durationMs: 0,
-        error: { code: 'capability-not-found', message: `no tool provides capability "${capabilityId}"` },
+        error: {
+          code: 'capability-not-found',
+          message: `no tool provides capability "${capabilityId}"`,
+        },
       };
     }
+
+    // Emit capability.started
+    this.emitCapabilityEvent(ToolCapabilityStarted, {
+      toolId: resolved.toolId,
+      capabilityId,
+      correlationId: correlationId === null ? null : String(correlationId),
+      timestamp: Date.now(),
+    });
 
     // Handle session state if present
     let effectiveInput: Json = input;
     if (sessionId !== undefined) {
       const session = this.sessions.get(sessionId as SessionId);
-      if (session !== undefined && session.isActive) {
+      if (session?.isActive) {
         effectiveInput = {
           ...(input as Record<string, unknown>),
           __session__: { state: session.state, sessionId: session.sessionId },
@@ -121,25 +130,56 @@ export class ToolOrchestrator {
         signal,
       });
 
+      const durationMs = result.durationMs;
+
       const capabilityResult: CapabilityResult = {
         ok: result.ok,
         toolId: resolved.toolId,
         capabilityId,
         output: result.output,
-        durationMs: result.durationMs,
+        durationMs,
         ...(sessionId !== undefined ? { sessionId } : {}),
       };
 
       if (!result.ok) {
+        this.emitCapabilityEvent(ToolCapabilityFailed, {
+          toolId: resolved.toolId,
+          capabilityId,
+          correlationId: correlationId === null ? null : String(correlationId),
+          code: result.error?.code ?? 'unknown',
+          message: result.error?.message ?? 'unknown failure',
+          durationMs,
+          timestamp: Date.now(),
+        });
         return {
           ...capabilityResult,
-          error: { code: result.error?.code ?? 'unknown', message: result.error?.message ?? 'unknown failure' },
+          error: {
+            code: result.error?.code ?? 'unknown',
+            message: result.error?.message ?? 'unknown failure',
+          },
         };
       }
+
+      this.emitCapabilityEvent(ToolCapabilityCompleted, {
+        toolId: resolved.toolId,
+        capabilityId,
+        correlationId: correlationId === null ? null : String(correlationId),
+        durationMs,
+        timestamp: Date.now(),
+      });
 
       return capabilityResult;
     } catch (error) {
       const durationMs = Date.now() - startedAt;
+      this.emitCapabilityEvent(ToolCapabilityFailed, {
+        toolId: resolved.toolId,
+        capabilityId,
+        correlationId: correlationId === null ? null : String(correlationId),
+        code: 'orchestration-error',
+        message: error instanceof Error ? error.message : String(error),
+        durationMs,
+        timestamp: Date.now(),
+      });
       return {
         ok: false,
         toolId: resolved.toolId,
@@ -178,7 +218,10 @@ export class ToolOrchestrator {
           output: null,
           durationMs: 0,
           sessionId: '',
-          error: { code: 'capability-not-found', message: `no tool provides capability "${capabilityId}"` },
+          error: {
+            code: 'capability-not-found',
+            message: `no tool provides capability "${capabilityId}"`,
+          },
         };
       }
       const session = this.sessions.create({
@@ -257,12 +300,41 @@ export class ToolOrchestrator {
     return this.sessions.listActiveSessions(toolId);
   }
 
-  // --- Model Tool Definitions (replaces buildActionSchema) ----------------------
+  // --- Schema Management -------------------------------------------------------
+
+  /**
+   * Register schemas for a tool's capabilities.
+   * Called during tool registration so the orchestrator knows the schemas
+   * without using a switch statement.
+   */
+  registerToolSchemas(
+    toolId: ToolId,
+    capabilities: ReadonlyArray<import('./ToolTypes').ToolCapability>,
+    getSchema?: (action: string) => import('./ToolTypes').ToolSchema | undefined,
+  ): void {
+    this.schemas.register(toolId, capabilities, getSchema);
+  }
+
+  /**
+   * Get the schema for a specific action.
+   */
+  getSchema(action: string): ToolSchema {
+    return this.schemas.get(action);
+  }
+
+  /**
+   * Get the ToolSchemaRegistry for direct access.
+   */
+  getSchemaRegistry(): ToolSchemaRegistry {
+    return this.schemas;
+  }
+
+  // --- Model Tool Definitions (adapter-schema driven) --------------------------
 
   /**
    * Generate tool definitions suitable for AI model provider consumption.
    * Each capability action becomes a named tool with its input schema.
-   * This replaces the hardcoded buildActionSchema in the execution engine.
+   * Schemas come from the ToolSchemaRegistry — never from a switch statement.
    */
   toModelTools(capabilityFilter?: readonly string[]): readonly ModelToolDefinition[] {
     const registeredTools = this.toolManager.list();
@@ -274,10 +346,11 @@ export class ToolOrchestrator {
           if (capabilityFilter !== undefined && !capabilityFilter.includes(action)) {
             continue;
           }
+          const schema = this.schemas.get(action);
           tools.push({
             name: action,
             description: `${tool.descriptor.name}: ${cap.name} — ${cap.description}`,
-            inputSchema: this.buildActionSchema(action),
+            inputSchema: schema.input,
           });
         }
       }
@@ -289,7 +362,10 @@ export class ToolOrchestrator {
   /**
    * Build a list of tool definitions grouped by tool for model consumption.
    */
-  toModelToolsByTool(): readonly { readonly toolName: string; readonly tools: readonly ModelToolDefinition[] }[] {
+  toModelToolsByTool(): readonly {
+    readonly toolName: string;
+    readonly tools: readonly ModelToolDefinition[];
+  }[] {
     const registeredTools = this.toolManager.list();
     const groups: { toolName: string; tools: ModelToolDefinition[] }[] = [];
 
@@ -297,10 +373,11 @@ export class ToolOrchestrator {
       const defs: ModelToolDefinition[] = [];
       for (const cap of tool.descriptor.capabilities) {
         for (const action of cap.actions) {
+          const schema = this.schemas.get(action);
           defs.push({
             name: action,
             description: `${tool.descriptor.name}: ${cap.name} — ${cap.description}`,
-            inputSchema: this.buildActionSchema(action),
+            inputSchema: schema.input,
           });
         }
       }
@@ -328,197 +405,11 @@ export class ToolOrchestrator {
     return undefined;
   }
 
-  /**
-   * Generate JSON Schema for a given action.
-   * Mirrors the schemas from ExecutionEngine.buildActionSchema but lives
-   * in the orchestrator so tools can eventually self-describe.
-   */
-  private buildActionSchema(action: string): Record<string, unknown> {
-    switch (action) {
-      case 'files.create':
-        return {
-          type: 'object',
-          properties: {
-            path: { type: 'string', description: 'Path to create' },
-            kind: { type: 'string', description: 'Kind: "file" or "directory"' },
-            content: { type: 'string', description: 'Initial content for file' },
-          },
-          required: ['path'],
-          additionalProperties: false,
-        };
-      case 'files.write':
-        return {
-          type: 'object',
-          properties: {
-            path: { type: 'string', description: 'File path to write' },
-            content: { type: 'string', description: 'File content' },
-            force: { type: 'boolean', description: 'Overwrite if exists' },
-          },
-          required: ['path', 'content'],
-          additionalProperties: false,
-        };
-      case 'files.read':
-        return {
-          type: 'object',
-          properties: {
-            path: { type: 'string', description: 'File path to read' },
-          },
-          required: ['path'],
-          additionalProperties: false,
-        };
-      case 'files.list':
-        return {
-          type: 'object',
-          properties: {
-            dirPath: { type: 'string', description: 'Directory path (defaults to workspace root)' },
-          },
-          additionalProperties: false,
-        };
-      case 'files.delete':
-        return {
-          type: 'object',
-          properties: {
-            path: { type: 'string', description: 'Path to delete' },
-            recursive: { type: 'boolean', description: 'Delete recursively' },
-          },
-          required: ['path'],
-          additionalProperties: false,
-        };
-      case 'files.rename':
-        return {
-          type: 'object',
-          properties: {
-            from: { type: 'string', description: 'Source path' },
-            to: { type: 'string', description: 'Destination path' },
-          },
-          required: ['from', 'to'],
-          additionalProperties: false,
-        };
-      case 'terminal.run':
-        return {
-          type: 'object',
-          properties: {
-            command: { type: 'string', description: 'Command to execute' },
-            args: { type: 'array', items: { type: 'string' }, description: 'Command arguments' },
-            cwd: { type: 'string', description: 'Working directory' },
-            timeoutMs: { type: 'number', description: 'Timeout in milliseconds' },
-          },
-          required: ['command'],
-          additionalProperties: false,
-        };
-      case 'terminal.start':
-        return {
-          type: 'object',
-          properties: {
-            command: { type: 'string', description: 'Command to start' },
-            args: { type: 'array', items: { type: 'string' }, description: 'Command arguments' },
-            cwd: { type: 'string', description: 'Working directory' },
-          },
-          required: ['command'],
-          additionalProperties: false,
-        };
-      case 'terminal.stop':
-        return {
-          type: 'object',
-          properties: {
-            processId: { type: 'string', description: 'Process ID to stop' },
-            signal: { type: 'string', description: 'Signal to send (e.g. SIGTERM)' },
-          },
-          required: ['processId'],
-          additionalProperties: false,
-        };
-      case 'terminal.output':
-        return {
-          type: 'object',
-          properties: {
-            processId: { type: 'string', description: 'Process ID' },
-          },
-          required: ['processId'],
-          additionalProperties: false,
-        };
-      case 'git.init':
-        return {
-          type: 'object',
-          properties: {},
-          additionalProperties: false,
-        };
-      case 'git.status':
-        return {
-          type: 'object',
-          properties: {},
-          additionalProperties: false,
-        };
-      case 'git.commit':
-        return {
-          type: 'object',
-          properties: {
-            message: { type: 'string', description: 'Commit message' },
-          },
-          additionalProperties: false,
-        };
-      case 'git.branch':
-        return {
-          type: 'object',
-          properties: {
-            name: { type: 'string', description: 'Branch name' },
-          },
-          additionalProperties: false,
-        };
-      case 'git.diff':
-        return {
-          type: 'object',
-          properties: {
-            target: { type: 'string', description: 'Target ref or path (defaults to HEAD)' },
-          },
-          additionalProperties: false,
-        };
-      case 'build.run':
-        return {
-          type: 'object',
-          properties: {
-            command: { type: 'string', description: 'Build command to run' },
-            cwd: { type: 'string', description: 'Working directory' },
-          },
-          additionalProperties: false,
-        };
-      case 'test.run':
-        return {
-          type: 'object',
-          properties: {
-            command: { type: 'string', description: 'Test command to run' },
-            filter: { type: 'string', description: 'Test filter pattern' },
-            cwd: { type: 'string', description: 'Working directory' },
-          },
-          additionalProperties: false,
-        };
-      case 'package.install':
-        return {
-          type: 'object',
-          properties: {
-            name: { type: 'string', description: 'Package name to install' },
-            version: { type: 'string', description: 'Optional version specifier' },
-            cwd: { type: 'string', description: 'Working directory' },
-          },
-          required: ['name'],
-          additionalProperties: false,
-        };
-      case 'package.remove':
-        return {
-          type: 'object',
-          properties: {
-            name: { type: 'string', description: 'Package name to remove' },
-            cwd: { type: 'string', description: 'Working directory' },
-          },
-          required: ['name'],
-          additionalProperties: false,
-        };
-      default:
-        return {
-          type: 'object',
-          properties: {},
-          additionalProperties: true,
-        };
-    }
+  private emitCapabilityEvent(
+    definition: import('@gamedev-agent/events').EventDefinition<any>,
+    payload: Record<string, unknown>,
+  ): void {
+    void this.bus.publish(definition, payload);
   }
 }
 

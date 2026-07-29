@@ -138,7 +138,9 @@ export class ToolSessionManager implements Disposable {
       ...session,
       isActive: false,
       lastActivityAt: now,
-      metadata: Object.freeze({ ...session.metadata, timeout: true }) as Readonly<Record<string, Json>>,
+      metadata: Object.freeze({ ...session.metadata, timeout: true }) as Readonly<
+        Record<string, Json>
+      >,
     };
     this.sessions.set(sessionId, timedOut);
     this.timers.delete(sessionId);

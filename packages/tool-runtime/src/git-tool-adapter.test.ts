@@ -3,7 +3,7 @@ import type { ExecOptions, ExecResult, ProcessExecutor } from '@gamedev-agent/ru
 import { GitProvider } from '@gamedev-agent/runtime';
 import type { Json } from '@gamedev-agent/shared';
 import { describe, expect, it } from 'vitest';
-import { GitToolAdapter, GIT_TOOL_ID, gitDescriptor } from './GitToolAdapter';
+import { GIT_TOOL_ID, GitToolAdapter, gitDescriptor } from './GitToolAdapter';
 import { ToolManager } from './ToolManager';
 import { asToolId } from './ToolTypes';
 
@@ -54,7 +54,11 @@ class FakeGitExecutor implements ProcessExecutor {
           if (this.repoInitialized) {
             return resolveCmd({ exitCode: 0, stdout: 'true' });
           }
-          return resolveCmd({ exitCode: 1, stdout: 'false', stderr: 'fatal: not a git repository' });
+          return resolveCmd({
+            exitCode: 1,
+            stdout: 'false',
+            stderr: 'fatal: not a git repository',
+          });
         }
         if (args[1] === '--abbrev-ref') {
           return resolveCmd({ exitCode: 0, stdout: 'main' });

@@ -3,7 +3,7 @@ import { capabilityModule } from '@gamedev-agent/capabilities';
 import { MemoryConfigSource } from '@gamedev-agent/config';
 import { coordinatorModule } from '@gamedev-agent/coordinator';
 import { InMemoryEventBus } from '@gamedev-agent/events';
-import { executionEngineModule } from '@gamedev-agent/execution-engine';
+import { executionEngineModule, missionAgentModule } from '@gamedev-agent/execution-engine';
 import { Kernel } from '@gamedev-agent/kernel';
 import { ConsoleLogSink, RootLogger } from '@gamedev-agent/logging';
 import { memoryModule } from '@gamedev-agent/memory';
@@ -72,6 +72,7 @@ async function bootStudioApi(): Promise<{ api: StudioApi; runtime: Runtime | nul
       browserTerminalModule,
       workflowModule,
       executionEngineModule,
+      missionAgentModule,
       intelligenceModule,
       runtimeModule,
       studioModule,

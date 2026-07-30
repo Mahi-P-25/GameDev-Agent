@@ -6,6 +6,13 @@ import {
   CapabilityRegistered,
 } from '@gamedev-agent/capabilities';
 import {
+  AgentActionStarted,
+  AgentActionResult,
+  AgentMissionComplete,
+  AgentProgress,
+  AgentStateChanged,
+} from '@gamedev-agent/execution-engine';
+import {
   ContextChanged,
   ContextInitialized,
   ContextProjectChanged,
@@ -238,6 +245,33 @@ export class ActivityFeed implements Disposable {
     );
     wire(CapabilityFailed, (p, t) =>
       this.item(t, 'capability.failed', `Capability failed: ${p.message}`, {}),
+    );
+
+    // MissionAgent — autonomous mission execution events.
+    wire(AgentStateChanged, (p, t) =>
+      this.item(t, 'agent.state-changed', `Agent: ${p.previousState} → ${p.currentState}`, {
+        missionId: p.missionId,
+      }),
+    );
+    wire(AgentActionStarted, (p, t) =>
+      this.item(t, 'agent.action-started', `Executing: ${p.capability} via ${p.toolId}`, {
+        missionId: p.missionId,
+      }),
+    );
+    wire(AgentActionResult, (p, t) =>
+      this.item(t, 'agent.action-result', `Action ${p.capability}: ${p.ok ? 'OK' : 'FAIL'} (${p.durationMs}ms)`, {
+        missionId: p.missionId,
+      }),
+    );
+    wire(AgentProgress, (p, t) =>
+      this.item(t, 'agent.progress', `Progress: ${p.progress}% (${p.actionCount} actions, ${p.failureCount} failures)`, {
+        missionId: p.missionId,
+      }),
+    );
+    wire(AgentMissionComplete, (p, t) =>
+      this.item(t, 'agent.mission-complete', `Mission ${p.status}: ${p.finalSummary}`, {
+        missionId: p.missionId,
+      }),
     );
 
     // Context Engine — the live development surface the Director is working in.

@@ -210,11 +210,266 @@ function openWorkspace(): WorkflowDefinition {
   };
 }
 
+/**
+ * Create Project: scaffold a Three.js + Vite project named Apex.
+ * Creates the directory, initialises Vite with vanilla-ts, installs Three.js,
+ * writes config/entry files, verifies the build, and opens VS Code.
+ */
+function createProject(): WorkflowDefinition {
+  return {
+    id: DEV_WORKFLOW_IDS['create-project'],
+    name: 'Create Project',
+    description:
+      'Scaffold a Three.js + TypeScript + Vite project. Creates the directory, installs dependencies, writes source files, verifies the build, and opens VS Code.',
+    version: '1.0.0',
+    mode: 'sequential',
+    failFast: true,
+    steps: [
+      {
+        id: 'step-project-intelligence' as WorkflowStepId,
+        title: 'Project Intelligence',
+        description: 'Validate workspace and analyze project requirements.',
+        dependsOn: [],
+        metadata: {
+          [DEV_WORKFLOW_STEP_KEY]: {
+            tool: 'vscode',
+            action: 'files.list',
+            label: 'Project Intelligence',
+            input: { kind: 'workspace-root' },
+          } satisfies DevelopmentWorkflowStepSpec,
+        } as unknown as Record<string, JsonValue>,
+      },
+      {
+        id: 'step-create-dir' as WorkflowStepId,
+        title: 'Create project directory',
+        description: 'Create the Apex project directory.',
+        dependsOn: ['step-project-intelligence' as WorkflowStepId],
+        metadata: {
+          [DEV_WORKFLOW_STEP_KEY]: {
+            tool: 'terminal',
+            action: 'terminal.run',
+            label: 'Create project directory',
+            input: {
+              kind: 'terminal-run',
+              command: 'mkdir',
+              args: ['Apex'],
+            },
+          } satisfies DevelopmentWorkflowStepSpec,
+        } as unknown as Record<string, JsonValue>,
+      },
+      {
+        id: 'step-scaffold' as WorkflowStepId,
+        title: 'Scaffold Vite project',
+        description: 'Run npm create vite@latest to scaffold a vanilla-ts project.',
+        dependsOn: ['step-create-dir' as WorkflowStepId],
+        metadata: {
+          [DEV_WORKFLOW_STEP_KEY]: {
+            tool: 'terminal',
+            action: 'terminal.run',
+            label: 'Scaffold Vite project',
+            input: {
+              kind: 'terminal-run',
+              command: 'npm',
+              args: ['create', 'vite@latest', 'Apex', '--', '--template', 'vanilla-ts'],
+              timeoutMs: 120000,
+            },
+          } satisfies DevelopmentWorkflowStepSpec,
+        } as unknown as Record<string, JsonValue>,
+      },
+      {
+        id: 'step-install-deps' as WorkflowStepId,
+        title: 'Install template dependencies',
+        description: 'Run npm install in the Apex directory.',
+        dependsOn: ['step-scaffold' as WorkflowStepId],
+        metadata: {
+          [DEV_WORKFLOW_STEP_KEY]: {
+            tool: 'terminal',
+            action: 'terminal.run',
+            label: 'Install template dependencies',
+            input: {
+              kind: 'terminal-run',
+              command: 'npm',
+              args: ['install'],
+              timeoutMs: 180000,
+            },
+          } satisfies DevelopmentWorkflowStepSpec,
+        } as unknown as Record<string, JsonValue>,
+      },
+      {
+        id: 'step-install-three' as WorkflowStepId,
+        title: 'Install Three.js',
+        description: 'Install three and @types/three packages.',
+        dependsOn: ['step-install-deps' as WorkflowStepId],
+        metadata: {
+          [DEV_WORKFLOW_STEP_KEY]: {
+            tool: 'terminal',
+            action: 'terminal.run',
+            label: 'Install Three.js',
+            input: {
+              kind: 'terminal-run',
+              command: 'npm',
+              args: ['install', 'three', '@types/three'],
+              timeoutMs: 180000,
+            },
+          } satisfies DevelopmentWorkflowStepSpec,
+        } as unknown as Record<string, JsonValue>,
+      },
+      {
+        id: 'step-write-config' as WorkflowStepId,
+        title: 'Write Vite config',
+        description: 'Write vite.config.ts to the Apex project.',
+        dependsOn: ['step-scaffold' as WorkflowStepId],
+        metadata: {
+          [DEV_WORKFLOW_STEP_KEY]: {
+            tool: 'filesystem',
+            action: 'files.create',
+            label: 'Write Vite config',
+            input: {
+              kind: 'filesystem-create',
+              path: 'Apex/vite.config.ts',
+              content: [
+                'import { defineConfig } from "vite";',
+                'export default defineConfig({',
+                '  root: ".",',
+                '  build: { outDir: "dist" },',
+                '});',
+                '',
+              ].join('\n'),
+            },
+          } satisfies DevelopmentWorkflowStepSpec,
+        } as unknown as Record<string, JsonValue>,
+      },
+      {
+        id: 'step-write-entry' as WorkflowStepId,
+        title: 'Write entry file',
+        description: 'Write src/main.ts with Three.js scene.',
+        dependsOn: ['step-scaffold' as WorkflowStepId],
+        metadata: {
+          [DEV_WORKFLOW_STEP_KEY]: {
+            tool: 'filesystem',
+            action: 'files.create',
+            label: 'Write entry file',
+            input: {
+              kind: 'filesystem-create',
+              path: 'Apex/src/main.ts',
+              content: [
+                'import * as THREE from "three";',
+                'const scene = new THREE.Scene();',
+                'const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);',
+                'const renderer = new THREE.WebGLRenderer();',
+                'renderer.setSize(window.innerWidth, window.innerHeight);',
+                'document.body.appendChild(renderer.domElement);',
+                'const geometry = new THREE.BoxGeometry();',
+                'const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });',
+                'const cube = new THREE.Mesh(geometry, material);',
+                'scene.add(cube);',
+                'camera.position.z = 5;',
+                'function animate() {',
+                '  requestAnimationFrame(animate);',
+                '  cube.rotation.x += 0.01;',
+                '  cube.rotation.y += 0.01;',
+                '  renderer.render(scene, camera);',
+                '}',
+                'animate();',
+                '',
+              ].join('\n'),
+            },
+          } satisfies DevelopmentWorkflowStepSpec,
+        } as unknown as Record<string, JsonValue>,
+      },
+      {
+        id: 'step-write-html' as WorkflowStepId,
+        title: 'Write HTML entry',
+        description: 'Write index.html for the Apex project.',
+        dependsOn: ['step-scaffold' as WorkflowStepId],
+        metadata: {
+          [DEV_WORKFLOW_STEP_KEY]: {
+            tool: 'filesystem',
+            action: 'files.create',
+            label: 'Write HTML entry',
+            input: {
+              kind: 'filesystem-create',
+              path: 'Apex/index.html',
+              content: [
+                '<!DOCTYPE html>',
+                '<html lang="en">',
+                '<head>',
+                '  <meta charset="UTF-8" />',
+                '  <meta name="viewport" content="width=device-width, initial-scale=1.0" />',
+                '  <title>Apex</title>',
+                '</head>',
+                '<body>',
+                '  <script type="module" src="/src/main.ts"></script>',
+                '</body>',
+                '</html>',
+                '',
+              ].join('\n'),
+            },
+          } satisfies DevelopmentWorkflowStepSpec,
+        } as unknown as Record<string, JsonValue>,
+      },
+      {
+        id: 'step-verify-build' as WorkflowStepId,
+        title: 'Verify build',
+        description: 'Run the TypeScript compiler to verify the project compiles.',
+        dependsOn: [
+          'step-install-three' as WorkflowStepId,
+          'step-write-config' as WorkflowStepId,
+          'step-write-entry' as WorkflowStepId,
+          'step-write-html' as WorkflowStepId,
+        ],
+        metadata: {
+          [DEV_WORKFLOW_STEP_KEY]: {
+            tool: 'terminal',
+            action: 'terminal.run',
+            label: 'Verify build',
+            input: {
+              kind: 'terminal-run',
+              command: 'npx',
+              args: ['--no-install', 'tsc', '--noEmit'],
+              timeoutMs: 120000,
+            },
+          } satisfies DevelopmentWorkflowStepSpec,
+        } as unknown as Record<string, JsonValue>,
+      },
+      {
+        id: 'step-open-workspace' as WorkflowStepId,
+        title: 'Open workspace',
+        description: 'Open the Apex project as a VS Code workspace.',
+        dependsOn: ['step-verify-build' as WorkflowStepId],
+        metadata: {
+          [DEV_WORKFLOW_STEP_KEY]: {
+            tool: 'vscode',
+            action: 'workspace.open',
+            label: 'Open workspace',
+            input: { kind: 'static', value: { rootPath: 'Apex' } },
+          } satisfies DevelopmentWorkflowStepSpec,
+        } as unknown as Record<string, JsonValue>,
+      },
+      {
+        id: 'step-verify-exists' as WorkflowStepId,
+        title: 'Verify project exists',
+        description: 'Confirm the Apex project exists on disk with all expected files.',
+        dependsOn: ['step-open-workspace' as WorkflowStepId],
+        metadata: {
+          [DEV_WORKFLOW_STEP_KEY]: {
+            tool: 'filesystem',
+            action: 'files.list',
+            label: 'Verify project exists',
+            input: { kind: 'static', value: { path: 'Apex' } },
+          } satisfies DevelopmentWorkflowStepSpec,
+        } as unknown as Record<string, JsonValue>,
+      },
+    ],
+  };
+}
+
 /** All Development Workflow templates, in display order. */
 export const DEV_WORKFLOW_TEMPLATES: ReadonlyArray<WorkflowDefinition> = [
   validateProject(),
   inspectProject(),
   openWorkspace(),
+  createProject(),
 ];
 
 /** Register every Development Workflow template with the Workflow Engine. */

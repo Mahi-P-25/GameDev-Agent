@@ -36,6 +36,7 @@ import {
 
 const VSCODE_TOOL_ID = 'nova.tool.vscode' as ToolId;
 const TERMINAL_TOOL_ID = 'nova.tool.terminal' as ToolId;
+const FILESYSTEM_TOOL_ID = 'nova.tool.filesystem' as ToolId;
 
 /** The actor the executor invokes tools under (the Studio orchestration layer). */
 const EXECUTOR_ACTOR = { kind: 'studio-workflow' } as const;
@@ -53,7 +54,9 @@ export class DevelopmentWorkflowExecutor implements StepExecutor {
     }
     try {
       const input = this.resolveInput(spec.input, context);
-      const toolId = spec.tool === 'vscode' ? VSCODE_TOOL_ID : TERMINAL_TOOL_ID;
+      const toolId = spec.tool === 'vscode' ? VSCODE_TOOL_ID
+        : spec.tool === 'filesystem' ? FILESYSTEM_TOOL_ID
+        : TERMINAL_TOOL_ID;
       const result = await this.tools.invoke({
         toolId,
         action: spec.action,
@@ -103,6 +106,15 @@ export class DevelopmentWorkflowExecutor implements StepExecutor {
         return {
           query: spec.query,
           options: { include: [root] },
+        };
+      }
+      case 'filesystem-create': {
+        const root = this.rootOf(context.projectId);
+        const fullPath = `${root}\\${spec.path}`.replace(/\\/g, '/');
+        return {
+          path: fullPath,
+          content: spec.content,
+          kind: 'file',
         };
       }
     }

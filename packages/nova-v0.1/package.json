@@ -144,7 +144,11 @@
     "@gamedev-agent/events": "workspace:*",
     "@gamedev-agent/logging": "workspace:*",
     "@gamedev-agent/shared": "workspace:*",
-    "@gamedev-agent/tool-runtime": "workspace:*"
+    "@gamedev-agent/tool-runtime": "workspace:*",
+    "@gamedev-agent/vscode": "workspace:*",
+    "@gamedev-agent/model-providers": "workspace:*",
+    "@gamedev-agent/execution-engine": "workspace:*",
+    "@gamedev-agent/workflow": "workspace:*"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.3",

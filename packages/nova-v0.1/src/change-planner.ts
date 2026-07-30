@@ -11,6 +11,74 @@ function backupStrategy(filePath: string, projectDir: string): Change['rollback'
   return { type: 'backup', backupPath: join('.nova', 'backups', filePath.replace(/[\\/]/g, '_') + '.bak') };
 }
 
+function makeBlueprint(targetFile: string, _context: ProjectContext): Change {
+  const edits: TextEdit[] = [
+    {
+      file: targetFile,
+      operation: 'replace',
+      anchor: '0x00ff00',
+      text: '0x0000ff',
+      reason: 'Change cube color from green to blue',
+    },
+  ];
+
+  return {
+    file: targetFile,
+    operation: 'edit',
+    edits,
+    reason: `Change cube color to blue in ${targetFile}`,
+    rollback: { type: 'none' },
+  };
+}
+
+function doubleRotationSpeed(targetFile: string, _context: ProjectContext): Change {
+  const edits: TextEdit[] = [
+    {
+      file: targetFile,
+      operation: 'replace',
+      anchor: 'cube.rotation.x += 0.01;',
+      text: 'cube.rotation.x += 0.02;',
+      reason: 'Double rotation speed on X axis',
+    },
+    {
+      file: targetFile,
+      operation: 'replace',
+      anchor: 'cube.rotation.y += 0.01;',
+      text: 'cube.rotation.y += 0.02;',
+      reason: 'Double rotation speed on Y axis',
+    },
+  ];
+
+  return {
+    file: targetFile,
+    operation: 'edit',
+    edits,
+    reason: `Double cube rotation speed in ${targetFile}`,
+    rollback: { type: 'none' },
+  };
+}
+
+function addAmbientLighting(targetFile: string, _context: ProjectContext): Change {
+  const edits: TextEdit[] = [
+    {
+      file: targetFile,
+      operation: 'insert-after',
+      anchor: 'scene.add(cube);',
+      text: `const ambientLight = new THREE.AmbientLight(0x404060, 0.5);
+scene.add(ambientLight);`,
+      reason: 'Add ambient light to illuminate the scene',
+    },
+  ];
+
+  return {
+    file: targetFile,
+    operation: 'edit',
+    edits,
+    reason: `Add ambient lighting in ${targetFile}`,
+    rollback: { type: 'none' },
+  };
+}
+
 function editForOrbitControls(targetFile: string, context: ProjectContext): Change {
   const edits: TextEdit[] = [];
   const fileObj = context.source.files.find((f) => f.path === targetFile);
@@ -23,7 +91,7 @@ function editForOrbitControls(targetFile: string, context: ProjectContext): Chan
     edits.push({
       file: targetFile,
       operation: 'insert-after',
-      anchor: 'import ',
+      anchor: 'import * as THREE from "three";',
       text: `import { OrbitControls } from 'three/addons/controls/OrbitControls.js';`,
       reason: 'Import OrbitControls for camera interaction',
     });
@@ -32,8 +100,8 @@ function editForOrbitControls(targetFile: string, context: ProjectContext): Chan
   edits.push({
     file: targetFile,
     operation: 'insert-after',
-    anchor: 'renderer.domElement',
-    text: `const controls = new OrbitControls(camera, renderer.domElement);`,
+    anchor: 'document.body.appendChild(renderer.domElement);',
+    text: `new OrbitControls(camera, renderer.domElement);`,
     reason: 'Create OrbitControls instance linked to camera and renderer',
   });
 
@@ -42,6 +110,46 @@ function editForOrbitControls(targetFile: string, context: ProjectContext): Chan
     operation: 'edit',
     edits,
     reason: `Add OrbitControls for ${targetFile}`,
+    rollback: { type: 'none' },
+  };
+}
+
+function changeBackground(targetFile: string, _context: ProjectContext): Change {
+  const edits: TextEdit[] = [
+    {
+      file: targetFile,
+      operation: 'insert-after',
+      anchor: 'scene.add(cube);',
+      text: `scene.background = new THREE.Color(0x000000);`,
+      reason: 'Set scene background to black',
+    },
+  ];
+
+  return {
+    file: targetFile,
+    operation: 'edit',
+    edits,
+    reason: `Change scene background to black in ${targetFile}`,
+    rollback: { type: 'none' },
+  };
+}
+
+function replaceCubeWithSphere(targetFile: string, _context: ProjectContext): Change {
+  const edits: TextEdit[] = [
+    {
+      file: targetFile,
+      operation: 'replace',
+      anchor: 'new THREE.BoxGeometry()',
+      text: 'new THREE.SphereGeometry(1, 32, 32)',
+      reason: 'Replace box geometry with sphere geometry',
+    },
+  ];
+
+  return {
+    file: targetFile,
+    operation: 'edit',
+    edits,
+    reason: `Replace cube with sphere in ${targetFile}`,
     rollback: { type: 'none' },
   };
 }
@@ -69,6 +177,16 @@ function planForModify(intent: IntentAnalysis, located: ReadonlyArray<LocatedFil
 
   if (lower.includes('orbit') && lower.includes('control')) {
     changes.push(editForOrbitControls(target, context));
+  } else if (lower.includes('blue') || (lower.includes('color') && lower.includes('chang'))) {
+    changes.push(makeBlueprint(target, context));
+  } else if (lower.includes('double') && lower.includes('rotation') || lower.includes('rotation') && lower.includes('speed') || lower.includes('faster') || lower.includes('speed up')) {
+    changes.push(doubleRotationSpeed(target, context));
+  } else if (lower.includes('ambient') && lower.includes('light')) {
+    changes.push(addAmbientLighting(target, context));
+  } else if (lower.includes('background') && lower.includes('black')) {
+    changes.push(changeBackground(target, context));
+  } else if (lower.includes('replace') && lower.includes('cube') && lower.includes('sphere')) {
+    changes.push(replaceCubeWithSphere(target, context));
   } else {
     changes.push({
       file: target,

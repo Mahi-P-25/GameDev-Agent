@@ -4,7 +4,7 @@ import { PlaceholderNotificationsAdapter } from '../adapters/notificationsAdapte
 import { PlaceholderStudioRolesAdapter } from '../adapters/studioRolesAdapter';
 import type { Goal, Notification, StudioRole } from '../adapters/types';
 import type { PlaceholderAdapter } from '../adapters/types';
-import { MockMissionExecutionAdapter } from '../adapters/missionExecutionAdapter';
+import { KernelMissionExecutionAdapter } from '../adapters/KernelMissionExecutionAdapter';
 import type { MissionExecutionAdapter } from '../adapters/missionExecutionAdapter';
 import { ProjectIntelligenceEngine } from '../adapters/projectIntelligence/engine';
 import { KernelStudioApiClient } from '../services/KernelStudioApiClient';
@@ -36,7 +36,7 @@ export function StudioDataProvider({ children, apiClient, missionExecutionAdapte
       goals: new PlaceholderGoalsAdapter(),
       roles: new PlaceholderStudioRolesAdapter(),
       notifications: new PlaceholderNotificationsAdapter(),
-      missionExecution: missionExecutionAdapter ?? new MockMissionExecutionAdapter(),
+      missionExecution: missionExecutionAdapter ?? new KernelMissionExecutionAdapter(api),
       projectIntelligence: projectIntelligenceEngine ?? new ProjectIntelligenceEngine(),
     };
   }, [apiClient, missionExecutionAdapter, projectIntelligenceEngine]);

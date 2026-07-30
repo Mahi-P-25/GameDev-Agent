@@ -567,6 +567,7 @@ export class StudioApi implements Disposable {
     if (workflowId === DEV_WORKFLOW_IDS['validate-project']) return 'validate-project';
     if (workflowId === DEV_WORKFLOW_IDS['inspect-project']) return 'inspect-project';
     if (workflowId === DEV_WORKFLOW_IDS['open-workspace']) return 'open-workspace';
+    if (workflowId === DEV_WORKFLOW_IDS['create-project']) return 'create-project';
     if (workflowId === RUNTIME_WORKFLOW_IDS['build-project']) return 'build-project';
     if (workflowId === RUNTIME_WORKFLOW_IDS['run-tests']) return 'run-tests';
     if (workflowId === RUNTIME_WORKFLOW_IDS['prepare-commit']) return 'prepare-commit';

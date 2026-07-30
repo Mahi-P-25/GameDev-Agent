@@ -21,11 +21,15 @@
 
 import type { WorkflowId } from '@gamedev-agent/workflow';
 
-/** The three first-class Development Workflows this sprint ships. */
-export type DevelopmentWorkflowKind = 'validate-project' | 'inspect-project' | 'open-workspace';
+/** The Development Workflows this sprint ships. */
+export type DevelopmentWorkflowKind =
+  | 'validate-project'
+  | 'inspect-project'
+  | 'open-workspace'
+  | 'create-project';
 
 /** The tool a development-workflow step delegates to. */
-export type DevelopmentWorkflowTool = 'vscode' | 'terminal';
+export type DevelopmentWorkflowTool = 'vscode' | 'terminal' | 'filesystem';
 
 /**
  * A single, declarative unit of tool work inside a Development Workflow step.
@@ -56,7 +60,8 @@ export type DevelopmentWorkflowInputSpec =
       readonly args?: ReadonlyArray<string>;
       readonly timeoutMs?: number;
     }
-  | { readonly kind: 'search-text'; readonly query: string };
+  | { readonly kind: 'search-text'; readonly query: string }
+  | { readonly kind: 'filesystem-create'; readonly path: string; readonly content: string };
 
 /** The request to start a Development Workflow run from the Studio UI. */
 export interface StartDevelopmentWorkflowRequest {
@@ -73,6 +78,7 @@ export const DEV_WORKFLOW_IDS: Readonly<Record<DevelopmentWorkflowKind, Workflow
   'validate-project': 'nova.dev-workflow.validate-project' as WorkflowId,
   'inspect-project': 'nova.dev-workflow.inspect-project' as WorkflowId,
   'open-workspace': 'nova.dev-workflow.open-workspace' as WorkflowId,
+  'create-project': 'nova.dev-workflow.create-project' as WorkflowId,
 };
 
 /** Maps a Development Workflow step id to its tool-invocation descriptor. */

@@ -7,7 +7,11 @@
       "@gamedev-agent/shared": ["packages/shared/dist/index.d.ts"],
       "@gamedev-agent/events": ["packages/events/dist/index.d.ts"],
       "@gamedev-agent/logging": ["packages/logging/dist/index.d.ts"],
-      "@gamedev-agent/tool-runtime": ["packages/tool-runtime/dist/index.d.ts"]
+      "@gamedev-agent/tool-runtime": ["packages/tool-runtime/dist/index.d.ts"],
+      "@gamedev-agent/vscode": ["packages/vscode/dist/index.d.ts"],
+      "@gamedev-agent/model-providers": ["packages/model-providers/dist/index.d.ts"],
+      "@gamedev-agent/execution-engine": ["packages/execution-engine/dist/index.d.ts"],
+      "@gamedev-agent/workflow": ["packages/workflow/dist/index.d.ts"]
     }
   },
   "include": ["src"]

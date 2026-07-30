@@ -1,0 +1,278 @@
+warning: in the working copy of 'apps/studio/src/components/layout/Page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'apps/studio/src/components/layout/Sidebar.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'apps/studio/src/components/layout/TopBar.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'apps/studio/src/pages/HomePage.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'apps/studio/src/studio/StudioDataProvider.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'apps/studio/src/styles/app.css', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'apps/studio/src/styles/effects.css', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'apps/studio/src/styles/tokens.css', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'packages/nova-v0.1/package.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'packages/nova-v0.1/src/change-mission.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'packages/nova-v0.1/src/change-planner.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'packages/nova-v0.1/src/change-types.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'packages/nova-v0.1/src/index.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'packages/nova-v0.1/tsconfig.build.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'packages/nova-v0.1/tsconfig.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'packages/studio-api/src/ActivityFeed.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'packages/studio-api/src/StudioApi.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'packages/studio-api/src/StudioApiContracts.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'packages/studio-api/src/workflows/DevelopmentWorkflow.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'packages/studio-api/src/workflows/DevelopmentWorkflowExecutor.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'packages/studio-api/src/workflows/WorkflowTemplates.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'pnpm-lock.yaml', LF will be replaced by CRLF the next time Git touches it
+[1mdiff --git a/apps/studio/src/components/layout/Page.tsx b/apps/studio/src/components/layout/Page.tsx[m
+[1mindex adc7f7c..224feba 100644[m
+[1m--- a/apps/studio/src/components/layout/Page.tsx[m
+[1m+++ b/apps/studio/src/components/layout/Page.tsx[m
+[36m@@ -1,4 +1,3 @@[m
+[31m-import { motion } from 'motion/react';[m
+ import type { ReactNode } from 'react';[m
+ import { GlobalOverlays } from './GlobalOverlays';[m
+ import { Sidebar } from './Sidebar';[m
+[36m@@ -7,24 +6,25 @@[m [mimport { TopBar } from './TopBar';[m
+ export interface PageProps {[m
+   readonly title?: string;[m
+   readonly children: ReactNode;[m
+[32m+[m[32m  readonly rightRail?: ReactNode;[m
+ }[m
+ [m
+[31m-export function Page({ title, children }: PageProps): ReactNode {[m
+[32m+[m[32mexport function Page({ title, children, rightRail }: PageProps): ReactNode {[m
+   return ([m
+     <div className="nova-app">[m
+       <Sidebar />[m
+       <div className="nova-main">[m
+[31m-        {title && <TopBar title={title} />}[m
+[31m-        <main className="nova-content">[m
+[31m-          <motion.div[m
+[31m-            initial={{ opacity: 0, y: 16 }}[m
+[31m-            animate={{ opacity: 1, y: 0 }}[m
+[31m-            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}[m
+[31m-            className="nova-panel"[m
+[31m-          >[m
+[32m+[m[32m        <TopBar title={title ?? ''} />[m
+[32m+[m[32m        <div className="nova-content">[m
+[32m+[m[32m          <main className="nova-content-area">[m
+             {children}[m
+[31m-          </motion.div>[m
+[31m-        </main>[m
+[32m+[m[32m          </main>[m
+[32m+[m[32m          {rightRail && ([m
+[32m+[m[32m            <aside className="nova-right-rail">[m
+[32m+[m[32m              {rightRail}[m
+[32m+[m[32m            </aside>[m
+[32m+[m[32m          )}[m
+[32m+[m[32m        </div>[m
+       </div>[m
+       <GlobalOverlays />[m
+     </div>[m
+[1mdiff --git a/apps/studio/src/components/layout/Sidebar.tsx b/apps/studio/src/components/layout/Sidebar.tsx[m
+[1mindex 97dbd8c..ef8a147 100644[m
+[1m--- a/apps/studio/src/components/layout/Sidebar.tsx[m
+[1m+++ b/apps/studio/src/components/layout/Sidebar.tsx[m
+[36m@@ -1,6 +1,9 @@[m
+[32m+[m[32mimport { ChevronLeft } from 'lucide-react';[m
+[32m+[m[32mimport { useState } from 'react';[m
+ import { NavLink } from 'react-router-dom';[m
+[31m-import { NovaMark } from '../brand';[m
+[32m+[m[32mimport { NovaMark, NovaWordmark } from '../brand';[m
+ import { Icon, type IconName } from '../icons';[m
+[32m+[m[32mimport { cn } from '../../design/cn';[m
+ [m
+ export interface NavEntry {[m
+   readonly to: string;[m
+[36m@@ -9,40 +12,130 @@[m [mexport interface NavEntry {[m
+ }[m
+ [m
+ const NAV_ITEMS: ReadonlyArray<NavEntry> = [[m
+[31m-  { to: '/', label: 'Studio', icon: 'home' },[m
+[31m-  { to: '/projects', label: 'Projects', icon: 'projects' },[m
+[32m+[m[32m  { to: '/', label: 'Dashboard', icon: 'home' },[m
+   { to: '/missions', label: 'Missions', icon: 'mission' },[m
+[31m-  { to: '/workflows', label: 'Workflows', icon: 'workflow' },[m
+[32m+[m[32m  { to: '/projects', label: 'Projects', icon: 'projects' },[m
+[32m+[m[32m  { to: '/studio', label: 'Agents', icon: 'agents' },[m
+[32m+[m[32m  { to: '/intelligence', label: 'Knowledge', icon: 'memory' },[m
+[32m+[m[32m  { to: '/workflows', label: 'Tools', icon: 'workflow' },[m
+   { to: '/inbox', label: 'Inbox', icon: 'inbox' },[m
+   { to: '/settings', label: 'Settings', icon: 'settings' },[m
+ ];[m
+ [m
+[32m+[m[32mconst RECENT_MISSIONS = [[m
+[32m+[m[32m  { name: 'Optimize terrain LODs', time: '2m ago', status: 'active' as const },[m
+[32m+[m[32m  { name: 'Fix shader compilation', time: '1h ago', status: 'complete' as const },[m
+[32m+[m[32m  { name: 'Generate procedural assets', time: '3h ago', status: 'complete' as const },[m
+[32m+[m[32m  { name: 'Refactor physics pipeline', time: '1d ago', status: 'queued' as const },[m
+[32m+[m[32m];[m
+[32m+[m
+ export function Sidebar(): React.ReactNode {[m
+[32m+[m[32m  const [collapsed, setCollapsed] = useState(false);[m
+[32m+[m
+   return ([m
+[31m-    <aside className="flex h-full w-16 flex-col items-center gap-6 border-r border-[rgba(255,255,255,0.06)] bg-[#050505] py-5">[m
+[31m-      <NavLink to="/" className="text-[#f5f5f5] transition-colors duration-200 hover:text-[#d4af37]" aria-label="Nova Studio home">[m
+[31m-        <NovaMark size="md" />[m
+[31m-      </NavLink>[m
+[32m+[m[32m    <aside className={cn([m
+[32m+[m[32m      'nova-sidebar transition-all duration-300 ease-standard',[m
+[32m+[m[32m      collapsed ? 'w-16' : 'w-[--sidebar-width]',[m
+[32m+[m[32m    )}>[m
+[32m+[m[32m      <div className={cn([m
+[32m+[m[32m        'flex items-center border-b border-border px-4 py-3',[m
+[32m+[m[32m        collapsed ? 'justify-center' : 'justify-between',[m
+[32m+[m[32m      )}>[m
+[32m+[m[32m        {collapsed ? ([m
+[32m+[m[32m          <NovaMark size="sm" />[m
+[32m+[m[32m        ) : ([m
+[32m+[m[32m          <NovaWordmark size="sm" withMark withEyebrow={false} />[m
+[32m+[m[32m        )}[m
+[32m+[m[32m        <button[m
+[32m+[m[32m          type="button"[m
+[32m+[m[32m          onClick={() => setCollapsed((c) => !c)}[m
+[32m+[m[32m          className={cn([m
+[32m+[m[32m            'grid size-6 place-items-center rounded-md text-fg-subtle hover:text-fg hover:bg-bg-hover transition-colors duration-fast',[m
+[32m+[m[32m            collapsed && 'rotate-180',[m
+[32m+[m[32m          )}[m
+[32m+[m[32m          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}[m
+[32m+[m[32m        >[m
+[32m+[m[32m          <ChevronLeft className="size-3.5" />[m
+[32m+[m[32m        </button>[m
+[32m+[m[32m      </div>[m
+ [m
+[31m-      <nav className="flex flex-col items-center gap-1">[m
+[32m+[m[32m      <nav className="flex flex-col gap-0.5 px-3 py-4">[m
+         {NAV_ITEMS.map((item) => ([m
+           <NavLink[m
+             key={item.to}[m
+             to={item.to}[m
+             end={item.to === '/'}[m
+[31m-            className={({ isActive }) =>[m
+[31m-              `flex h-10 w-10 items-center justify-center rounded-xl transition-all duration-200 ${[m
+[31m-                isActive[m
+[31m-                  ? 'text-[#d4af37] bg-[rgba(212,175,55,0.1)]'[m
+[31m-                  : 'text-[#5c5c5c] hover:text-[#f5f5f5] hover:bg-[rgba(255,255,255,0.04)]'[m
+[31m-              }`[m
+[31m-            }[m
+[32m+[m[32m            className={({ isActive }) => cn([m
+[32m+[m[32m              'flex items-center gap-3 rounded-lg px-3 py-2 transition-all duration-fast',[m
+[32m+[m[32m              isActive[m
+[32m+[m[32m                ? 'text-accent bg-accent-soft'[m
+[32m+[m[32m                : 'text-fg-muted hover:text-fg hover:bg-bg-hover',[m
+[32m+[m[32m              collapsed && 'justify-center px-2',[m
+[32m+[m[32m            )}[m
+             aria-label={item.label}[m
+           >[m
+[31m-            <Icon name={item.icon} size={20} />[m
+[32m+[m[32m            <Icon name={item.icon} size={18} />[m
+[32m+[m[32m            {!collapsed && ([m
+[32m+[m[32m              <span className="text-sm font-medium leading-none">{item.label}</span>[m
+[32m+[m[32m            )}[m
+           </NavLink>[m
+         ))}[m
+       </nav>[m
+[32m+[m
+[32m+[m[32m      {!collapsed && ([m
+[32m+[m[32m        <>[m
+[32m+[m[32m          <div className="mt-auto px-4 py-3">[m
+[32m+[m[32m            <div className="flex items-center justify-between">[m
+[32m+[m[32m              <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-fg-subtle">[m
+[32m+[m[32m                Recent Missions[m
+[32m+[m[32m              </span>[m
+[32m+[m[32m              <button type="button" className="text-[10px] text-fg-subtle hover:text-fg transition-colors duration-fast">[m
+[32m+[m[32m                View all[m
+[32m+[m[32m              </button>[m
+[32m+[m[32m            </div>[m
+[32m+[m[32m            <div className="mt-3 flex flex-col gap-0.5">[m
+[32m+[m[32m              {RECENT_MISSIONS.map((mission) => ([m
+[32m+[m[32m                <button[m
+[32m+[m[32m                  key={mission.name}[m
+[32m+[m[32m                  type="button"[m
+[32m+[m[32m                  className="flex w-full items-center gap-3 rounded-lg px-2 py-1.5 text-left transition-colors duration-fast hover:bg-bg-hover"[m
+[32m+[m[32m                >[m
+[32m+[m[32m                  <span className={cn([m
+[32m+[m[32m                    'size-1.5 shrink-0 rounded-full',[m
+[32m+[m[32m                    mission.status === 'active' && 'bg-accent',[m
+[32m+[m[32m                    mission.status === 'complete' && 'bg-success',[m
+[32m+[m[32m                    mission.status === 'queued' && 'bg-fg-subtle',[m
+[32m+[m[32m                  )} />[m
+[32m+[m[32m                  <div className="min-w-0 flex-1">[m
+[32m+[m[32m                    <div className="truncate text-[13px] text-fg">{mission.name}</div>[m
+[32m+[m[32m                    <div className="text-[11px] text-fg-subtle">{mission.time}</div>[m
+[32m+[m[32m                  </div>[m
+[32m+[m[32m                </button>[m
+[32m+[m[32m              ))}[m
+[32m+[m[32m            </div>[m
+[32m+[m[32m          </div>[m
+[32m+[m
+[32m+[m[32m          <div className="mx-4 mb-4 rounded-lg border border-border bg-bg-panel p-3">[m
+[32m+[m[32m            <div className="flex items-start gap-3">[m
+[32m+[m[32m              <div className="grid size-8 shrink-0 place-items-center rounded-md bg-accent-soft text-accent">[m
+[32m+[m[32m                <Icon name="spark" size={16} />[m
+[32m+[m[32m              </div>[m
+[32m+[m[32m              <div className="min-w-0 flex-1">[m
+[32m+[m[32m                <div className="text-[13px] font-medium text-fg">Nova Pro</div>[m
+[32m+[m[32m                <div className="mt-0.5 text-[11px] text-fg-muted leading-snug">[m
+[32m+[m[32m                  Unlock unlimited missions and priority support.[m
+[32m+[m[32m                </div>[m
+[32m+[m[32m                <button[m
+[32m+[m[32m                  type="button"[m
+[32m+[m[32m                  className="mt-2 rounded-md bg-accent px-3 py-1 text-[11px] font-semibold text-bg-base transition-opacity duration-fast hover:opacity-90"[m
+[32m+[m[32m                >[m
+[32m+[m[32m                  Upgrade[m
+[32m+[m[32m                </button>[m
+[32m+[m[32m              </div>[m
+[32m+[m[32m            </div>[m
+[32m+[m[32m          </div>[m
+[32m+[m[32m        </>[m
+[32m+[m[32m      )}[m
+     </aside>[m
+   );[m
+ }[m
+[1mdiff --git a/apps/studio/src/components/layout/TopBar.tsx b/apps/studio/src/components/layout/TopBar.tsx[m
+[1mindex 1816ed6..12b77c1 100644[m
+[1m--- a/apps/studio/src/components/layout/TopBar.tsx[m
+[1m+++ b/apps/studio/src/components/layout/TopBar.tsx[m
+[36m@@ -1,28 +1,64 @@[m
+[31m-import { Command } from 'lucide-react';[m
+[32m+[m[32mimport { Bell, Search, User } from 'lucide-react';[m
+ import type { ReactNode } from 'react';[m
+ import { useCommandCenter } from '../../modules/command-center/CommandCenterModule';[m
+[32m+[m[32mimport { cn } from '../../design/cn';[m
+ [m
+[31m-export interface TopBarProps {[m
+[31m-  readonly title: string;[m
+[32m+[m[32minterface TopBarProps {[m
+[32m+[m[32m  readonly title?: string;[m
+ }[m
+ [m
+ export function TopBar({ title }: TopBarProps): ReactNode {[m
+   const { toggle } = useCommandCenter();[m
+[32m+[m
+   return ([m
+[31m-    <div className="flex items-center justify-between px-6 py-4">[m
+[31m-      <h1 className="text-lg font-semibold tracking-tight text-[#f5f5f5]">{title}</h1>[m
+[31m-      <button[m
+[31m-        type="button"[m
+[31m-        onClick={toggle}[m
+[31m-        className="flex items-center gap-2 rounded-lg border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.03)] px-3 py-1.5 text-xs text-[#8a8a8a] transition-all duration-200 hover:border-[rgba(255,255,255,0.14)] hover:text-[#f5f5f5]"[m
+[31m-        aria-label="Open Command Center"[m
+[31m-      >[m
+[31m-        <Command className="size-3.5" aria-hidden />[m
+[31m-        <span>Command</span>[m
+[31m-        <kbd className="rounded border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.04)] px-1.5 py-0.5 text-[10px]">[m
+[31m-          ⌘K[m
+[31m-        </kbd>[m
+[31m-      </button>[m
+[31m-    </div>[m
+[32m+[m[32m    <header className="nova-topbar">[m
+[32m+[m[32m      <div className="flex items-center gap-3 min-w-0 flex-1">[m
+[32m+[m[32m        <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-bg-elevated px-2.5 py-1">[m
+[32m+[m[32m          <span className="size-1.5 rounded-full bg-success" />[m
+[32m+[m[32m          <span className="text-[11px] font-medium text-fg-muted">Online</span>[m
+[32m+[m[32m        </span>[m
+[32m+[m[32m        {title && ([m
+[32m+[m[32m          <>[m
+[32m+[m[32m            <span className="text-fg-subtle text-sm">/</span>[m
+[32m+[m[32m            <h1 className="text-sm font-semibold text-fg truncate">{title}</h1>[m
+[32m+[m[32m          </>[m
+[32

@@ -86,6 +86,63 @@ export interface ChangeResult {
   readonly backupPath: string | null;
 }
 
+// ─── Build Error Analysis ────────────────────────────────────────────
+
+export interface BuildError {
+  readonly file: string;
+  readonly line: number;
+  readonly column: number;
+  readonly code: string;
+  readonly message: string;
+  readonly raw: string;
+}
+
+export type ErrorCategory =
+  | 'missing-import'
+  | 'cannot-find-name'
+  | 'unused-variable'
+  | 'wrong-args'
+  | 'type-mismatch'
+  | 'syntax-error'
+  | 'duplicate-identifier'
+  | 'missing-dependency'
+  | 'broken-config'
+  | 'broken-path'
+  | 'three-js-api'
+  | 'unknown';
+
+export interface ErrorDiagnosis {
+  readonly error: BuildError;
+  readonly category: ErrorCategory;
+  readonly rootCause: string;
+  readonly confidence: number;
+}
+
+export interface RepairPlan {
+  readonly diagnosis: ErrorDiagnosis;
+  readonly edits: ReadonlyArray<import('./change-types').TextEdit>;
+  readonly description: string;
+}
+
+// ─── Studio Events ───────────────────────────────────────────────────
+
+export type StudioEventType = 'goal' | 'scan' | 'plan' | 'file-read' | 'edit' | 'tool' | 'verification' | 'build' | 'retry' | 'complete' | 'reading-output' | 'analyzing-error' | 'planning-repair' | 'rebuilding';
+
+export interface StudioEvent {
+  readonly type: StudioEventType;
+  readonly message: string;
+  readonly detail?: string;
+  readonly timestamp: number;
+}
+
+// ─── Build Verification ──────────────────────────────────────────────
+
+export interface BuildVerification {
+  readonly passed: boolean;
+  readonly output: string;
+  readonly errors: ReadonlyArray<string>;
+}
+
 // ─── Mission Report ──────────────────────────────────────────────────
 
 export interface MissionReport {
@@ -97,4 +154,38 @@ export interface MissionReport {
   readonly results: ReadonlyArray<ChangeResult>;
   readonly summary: string;
   readonly rollbackCommand: string | null;
+  readonly goal: string;
+  readonly filesRead: ReadonlyArray<string>;
+  readonly filesModified: ReadonlyArray<string>;
+  readonly changes: ReadonlyArray<{ readonly file: string; readonly explanation: string }>;
+  readonly buildVerification: BuildVerification;
+  readonly retryCount: number;
+  readonly executionTimeMs: number;
+  readonly status: 'completed' | 'failed' | 'partial';
+}
+
+// ─── Debug Mission Report ────────────────────────────────────────────
+
+export interface DebugMissionReport {
+  readonly request: string;
+  readonly projectPath: string;
+  readonly initialBuild: BuildVerification;
+  readonly errorsDetected: ReadonlyArray<BuildError>;
+  readonly rootCauses: ReadonlyArray<ErrorDiagnosis>;
+  readonly filesRead: ReadonlyArray<string>;
+  readonly filesModified: ReadonlyArray<string>;
+  readonly repairAttempts: ReadonlyArray<{
+    readonly attempt: number;
+    readonly error: BuildError;
+    readonly diagnosis: ErrorDiagnosis;
+    readonly repairDescription: string;
+    readonly result: ChangeResult;
+    readonly buildAfter: BuildVerification;
+  }>;
+  readonly compilerErrors: ReadonlyArray<string>;
+  readonly finalBuild: BuildVerification;
+  readonly retryCount: number;
+  readonly executionTimeMs: number;
+  readonly confidence: number;
+  readonly status: 'completed' | 'failed' | 'partial';
 }

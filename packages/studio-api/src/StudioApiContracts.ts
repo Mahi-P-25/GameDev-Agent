@@ -255,6 +255,7 @@ export type StudioWorkflowKind =
   | 'validate-project'
   | 'inspect-project'
   | 'open-workspace'
+  | 'create-project'
   | 'build-project'
   | 'run-tests'
   | 'prepare-commit'

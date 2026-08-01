@@ -1,44 +1,32 @@
 import { Cpu, ExternalLink } from 'lucide-react';
 import type { ReactNode } from 'react';
+import { Card } from '../ui/Card';
 
 export function AgentStatusCard(): ReactNode {
   return (
-    <div className="rounded-xl border border-border bg-bg-panel overflow-hidden">
-      <div className="px-4 py-3 border-b border-border">
-        <h3 className="text-xs font-semibold uppercase tracking-wider text-fg-muted">
-          Agent Status
-        </h3>
-      </div>
-      <div className="p-4">
-        <div className="flex items-center gap-3 mb-3">
-          <div className="grid size-10 place-items-center rounded-lg bg-accent-soft text-accent">
-            <Cpu className="size-5" />
-          </div>
-          <div>
-            <div className="text-sm font-medium text-fg">Nova Agent</div>
-            <div className="text-[11px] text-fg-subtle">v2.4.1 · Capability Planner</div>
-          </div>
+    <Card size="sm" title="Agent" subtitle="Nova Agent · v2.4.1">
+      <div className="flex items-center gap-3">
+        <div className="grid size-9 shrink-0 place-items-center rounded-md bg-accent-soft text-accent">
+          <Cpu className="size-4" />
         </div>
-        <div className="space-y-2">
-          <div className="flex items-center justify-between text-xs">
-            <span className="text-fg-muted">Confidence</span>
-            <span className="text-fg font-medium">87%</span>
-          </div>
-          <div className="h-1.5 rounded-full bg-bg-inset overflow-hidden">
+        <div className="min-w-0 flex-1">
+          <div className="text-[13px] font-medium text-fg">Capability Planner</div>
+          <div className="mt-0.5 text-xs text-fg-subtle">Confidence 87%</div>
+          <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-bg-inset">
             <div
               className="h-full rounded-full bg-accent transition-all duration-500"
               style={{ width: '87%' }}
             />
           </div>
         </div>
-        <button
-          type="button"
-          className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg border border-border bg-bg-inset px-3 py-2 text-xs text-fg-muted hover:text-fg hover:bg-bg-hover transition-all duration-fast"
-        >
-          <ExternalLink className="size-3" />
-          View Full Status
-        </button>
       </div>
-    </div>
+      <button
+        type="button"
+        className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-md border border-border bg-bg-inset px-3 py-1.5 text-xs text-fg-muted transition-colors duration-fast hover:border-border-strong hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
+      >
+        <ExternalLink className="size-3" />
+        View full status
+      </button>
+    </Card>
   );
 }

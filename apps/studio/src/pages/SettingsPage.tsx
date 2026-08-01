@@ -1,14 +1,19 @@
+import { Palette, Settings2 } from 'lucide-react';
 import { Page } from '../components/layout/Page';
-import { Badge, StatusDot } from '../components/ui/primitives';
+import { Badge } from '../components/ui/Badge';
+import { Card } from '../components/ui/Card';
+import { StatusIndicator } from '../components/ui/StatusIndicator';
+import type { Intent } from '../design/variants';
 import { useStudioData } from '../studio/StudioDataProvider';
+
+const DEP_INTENT: Record<string, Intent> = {
+  up: 'success',
+  degraded: 'warning',
+  down: 'danger',
+};
 
 /**
  * Settings — workspace configuration and theme.
- *
- * Workspace-level settings (name, capabilities, tools, preferences) are owned by
- * the Workspace aggregate but are not yet exposed through the Studio API, so
- * this page shows the live workspace overview and a clearly-marked theme
- * placeholder. When the Workspace API lands, the form here binds to it.
  */
 export function SettingsPage(): React.ReactNode {
   const { api } = useStudioData();
@@ -16,65 +21,77 @@ export function SettingsPage(): React.ReactNode {
 
   return (
     <Page title="Settings">
-      <div className="glass-panel grid gap-6 p-6 md:grid-cols-2">
-        <div className="rounded-xl border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.02)] p-5">
-          <h2 className="text-sm font-semibold text-[#f5f5f5]">Workspace</h2>
-          <p className="mt-0.5 text-xs text-[#8a8a8a]">Studio-wide configuration</p>
-          <div className="mt-4 space-y-3">
-            <div className="flex justify-between text-sm">
-              <span className="text-[#8a8a8a]">Projects</span>
-              <span className="text-[#f5f5f5]">{workspace.projectCount}</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-[#8a8a8a]">Missions</span>
-              <span className="text-[#f5f5f5]">{workspace.missionCount}</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-[#8a8a8a]">Dependencies</span>
-              <div className="flex flex-wrap gap-2">
-                {workspace.dependencies.map((d) => (
-                  <span key={d.name} className="flex items-center gap-1.5 text-xs text-[#8a8a8a]">
-                    <StatusDot
-                      intent={
-                        d.status === 'up'
-                          ? 'success'
-                          : d.status === 'degraded'
-                            ? 'warning'
-                            : 'danger'
-                      }
-                    />
-                    {d.name}
-                  </span>
-                ))}
-              </div>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-[#8a8a8a]">Readiness</span>
-              <Badge intent={workspace.ready ? 'success' : 'neutral'} dot>
-                {workspace.ready ? 'Ready' : 'Connecting…'}
-              </Badge>
-            </div>
+      <div className="flex flex-col gap-5">
+        <Card
+          title="Workspace"
+          subtitle="Studio-wide configuration"
+          actions={<Settings2 className="size-4 text-fg-subtle" />}
+        >
+          <div className="space-y-3">
+            <Row
+              label="Projects"
+              value={<span className="text-sm text-fg">{workspace.projectCount}</span>}
+            />
+            <Row
+              label="Missions"
+              value={<span className="text-sm text-fg">{workspace.missionCount}</span>}
+            />
+            <Row
+              label="Dependencies"
+              value={
+                <div className="flex flex-wrap gap-3">
+                  {workspace.dependencies.map((d) => (
+                    <span key={d.name} className="flex items-center gap-1.5 text-xs text-fg-muted">
+                      <StatusIndicator intent={DEP_INTENT[d.status] ?? 'neutral'} />
+                      {d.name}
+                    </span>
+                  ))}
+                </div>
+              }
+            />
+            <Row
+              label="Readiness"
+              value={
+                <Badge intent={workspace.ready ? 'success' : 'neutral'} dot>
+                  {workspace.ready ? 'Ready' : 'Connecting…'}
+                </Badge>
+              }
+            />
           </div>
-        </div>
+        </Card>
 
-        <div className="rounded-xl border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.02)] p-5">
-          <h2 className="text-sm font-semibold text-[#f5f5f5]">Appearance</h2>
-          <p className="mt-0.5 text-xs text-[#8a8a8a]">Theme preferences</p>
-          <div className="mt-4 space-y-3">
+        <Card
+          title="Appearance"
+          subtitle="Theme preferences"
+          actions={<Palette className="size-4 text-fg-subtle" />}
+        >
+          <div className="space-y-3">
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-sm font-medium text-[#f5f5f5]">Theme</div>
-                <div className="text-xs text-[#5c5c5c]">Nova Studio is dark-first.</div>
+                <div className="text-sm font-medium text-fg">Theme</div>
+                <div className="text-xs text-fg-subtle">Nova Studio is dark-first.</div>
               </div>
               <Badge intent="neutral">dark</Badge>
             </div>
-            <div className="flex items-center gap-3 rounded-lg bg-[rgba(255,255,255,0.03)] p-3">
-              <span className="h-7 w-7 shrink-0 rounded-md bg-gradient-to-br from-[#d4af37] to-[#5b7cfa]" />
-              <span className="text-xs text-[#5c5c5c]">Theme customization placeholder.</span>
+            <div className="flex items-center gap-3 rounded-lg border border-border bg-bg-inset p-3">
+              <span className="size-7 shrink-0 rounded-md bg-accent" />
+              <span className="text-xs text-fg-subtle">Theme customization placeholder.</span>
             </div>
           </div>
-        </div>
+        </Card>
       </div>
     </Page>
+  );
+}
+
+function Row({
+  label,
+  value,
+}: { readonly label: string; readonly value: React.ReactNode }): React.ReactNode {
+  return (
+    <div className="flex items-center justify-between gap-4">
+      <span className="text-sm text-fg-muted">{label}</span>
+      {value}
+    </div>
   );
 }

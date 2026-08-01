@@ -6,14 +6,19 @@ export interface QuickActionChipProps extends ButtonHTMLAttributes<HTMLButtonEle
   readonly label: string;
 }
 
-export function QuickActionChip({ icon, label, className, ...props }: QuickActionChipProps): ReactNode {
+export function QuickActionChip({
+  icon,
+  label,
+  className,
+  ...props
+}: QuickActionChipProps): ReactNode {
   return (
     <button
       type="button"
       className={cn(
-        'inline-flex items-center gap-1.5 rounded-full border border-border bg-bg-panel px-3 py-1.5',
+        'inline-flex items-center gap-1.5 rounded-md border border-border bg-bg-panel px-3 py-1.5',
         'text-xs text-fg-muted hover:text-fg hover:border-border-strong hover:bg-bg-hover',
-        'transition-all duration-fast focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40',
+        'transition-colors duration-fast focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40',
         className,
       )}
       {...props}

@@ -6,6 +6,7 @@ import type { Disposable, Json, Timestamp } from '@gamedev-agent/shared';
 import { CapabilityPlanner } from '@gamedev-agent/tool-runtime';
 import type { MissionAbility, ResolvedCapability, ToolManager } from '@gamedev-agent/tool-runtime';
 import type { WorkflowSource, WorkflowStep } from '@gamedev-agent/workflow';
+import type { IReasoningLoop, MissionGoal, MissionOutcome } from '@gamedev-agent/ami';
 import {
   AgentActionStarted,
   AgentActionResult,
@@ -49,6 +50,7 @@ export class MissionAgent implements Disposable {
   private readonly bus: EventBusContract;
   private readonly logger: Logger;
   private readonly defaultModel: string;
+  private readonly reasoningLoop: IReasoningLoop | null;
 
   private memory: ShortTermMemory | null = null;
   private state: AgentState = 'idle';
@@ -63,6 +65,7 @@ export class MissionAgent implements Disposable {
     this.bus = options.eventBus;
     this.logger = options.logger ?? new RootLogger('nova.mission-agent', [new ConsoleLogSink()]);
     this.defaultModel = options.defaultModel ?? 'gpt-4o';
+    this.reasoningLoop = options.reasoningLoop ?? null;
   }
 
   // ─── Public API ─────────────────────────────────────────────────────────
@@ -94,6 +97,10 @@ export class MissionAgent implements Disposable {
       openSessions: [],
       currentState: 'running',
     };
+
+    if (this.reasoningLoop !== null) {
+      return this.runViaReasoning(startTime);
+    }
 
     await this.transitionTo('running');
 
@@ -134,10 +141,93 @@ export class MissionAgent implements Disposable {
     return report;
   }
 
+  /**
+   * DEVIATION (AMI Phase 10): delegate the whole mission to the injected
+   * reasoning loop. The source is projected onto a single MissionGoal whose
+   * acceptance criteria mirror the workflow steps; the loop owns
+   * decomposition, execution, verification and reflection. The report is
+   * projected from the returned MissionOutcome so the public return shape of
+   * `run()` is unchanged.
+   */
+  private async runViaReasoning(startTime: number): Promise<MissionReport> {
+    const source: WorkflowSource = this.memory?.source ?? { sourceId: 'unknown', steps: [], projectId: 'unknown' };
+    await this.transitionTo('running');
+
+    const goal: MissionGoal = {
+      id: source.sourceId,
+      missionId: source.missionId ?? source.sourceId,
+      description: `Mission: ${source.sourceId}`,
+      acceptanceCriteria: source.steps.map((step, index) => ({
+        id: `${step.id}-ac-${index}`,
+        kind: 'step',
+        description: step.description,
+        params: {},
+      })),
+      priority: undefined,
+    };
+
+    if (this.abortSignal !== null) {
+      const loop = this.reasoningLoop!;
+      this.abortSignal.addEventListener('abort', () => loop.cancel(), { once: true });
+    }
+
+    let outcome: MissionOutcome;
+    try {
+      outcome = await this.reasoningLoop!.run(goal);
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : String(error);
+      this.logger.error('mission.ami-reasoning-failed', { reason });
+      outcome = {
+        missionId: goal.missionId,
+        state: 'failed',
+        decisions: [],
+        goalTree: null,
+        reason,
+      };
+    }
+
+    const status: MissionReport['status'] =
+      outcome.state === 'completed' ? 'completed'
+      : outcome.state === 'canceled' ? 'cancelled'
+      : 'failed';
+    this.state = status;
+
+    const mem = this.memory;
+    if (mem) {
+      mem.currentState = this.state;
+    }
+
+    const completedAt = Date.now();
+    const report: MissionReport = {
+      missionId: source.missionId ?? goal.missionId,
+      planId: source.sourceId,
+      goalTitle: goal.description,
+      startedAt: startTime as Timestamp,
+      completedAt: completedAt as Timestamp,
+      status,
+      finalSummary:
+        outcome.reason ??
+        `Mission ${status} with ${outcome.decisions.length} decision(s) across the reasoning loop.`,
+      timeline: [
+        { timestamp: startTime, state: 'running', summary: 'Mission started' },
+        { timestamp: completedAt, state: status, summary: `Mission ${status}` },
+      ],
+      actionCount: 0,
+      failureCount: outcome.state === 'failed' ? 1 : 0,
+      artifacts: [],
+      totalDurationMs: completedAt - startTime,
+      decisionCount: outcome.decisions.length,
+    };
+
+    await this.emitCompletion(report);
+    return report;
+  }
+
   /** Cancel a running mission. */
   cancel(): void {
     if (this.state === 'cancelled' || this.state === 'completed' || this.state === 'failed') return;
     this.state = 'cancelled';
+    this.reasoningLoop?.cancel();
   }
 
   dispose(): void {

@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
+import type { ProjectContext } from '../adapters/projectIntelligence/types';
 import { Page } from '../components/layout/Page';
 import { ProjectIntelligenceView } from '../components/project/ProjectIntelligenceView';
 import { useStudioData } from '../studio/StudioDataProvider';
-import type { ProjectContext } from '../adapters/projectIntelligence/types';
 
 export function ProjectIntelligencePage(): React.ReactNode {
   const { projectIntelligence } = useStudioData();
@@ -32,12 +32,8 @@ export function ProjectIntelligencePage(): React.ReactNode {
 
   return (
     <Page title="Project Intelligence">
-      <div className="glass-panel-premium px-7 py-6">
-        <ProjectIntelligenceView
-          context={context}
-          loading={loading}
-          onRefresh={handleRefresh}
-        />
+      <div className="mx-auto w-full max-w-5xl">
+        <ProjectIntelligenceView context={context} loading={loading} onRefresh={handleRefresh} />
       </div>
     </Page>
   );

@@ -23,6 +23,7 @@
   },
   "dependencies": {
     "@gamedev-agent/agent-runtime": "workspace:*",
+    "@gamedev-agent/ami": "workspace:*",
     "@gamedev-agent/context": "workspace:*",
     "@gamedev-agent/di": "workspace:*",
     "@gamedev-agent/events": "workspace:*",

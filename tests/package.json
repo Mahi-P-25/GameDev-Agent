@@ -13,7 +13,11 @@
   "dependencies": {
     "@gamedev-agent/shared": "workspace:*",
     "@gamedev-agent/kernel": "workspace:*",
-    "@gamedev-agent/di": "workspace:*"
+    "@gamedev-agent/di": "workspace:*",
+    "@gamedev-agent/events": "workspace:*",
+    "@gamedev-agent/tool-runtime": "workspace:*",
+    "@gamedev-agent/workflow": "workspace:*",
+    "@gamedev-agent/ami": "workspace:*"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.3",

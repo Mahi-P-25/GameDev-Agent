@@ -75,9 +75,9 @@
   --blur-xl: 32px;
   --blur-2xl: 48px;
 
-  /* --- Glow / Ambient ------------------------------------------------ */
-  --glow-accent: 0 0 0 1px rgba(212, 175, 55, 0.25), 0 8px 40px rgba(212, 175, 55, 0.15);
-  --glow-primary: 0 0 0 1px rgba(91, 124, 250, 0.3), 0 8px 40px rgba(91, 124, 250, 0.18);
+  /* --- Glow / Ambient (single restrained gold glow, never large fills) */
+  --glow-accent: 0 0 0 1px rgba(214, 179, 88, 0.22), 0 8px 40px rgba(214, 179, 88, 0.12);
+  --glow-primary: 0 0 0 1px rgba(214, 179, 88, 0.25), 0 8px 40px rgba(214, 179, 88, 0.14);
   --glow-soft: 0 0 40px rgba(255, 255, 255, 0.06);
   --glow-ring: 0 0 0 1px rgba(255, 255, 255, 0.1), 0 12px 50px rgba(0, 0, 0, 0.55);
 

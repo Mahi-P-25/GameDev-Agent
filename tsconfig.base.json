@@ -52,7 +52,8 @@
       "@gamedev-agent/director": ["packages/director/src/index.ts"],
       "@gamedev-agent/task-graph": ["packages/task-graph/src/index.ts"],
       "@gamedev-agent/model-providers": ["packages/model-providers/src/index.ts"],
-      "@gamedev-agent/execution-engine": ["packages/execution-engine/src/index.ts"]
+      "@gamedev-agent/execution-engine": ["packages/execution-engine/src/index.ts"],
+      "@gamedev-agent/ami": ["packages/ami/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "dist", "coverage", ".turbo"]

@@ -1,19 +1,22 @@
+import { Boxes, LayoutDashboard } from 'lucide-react';
 import { Page } from '../components/layout/Page';
-import { Badge, StatusDot } from '../components/ui/primitives';
+import { Badge } from '../components/ui/Badge';
+import { Card } from '../components/ui/Card';
+import { EmptyState } from '../components/ui/EmptyState';
+import { StatusIndicator } from '../components/ui/StatusIndicator';
+import type { Intent } from '../design/variants';
 import { useStudioData } from '../studio/StudioDataProvider';
 
-const HEALTH_INTENT = {
+const HEALTH_INTENT: Record<string, Intent> = {
   healthy: 'success',
   degraded: 'warning',
   unhealthy: 'danger',
   unknown: 'neutral',
-} as const;
+};
 
 /**
  * Workspace — the studio overview: live workspace counts plus the capabilities
- * the workspace currently has installed (read from the Studio API). This is the
- * "everything belongs to a Workspace" surface; deeper workspace settings land
- * with the Workspace API.
+ * the workspace currently has installed (read from the Studio API).
  */
 export function WorkspacePage(): React.ReactNode {
   const { api } = useStudioData();
@@ -22,67 +25,79 @@ export function WorkspacePage(): React.ReactNode {
 
   return (
     <Page title="Workspace">
-      <div className="glass-panel grid gap-6 p-6 md:grid-cols-2">
-        <div className="rounded-xl border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.02)] p-5">
-          <h2 className="text-sm font-semibold text-[#f5f5f5]">Studio Overview</h2>
-          <div className="mt-4 space-y-3">
-            <div className="flex justify-between text-sm">
-              <span className="text-[#8a8a8a]">Projects</span>
-              <span className="text-[#f5f5f5]">{workspace.projectCount}</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-[#8a8a8a]">Missions</span>
-              <span className="text-[#f5f5f5]">{workspace.missionCount}</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-[#8a8a8a]">Capabilities</span>
-              <span className="text-[#f5f5f5]">{capabilities.length}</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-[#8a8a8a]">Readiness</span>
+      <div className="flex flex-col gap-5">
+        <Card
+          title="Studio Overview"
+          actions={<LayoutDashboard className="size-4 text-fg-subtle" />}
+        >
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+            <Metric label="Projects" value={String(workspace.projectCount)} />
+            <Metric label="Missions" value={String(workspace.missionCount)} />
+            <Metric label="Capabilities" value={String(capabilities.length)} />
+            <div className="flex flex-col gap-1">
+              <span className="text-[11px] font-medium text-fg-subtle">Readiness</span>
               <Badge intent={workspace.ready ? 'success' : 'neutral'} dot>
                 {workspace.ready ? 'Ready' : 'Connecting…'}
               </Badge>
             </div>
           </div>
-        </div>
+        </Card>
 
-        <div className="rounded-xl border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.02)] p-5">
-          <h2 className="text-sm font-semibold text-[#f5f5f5]">Installed Capabilities</h2>
-          <p className="mt-0.5 text-xs text-[#8a8a8a]">Actions and tools the workspace can use</p>
+        <Card
+          title="Installed Capabilities"
+          subtitle="Actions and tools the workspace can use"
+          actions={<Boxes className="size-4 text-fg-subtle" />}
+        >
           {capabilities.length === 0 ? (
-            <p className="mt-4 text-sm text-[#5c5c5c]">No capabilities installed.</p>
+            <EmptyState title="No capabilities installed" />
           ) : (
-            <div className="mt-4 divide-y divide-[rgba(255,255,255,0.06)]">
+            <ul className="divide-y divide-border">
               {capabilities.map((c) => (
-                <div key={c.id} className="flex items-start gap-4 py-3">
+                <li key={c.id} className="flex items-start gap-4 py-3">
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-[#f5f5f5]">{c.name}</span>
-                      {c.enabled ? (
-                        <Badge intent="success">enabled</Badge>
-                      ) : (
-                        <Badge intent="neutral">disabled</Badge>
-                      )}
+                      <span className="text-sm font-medium text-fg">{c.name}</span>
+                      <Badge intent={c.enabled ? 'success' : 'neutral'} size="sm">
+                        {c.enabled ? 'enabled' : 'disabled'}
+                      </Badge>
                     </div>
-                    <div className="mt-0.5 text-xs text-[#5c5c5c]">{c.description}</div>
+                    <div className="mt-0.5 text-xs text-fg-muted">{c.description}</div>
                     <div className="mt-1.5 flex flex-wrap gap-1.5">
-                      <span className="inline-flex items-center rounded-full border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.03)] px-2 py-0.5 text-[10px] text-[#8a8a8a]">{c.category}</span>
+                      <span className="inline-flex items-center rounded-full border border-border bg-bg-inset px-2 py-0.5 text-[10px] text-fg-muted">
+                        {c.category}
+                      </span>
                       {c.supportedPlatforms.slice(0, 3).map((p) => (
-                        <span key={p} className="inline-flex items-center rounded-full border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.03)] px-2 py-0.5 text-[10px] text-[#8a8a8a]">{p}</span>
+                        <span
+                          key={p}
+                          className="inline-flex items-center rounded-full border border-border bg-bg-inset px-2 py-0.5 text-[10px] text-fg-muted"
+                        >
+                          {p}
+                        </span>
                       ))}
                     </div>
                   </div>
-                  <span className="flex shrink-0 items-center gap-1.5 text-xs text-[#8a8a8a]">
-                    <StatusDot intent={HEALTH_INTENT[c.health]} />
+                  <span className="flex shrink-0 items-center gap-1.5 text-xs text-fg-muted">
+                    <StatusIndicator intent={HEALTH_INTENT[c.health] ?? 'neutral'} />
                     {c.health}
                   </span>
-                </div>
+                </li>
               ))}
-            </div>
+            </ul>
           )}
-        </div>
+        </Card>
       </div>
     </Page>
+  );
+}
+
+function Metric({
+  label,
+  value,
+}: { readonly label: string; readonly value: string }): React.ReactNode {
+  return (
+    <div className="flex flex-col gap-1">
+      <span className="text-[11px] font-medium text-fg-subtle">{label}</span>
+      <span className="text-2xl font-semibold tracking-tight tabular-nums text-fg">{value}</span>
+    </div>
   );
 }

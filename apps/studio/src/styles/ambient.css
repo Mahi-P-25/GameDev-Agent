@@ -1,6 +1,6 @@
 @layer components {
   .nova-stage {
-    --stage-light: rgba(212, 175, 55, 0.04);
+    --stage-light: rgba(214, 179, 88, 0.04);
     --stage-light-strength: 60%;
     transition: --stage-light-strength 600ms var(--ease-standard);
   }

@@ -9,7 +9,7 @@ import { MissionControlModule } from '../modules/mission-control';
 export function MissionControlPage(): React.ReactNode {
   return (
     <Page title="Mission Control">
-      <div className="glass-panel p-6">
+      <div className="mx-auto w-full max-w-5xl">
         <MissionControlModule />
       </div>
     </Page>

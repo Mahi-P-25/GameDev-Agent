@@ -22,6 +22,7 @@ export default defineConfig({
       '@gamedev-agent/task-graph': resolve('./packages/task-graph/src/index.ts'),
       '@gamedev-agent/model-providers': resolve('./packages/model-providers/src/index.ts'),
       '@gamedev-agent/execution-engine': resolve('./packages/execution-engine/src/index.ts'),
+      '@gamedev-agent/ami': resolve('./packages/ami/src/index.ts'),
       '@gamedev-agent/workspace': resolve('./packages/workspace/src/index.ts'),
       '@gamedev-agent/runtime': resolve('./packages/runtime/src/index.ts'),
       '@gamedev-agent/project': resolve('./packages/project/src/index.ts'),

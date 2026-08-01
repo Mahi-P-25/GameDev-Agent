@@ -14,7 +14,7 @@ export type Intent = 'neutral' | 'primary' | 'accent' | 'success' | 'warning' | 
 export const buttonVariants = cva(
   [
     'inline-flex items-center justify-center gap-2 select-none',
-    'font-medium whitespace-nowrap rounded-xl',
+    'font-medium whitespace-nowrap rounded-md',
     'transition-[background,border-color,color,box-shadow,transform] duration-fast ease-standard',
     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-base',
     'disabled:opacity-50 disabled:pointer-events-none active:translate-y-px',
@@ -22,8 +22,7 @@ export const buttonVariants = cva(
   {
     variants: {
       variant: {
-        primary:
-          'bg-primary text-white border border-primary hover:bg-primary-strong shadow-sm',
+        primary: 'bg-primary text-white border border-primary hover:bg-primary-strong shadow-sm',
         accent:
           'bg-accent text-bg-base border border-accent hover:bg-accent-strong shadow-sm shadow-accent/20',
         secondary:
@@ -71,10 +70,10 @@ export const badgeVariants = cva(
   },
 );
 
-/** Card — the primary elevated surface. */
+/** Card — the primary elevated surface. Hairline border, soft diffuse shadow. */
 export const cardVariants = cva(
   [
-    'rounded-lg border bg-bg-panel text-fg shadow-sm',
+    'rounded-lg border border-border bg-bg-panel text-fg shadow-sm',
     'transition-[border-color,box-shadow,transform] duration-base ease-standard',
   ],
   {
@@ -84,7 +83,7 @@ export const cardVariants = cva(
         false: '',
       },
       inset: {
-        true: 'bg-bg-inset border-border',
+        true: 'bg-bg-inset border-border shadow-none',
         false: '',
       },
     },

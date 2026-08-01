@@ -93,6 +93,7 @@ function newAgent(opts: {
   tool?: ReturnType<typeof fakeToolManager>;
   planner?: ReturnType<typeof fakePlanner>;
   bus?: InMemoryEventBus;
+  reasoningLoop?: import('@gamedev-agent/ami').IReasoningLoop;
 }) {
   const bus = opts.bus ?? new InMemoryEventBus('test');
   return new MissionAgent({
@@ -101,6 +102,7 @@ function newAgent(opts: {
     modelProviders: opts.model ?? fakeModel(),
     eventBus: bus,
     logger: noopLogger,
+    ...(opts.reasoningLoop !== undefined ? { reasoningLoop: opts.reasoningLoop } : {}),
   });
 }
 
@@ -558,5 +560,92 @@ describe('MissionAgent — Studio Verification', () => {
     expect(artifacts.length).toBeGreaterThanOrEqual(1);
     expect(artifacts[0].kind).toBe('file');
     expect(artifacts[0].path).toBe('/tmp/test.txt');
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  3. AMI reasoning loop delegation (Phase 10)
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('MissionAgent — AMI reasoning loop delegation', () => {
+  type AmiLoop = import('@gamedev-agent/ami').IReasoningLoop;
+  type AmiOutcome = import('@gamedev-agent/ami').MissionOutcome;
+
+  function fakeLoop(result: AmiOutcome) {
+    const run = vi.fn().mockResolvedValue(result);
+    const cancel = vi.fn();
+    return { run, cancel } as unknown as AmiLoop & { run: typeof run; cancel: typeof cancel };
+  }
+
+  function outcome(
+    state: AmiOutcome['state'],
+    reason?: string,
+  ): AmiOutcome {
+    return {
+      missionId: 'm1',
+      state,
+      decisions: [],
+      goalTree: null,
+      ...(reason !== undefined ? { reason } : {}),
+    };
+  }
+
+  it('delegates the mission to the injected reasoning loop', async () => {
+    const loop = fakeLoop(outcome('completed'));
+    const agent = newAgent({ reasoningLoop: loop });
+    const report = await agent.run(source([step({ description: 'Create a file' })]));
+
+    expect(loop.run).toHaveBeenCalledTimes(1);
+    const goal = loop.run.mock.calls[0]![0] as import('@gamedev-agent/ami').MissionGoal;
+    expect(goal.missionId).toBe('m1');
+    expect(goal.description).toBe('Mission: s1');
+    expect(goal.acceptanceCriteria).toHaveLength(1);
+    expect(goal.acceptanceCriteria[0]!.description).toBe('Create a file');
+    expect(report.status).toBe('completed');
+    expect(report.planId).toBe('s1');
+  });
+
+  it('emits AgentMissionComplete with the outcome status', async () => {
+    const bus = new InMemoryEventBus('test');
+    const received: any[] = [];
+    bus.subscribe(AgentMissionComplete, (e: any) => { received.push(e.payload); });
+
+    const loop = fakeLoop(outcome('failed', 'tool rejected'));
+    const agent = newAgent({ bus, reasoningLoop: loop });
+    const report = await agent.run(source([step()]));
+
+    expect(report.status).toBe('failed');
+    expect(report.failureCount).toBe(1);
+    expect(report.finalSummary).toContain('tool rejected');
+    expect(received.length).toBe(1);
+    expect(received[0].status).toBe('failed');
+  });
+
+  it('maps a canceled outcome to a cancelled report', async () => {
+    const loop = fakeLoop(outcome('canceled'));
+    const agent = newAgent({ reasoningLoop: loop });
+    const report = await agent.run(source([step()]));
+    expect(report.status).toBe('cancelled');
+    expect(report.decisionCount).toBe(0);
+  });
+
+  it('forwards cancel() to the reasoning loop', async () => {
+    const loop = fakeLoop(outcome('completed'));
+    const agent = newAgent({ reasoningLoop: loop });
+    loop.run.mockImplementation(() => new Promise<AmiOutcome>(() => {}));
+    const pending = agent.run(source([step()]));
+    agent.cancel();
+    expect(loop.cancel).toHaveBeenCalledTimes(1);
+    void pending;
+  });
+
+  it('falls back to a failed report when the loop throws', async () => {
+    const loop = fakeLoop(outcome('completed'));
+    loop.run.mockRejectedValue(new Error('boom'));
+    const agent = newAgent({ reasoningLoop: loop });
+    const report = await agent.run(source([step()]));
+    expect(report.status).toBe('failed');
+    expect(report.failureCount).toBe(1);
+    expect(report.finalSummary).toContain('boom');
   });
 });

@@ -1,21 +1,31 @@
+import { AlertTriangle, Bell, CheckCircle2, Info, MailCheck } from 'lucide-react';
+import type { ReactNode } from 'react';
 import type { Notification } from '../adapters/types';
 import { Page } from '../components/layout/Page';
-import {
-  Badge,
-  intentColor,
-} from '../components/ui/primitives';
+import { Badge } from '../components/ui/Badge';
+import { Card } from '../components/ui/Card';
+import { EmptyState } from '../components/ui/EmptyState';
 import { useStudioData } from '../studio/StudioDataProvider';
 import { missionStatusLabel, timeAgo } from './statusMaps';
 
-const NOTIFICATION_INTENT = {
-  info: 'info',
-  success: 'success',
-  warning: 'warning',
-  approval: 'warning',
-} as const;
+const NOTIFICATION_STYLE: Record<Notification['kind'], string> = {
+  info: 'text-info bg-info-soft',
+  success: 'text-success bg-success-soft',
+  warning: 'text-warning bg-warning-soft',
+  approval: 'text-warning bg-warning-soft',
+};
 
-function notificationIcon(kind: Notification['kind']): string {
-  return kind === 'approval' ? '⚑' : kind === 'warning' ? '!' : kind === 'success' ? '✓' : 'i';
+function notificationIcon(kind: Notification['kind']): ReactNode {
+  switch (kind) {
+    case 'approval':
+      return <MailCheck className="size-3.5" />;
+    case 'warning':
+      return <AlertTriangle className="size-3.5" />;
+    case 'success':
+      return <CheckCircle2 className="size-3.5" />;
+    default:
+      return <Info className="size-3.5" />;
+  }
 }
 
 /** Inbox — pending approvals (live) plus notifications (placeholder adapter). */
@@ -26,67 +36,74 @@ export function InboxPage(): React.ReactNode {
 
   return (
     <Page title="Inbox">
-      <div className="glass-panel grid gap-6 p-6 md:grid-cols-2">
-        <div className="rounded-xl border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.02)] p-5">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-sm font-semibold text-[#f5f5f5]">Pending Approvals</h2>
-              <p className="mt-0.5 text-xs text-[#8a8a8a]">Missions awaiting your sign-off</p>
-            </div>
-            {pendingApprovals.length > 0 && (
+      <div className="grid gap-5 lg:grid-cols-2">
+        <Card
+          title="Pending Approvals"
+          subtitle="Missions awaiting your sign-off"
+          actions={
+            pendingApprovals.length > 0 ? (
               <Badge intent="warning" dot>
                 {pendingApprovals.length}
               </Badge>
-            )}
-          </div>
+            ) : undefined
+          }
+        >
           {pendingApprovals.length === 0 ? (
-            <p className="mt-4 text-sm text-[#5c5c5c]">No missions are waiting for approval.</p>
+            <EmptyState title="Nothing waiting" hint="No missions are waiting for approval." />
           ) : (
-            <div className="mt-4 divide-y divide-[rgba(255,255,255,0.06)]">
+            <ul className="divide-y divide-border">
               {pendingApprovals.map((m) => (
-                <div key={m.id} className="flex items-center gap-4 py-3">
+                <li key={m.id} className="flex items-center gap-4 py-3">
                   <div className="min-w-0 flex-1">
-                    <div className="text-sm font-medium text-[#f5f5f5]">{m.title}</div>
-                    <div className="text-xs text-[#5c5c5c]">{missionStatusLabel(m.status)} · {m.id}</div>
+                    <div className="text-sm font-medium text-fg">{m.title}</div>
+                    <div className="text-xs text-fg-muted">
+                      {missionStatusLabel(m.status)} · {m.id}
+                    </div>
                   </div>
-                  <Badge intent="warning">review</Badge>
-                </div>
+                  <Badge intent="warning" size="sm">
+                    review
+                  </Badge>
+                </li>
               ))}
-            </div>
+            </ul>
           )}
-        </div>
+        </Card>
 
-        <div className="rounded-xl border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.02)] p-5">
-          <h2 className="text-sm font-semibold text-[#f5f5f5]">Notifications</h2>
-          <p className="mt-0.5 text-xs text-[#8a8a8a]">Studio alerts and digests</p>
+        <Card
+          title="Notifications"
+          subtitle="Studio alerts and digests"
+          actions={<Bell className="size-4 text-fg-subtle" />}
+        >
           {items.length === 0 ? (
-            <p className="mt-4 text-sm text-[#5c5c5c]">No notifications.</p>
+            <EmptyState title="All quiet" hint="No notifications." />
           ) : (
-            <div className="mt-4 divide-y divide-[rgba(255,255,255,0.06)]">
+            <ul className="divide-y divide-border">
               {items.map((n) => (
-                <div key={n.id} className="flex items-start gap-3 py-3">
+                <li key={n.id} className="flex items-start gap-3 py-3">
                   <span
-                    className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md text-xs font-bold"
-                    style={{
-                      color: intentColor(NOTIFICATION_INTENT[n.kind]),
-                      background: `color-mix(in srgb, ${intentColor(NOTIFICATION_INTENT[n.kind])} 16%, transparent)`,
-                    }}
+                    className={`mt-0.5 grid size-6 shrink-0 place-items-center rounded-md ${NOTIFICATION_STYLE[n.kind]}`}
                   >
                     {notificationIcon(n.kind)}
                   </span>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-[#f5f5f5]">{n.title}</span>
-                      {!n.read && <Badge intent="primary">new</Badge>}
+                      <span className="text-sm font-medium text-fg">{n.title}</span>
+                      {!n.read && (
+                        <Badge intent="accent" size="sm">
+                          new
+                        </Badge>
+                      )}
                     </div>
-                    <div className="text-xs text-[#5c5c5c]">{n.body}</div>
+                    <div className="text-xs text-fg-muted">{n.body}</div>
                   </div>
-                  <span className="shrink-0 text-[11px] text-[#5c5c5c]">{timeAgo(n.timestamp)}</span>
-                </div>
+                  <span className="shrink-0 text-[11px] text-fg-subtle">
+                    {timeAgo(n.timestamp)}
+                  </span>
+                </li>
               ))}
-            </div>
+            </ul>
           )}
-        </div>
+        </Card>
       </div>
     </Page>
   );

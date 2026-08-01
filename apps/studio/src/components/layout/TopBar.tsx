@@ -1,7 +1,7 @@
 import { Bell, Search, User } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { useCommandCenter } from '../../modules/command-center/CommandCenterModule';
 import { cn } from '../../design/cn';
+import { useCommandCenter } from '../../modules/command-center/CommandCenterModule';
 
 interface TopBarProps {
   readonly title?: string;
@@ -29,7 +29,7 @@ export function TopBar({ title }: TopBarProps): ReactNode {
         <button
           type="button"
           onClick={toggle}
-          className="flex items-center gap-2 rounded-lg border border-border bg-bg-inset px-3 py-1.5 text-xs text-fg-muted transition-all duration-fast hover:border-border-strong hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+          className="flex items-center gap-2 rounded-md border border-border bg-bg-inset px-3 py-1.5 text-xs text-fg-muted transition-colors duration-fast hover:border-border-strong hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
           aria-label="Search or run a command"
         >
           <Search className="size-3.5" aria-hidden />

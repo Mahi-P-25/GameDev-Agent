@@ -90,7 +90,7 @@
     backdrop-filter: blur(48px) saturate(140%);
     -webkit-backdrop-filter: blur(48px) saturate(140%);
     box-shadow:
-      0 0 0 1px rgba(212, 175, 55, 0.04),
+      0 0 0 1px rgba(214, 179, 88, 0.04),
       0 40px 100px rgba(0, 0, 0, 0.6),
       0 10px 40px rgba(0, 0, 0, 0.4),
       inset 0 1px 0 rgba(255, 255, 255, 0.08);
@@ -112,7 +112,7 @@
     position: absolute;
     inset: 0;
     border-radius: inherit;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, transparent 50%, rgba(212, 175, 55, 0.015) 100%);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, transparent 50%, rgba(214, 179, 88, 0.015) 100%);
     pointer-events: none;
   }
 
@@ -148,8 +148,8 @@
     transition: border-color 200ms ease, box-shadow 200ms ease, background 200ms ease;
   }
   .glass-input:focus-within {
-    border-color: rgba(212, 175, 55, 0.4);
-    box-shadow: 0 0 0 1px rgba(212, 175, 55, 0.2), var(--shadow-glass);
+    border-color: rgba(214, 179, 88, 0.4);
+    box-shadow: 0 0 0 1px rgba(214, 179, 88, 0.2), var(--shadow-glass);
     background: rgba(255, 255, 255, 0.05);
   }
 
@@ -184,8 +184,8 @@
     position: absolute;
     inset: -40%;
     background:
-      radial-gradient(50% 50% at 15% 20%, rgba(212, 175, 55, 0.06), transparent 60%),
-      radial-gradient(40% 40% at 85% 15%, rgba(212, 175, 55, 0.04), transparent 55%),
+      radial-gradient(50% 50% at 15% 20%, rgba(214, 179, 88, 0.06), transparent 60%),
+      radial-gradient(40% 40% at 85% 15%, rgba(214, 179, 88, 0.04), transparent 55%),
       radial-gradient(60% 60% at 50% 80%, rgba(255, 255, 255, 0.02), transparent 60%);
     filter: blur(80px);
     pointer-events: none;
@@ -195,8 +195,8 @@
     position: absolute;
     inset: -60%;
     background:
-      radial-gradient(40% 40% at 25% 30%, rgba(212, 175, 55, 0.03), transparent 60%),
-      radial-gradient(35% 35% at 75% 20%, rgba(212, 175, 55, 0.02), transparent 55%),
+      radial-gradient(40% 40% at 25% 30%, rgba(214, 179, 88, 0.03), transparent 60%),
+      radial-gradient(35% 35% at 75% 20%, rgba(214, 179, 88, 0.02), transparent 55%),
       radial-gradient(50% 50% at 50% 70%, rgba(255, 255, 255, 0.015), transparent 60%);
     filter: blur(120px);
     pointer-events: none;
@@ -229,7 +229,7 @@
    * ----------------------------------------------------------------- */
   .selection-accent::selection,
   .selection-accent *::selection {
-    background: rgba(212, 175, 55, 0.15);
+    background: rgba(214, 179, 88, 0.15);
     color: var(--color-fg);
   }
   .focus-ring {
@@ -237,7 +237,7 @@
     transition: box-shadow var(--duration-fast) var(--ease-standard);
   }
   .focus-ring:focus-visible {
-    box-shadow: 0 0 0 2px var(--color-bg-base), 0 0 0 4px rgba(212, 175, 55, 0.3);
+    box-shadow: 0 0 0 2px var(--color-bg-base), 0 0 0 4px rgba(214, 179, 88, 0.3);
   }
 
   /* ----------------------------------------------------------------- *

@@ -106,4 +106,12 @@ export interface MissionAgentOptions {
   readonly logger?: import('@gamedev-agent/logging').Logger;
   readonly defaultModel?: string;
   readonly maxRounds?: number;
+  /**
+   * DEVIATION (AMI Phase 10): when supplied, `run()` delegates the whole
+   * mission to the AMI reasoning loop instead of the legacy inline decision
+   * loop. The public surface (`run(source, signal?)` / `cancel()` /
+   * `dispose()`) is unchanged — the loop is injected exactly one way, through
+   * this option. Absent, the legacy loop remains for backward compatibility.
+   */
+  readonly reasoningLoop?: import('@gamedev-agent/ami').IReasoningLoop;
 }

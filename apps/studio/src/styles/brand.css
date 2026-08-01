@@ -28,7 +28,7 @@
   @property --stage-light {
     syntax: "<color>";
     inherits: true;
-    initial-value: rgba(212, 175, 55, 0.04);
+    initial-value: rgba(214, 179, 88, 0.04);
   }
   .nova-stage {
     background: radial-gradient(120% 80% at 50% -10%, var(--stage-light), transparent 62%),

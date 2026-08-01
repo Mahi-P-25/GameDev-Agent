@@ -1,21 +1,33 @@
-import { motion, AnimatePresence } from 'motion/react';
-import { Sparkles } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { MissionPlanner } from '../adapters/missionPlanner';
+import type { MissionPlan } from '../adapters/missionPlannerTypes';
+import type { MissionEvent } from '../adapters/missionTypes';
+import { ActivityFeed } from '../components/activity/ActivityFeed';
 import { AgentStatusCard } from '../components/agent/AgentStatusCard';
-import { LiveLogCard } from '../components/agent/LiveLogCard';
 import { SystemMonitorCard } from '../components/agent/SystemMonitorCard';
 import { CommandBar } from '../components/command-bar/CommandBar';
 import { DetailPanel } from '../components/detail-panel/DetailPanel';
 import { Page } from '../components/layout/Page';
+import { CurrentMission } from '../components/mission/CurrentMission';
 import { MissionSummary } from '../components/mission/MissionSummary';
+import { SystemStatus } from '../components/status/SystemStatus';
 import { MissionTimeline } from '../components/timeline/MissionTimeline';
+import { StatusChip } from '../components/ui/StatusChip';
 import { UpgradeBanner } from '../components/upgrade/UpgradeBanner';
-import { MissionPlanner } from '../adapters/missionPlanner';
-import type { MissionEvent } from '../adapters/missionTypes';
-import type { MissionPlan } from '../adapters/missionPlannerTypes';
 import { useStudioData } from '../studio/StudioDataProvider';
 
 type MissionPhase = 'idle' | 'review' | 'executing';
+
+const STAGGER = {
+  animate: { transition: { staggerChildren: 0.05, delayChildren: 0.02 } },
+};
+
+const REVEAL = {
+  initial: { opacity: 0, y: 10 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.3, ease: [0.16, 1, 0.3, 1] as const },
+};
 
 export function HomePage(): React.ReactNode {
   const { missionExecution } = useStudioData();
@@ -27,13 +39,16 @@ export function HomePage(): React.ReactNode {
   const [missionEvents, setMissionEvents] = useState<MissionEvent[]>([]);
   const resetTimerRef = useRef<number | null>(null);
 
-  const handleExecute = useCallback((text: string) => {
-    const trimmed = text.trim() || 'Untitled Mission';
-    const newPlan = planner.plan(trimmed);
-    setMissionText(trimmed);
-    setPlan(newPlan);
-    setPhase('review');
-  }, [planner]);
+  const handleExecute = useCallback(
+    (text: string) => {
+      const trimmed = text.trim() || 'Untitled Mission';
+      const newPlan = planner.plan(trimmed);
+      setMissionText(trimmed);
+      setPlan(newPlan);
+      setPhase('review');
+    },
+    [planner],
+  );
 
   const handleConfirmExecute = useCallback(() => {
     if (!plan) return;
@@ -88,35 +103,52 @@ export function HomePage(): React.ReactNode {
 
   const isExecuting = phase === 'executing' || phase === 'review';
 
+  const heroLine =
+    phase === 'executing'
+      ? complete
+        ? 'Mission complete'
+        : 'Nova is working'
+      : phase === 'review'
+        ? 'Mission planned'
+        : 'The studio is ready';
+
+  const heroSub =
+    phase === 'executing' || phase === 'review' ? missionText : 'What shall we build today?';
+
   const rightRail = isExecuting ? (
     <>
+      <ActivityFeed />
       <AgentStatusCard />
       <SystemMonitorCard />
-      <LiveLogCard />
     </>
   ) : null;
 
   return (
     <Page rightRail={rightRail}>
-      <div className="flex flex-col gap-8 pb-8">
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+      <motion.div {...STAGGER} className="flex flex-col gap-8 pb-8">
+        {/* Hero — a quiet status statement, not a marketing banner. */}
+        <motion.header
+          {...REVEAL}
+          className="mx-auto flex w-full max-w-2xl flex-col items-center gap-3 pt-6 text-center"
         >
-          <h1 className="text-[clamp(1.75rem,4vw,2.75rem)] font-semibold tracking-[-0.03em] text-fg leading-[1.1]">
+          <div className="flex items-center gap-2">
+            <StatusChip
+              intent={phase === 'executing' ? 'accent' : 'success'}
+              pulse={phase === 'executing' && !complete}
+              label={heroLine}
+              title={heroLine}
+            />
+          </div>
+          <h1 className="text-balance text-[clamp(2rem,5vw,3rem)] font-semibold leading-[1.05] tracking-[-0.03em] text-fg">
             {greeting()}
-            <span className="block text-fg-muted text-[clamp(1rem,2vw,1.375rem)] font-normal tracking-[-0.01em] mt-2">
-              What shall we build today?
-            </span>
           </h1>
-        </motion.div>
+          <p className="text-balance text-[clamp(1rem,2vw,1.25rem)] leading-relaxed text-fg-muted">
+            {heroSub}
+          </p>
+        </motion.header>
 
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-        >
+        {/* Command Bar — Nova's signature interaction. */}
+        <motion.div {...REVEAL}>
           <CommandBar onSubmit={handleExecute} />
         </motion.div>
 
@@ -127,48 +159,10 @@ export function HomePage(): React.ReactNode {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.3 }}
-              className="flex flex-col gap-6"
+              transition={{ duration: 0.25 }}
+              className="mx-auto flex w-full max-w-2xl flex-col gap-5"
             >
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="rounded-xl border border-border bg-bg-panel p-5">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Sparkles className="size-4 text-accent" />
-                    <span className="text-xs font-semibold uppercase tracking-wider text-fg-muted">
-                      Recent Activity
-                    </span>
-                  </div>
-                  <div className="space-y-2">
-                    {[
-                      { msg: 'Project analysis completed', time: '2m ago' },
-                      { msg: 'Asset pipeline optimized', time: '1h ago' },
-                      { msg: 'Build configuration updated', time: '3h ago' },
-                    ].map((item) => (
-                      <div key={item.msg} className="flex items-start gap-2 text-sm">
-                        <span className="mt-1.5 size-1 shrink-0 rounded-full bg-fg-subtle" />
-                        <span className="text-fg-muted">{item.msg}</span>
-                        <span className="ml-auto text-[11px] text-fg-subtle shrink-0">{item.time}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div className="rounded-xl border border-border bg-bg-panel p-5">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Sparkles className="size-4 text-fg-muted" />
-                    <span className="text-xs font-semibold uppercase tracking-wider text-fg-muted">
-                      Studio Status
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-bg-inset px-2.5 py-1 text-xs text-fg-muted">
-                      <span className="size-1.5 rounded-full bg-success" />
-                      All systems ready
-                    </span>
-                    <span className="text-xs text-fg-subtle">6 capabilities online</span>
-                  </div>
-                </div>
-              </div>
-
+              <SystemStatus className="mx-auto text-center" />
               <UpgradeBanner />
             </motion.div>
           )}
@@ -176,10 +170,11 @@ export function HomePage(): React.ReactNode {
           {phase === 'review' && plan && (
             <motion.div
               key="review-content"
-              initial={{ opacity: 0, y: 12, scale: 0.98 }}
+              initial={{ opacity: 0, y: 12, scale: 0.99 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -8, scale: 0.98 }}
+              exit={{ opacity: 0, y: -8, scale: 0.99 }}
               transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+              className="mx-auto w-full max-w-2xl"
             >
               <MissionSummary
                 plan={plan}
@@ -196,21 +191,27 @@ export function HomePage(): React.ReactNode {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-              className="flex flex-col gap-6"
+              className="flex w-full max-w-5xl flex-col gap-6 self-center"
             >
-              <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                <div className="rounded-xl border border-border bg-bg-panel p-5">
-                  <div className="flex items-center justify-between mb-4">
+              {/* Current Mission — the single focused card. */}
+              <CurrentMission plan={plan} missionText={missionText} events={missionEvents} />
+
+              {/* Timeline + detail in two columns. */}
+              <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+                <div className="rounded-lg border border-border bg-bg-panel shadow-sm">
+                  <div className="flex items-center justify-between border-b border-border px-5 py-3.5">
                     <h2 className="text-xs font-semibold uppercase tracking-wider text-fg-muted">
-                      {complete ? 'Mission Complete' : 'Mission Timeline'}
+                      Mission Timeline
                     </h2>
                     {complete && (
-                      <span className="rounded-full border border-success/20 bg-success-soft px-2 py-0.5 text-[10px] text-success font-medium">
+                      <span className="inline-flex items-center gap-1.5 rounded-full border border-success/25 bg-success-soft px-2 py-0.5 text-[10px] font-medium text-success">
                         Complete
                       </span>
                     )}
                   </div>
-                  <MissionTimeline events={missionEvents} missionText={missionText} />
+                  <div className="p-5">
+                    <MissionTimeline events={missionEvents} missionText={missionText} />
+                  </div>
                 </div>
 
                 <DetailPanel events={missionEvents} missionText={missionText} />
@@ -220,7 +221,7 @@ export function HomePage(): React.ReactNode {
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
+      </motion.div>
     </Page>
   );
 }

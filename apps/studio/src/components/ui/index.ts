@@ -8,6 +8,8 @@ export { Panel } from './Panel';
 export type { PanelProps } from './Panel';
 export { StatusIndicator } from './StatusIndicator';
 export type { StatusIndicatorProps } from './StatusIndicator';
+export { StatusChip } from './StatusChip';
+export type { StatusChipProps } from './StatusChip';
 export { Progress } from './Progress';
 export type { ProgressProps } from './Progress';
 export { Modal, ModalBody } from './Modal';

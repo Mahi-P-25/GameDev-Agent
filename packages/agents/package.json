@@ -1,0 +1,42 @@
+{
+  "name": "@gamedev-agent/agents",
+  "version": "0.1.0",
+  "description": "Nova Multi-Agent Studio — specialist agents, mission event catalog, and the task bridge to the existing single-agent MissionAgent.",
+  "type": "module",
+  "license": "PROPRIETARY",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome check src",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@gamedev-agent/agent-runtime": "workspace:*",
+    "@gamedev-agent/ami": "workspace:*",
+    "@gamedev-agent/di": "workspace:*",
+    "@gamedev-agent/events": "workspace:*",
+    "@gamedev-agent/kernel": "workspace:*",
+    "@gamedev-agent/logging": "workspace:*",
+    "@gamedev-agent/shared": "workspace:*",
+    "@gamedev-agent/tool-runtime": "workspace:*",
+    "@gamedev-agent/workflow": "workspace:*"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.3",
+    "@gamedev-agent/memory": "workspace:*",
+    "tsup": "^8.3.0",
+    "typescript": "^5.6.2",
+    "vitest": "^2.1.1"
+  }
+}

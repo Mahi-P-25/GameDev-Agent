@@ -1,4 +1,5 @@
-import type { MemoryQuery, MemoryRecord } from '../memory-query';
+import type { MemoryQuery } from '../memory-query';
+import type { MemoryRecord } from '../memory-record';
 
 /**
  * Storage provider for mission memory. `IMissionMemoryStore` delegates all

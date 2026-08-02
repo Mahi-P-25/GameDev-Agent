@@ -49,6 +49,7 @@
       "@gamedev-agent/runtime": ["packages/runtime/src/index.ts"],
       "@gamedev-agent/memory": ["packages/memory/src/index.ts"],
       "@gamedev-agent/agent-runtime": ["packages/agent-runtime/src/index.ts"],
+      "@gamedev-agent/agents": ["packages/agents/src/index.ts"],
       "@gamedev-agent/director": ["packages/director/src/index.ts"],
       "@gamedev-agent/task-graph": ["packages/task-graph/src/index.ts"],
       "@gamedev-agent/model-providers": ["packages/model-providers/src/index.ts"],

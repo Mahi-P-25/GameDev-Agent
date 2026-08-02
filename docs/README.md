@@ -19,6 +19,9 @@ Development Studio).
 - `Workflow-Engine-Design.md` — goal-driven workflow engine.
 - `Role-System-Design.md` — specialist Role system (Roles as responsibilities).
 - `Studio-OS-Design.md` — studio operating system (layered architecture, 10-year view).
+- `Phase1-Multi-Agent-Architecture-Report.md` — Phase 1 design for multi-agent
+  mission orchestration (MissionAgent → specialist agents via the existing
+  agent-runtime + a `mission.agent.*` event catalog).
 
 ## Top-level
 

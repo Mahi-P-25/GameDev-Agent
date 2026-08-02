@@ -7,6 +7,7 @@ import { TokenAccountant } from './middleware/TokenAccountant';
 import { ModelRegistry as ModelRegistryImpl } from './registry/ModelRegistry';
 import { ProviderRegistry as ProviderRegistryImpl } from './registry/ProviderRegistry';
 import { BUILTIN_MODELS } from './registry/builtin-models';
+import { BUILTIN_PROVIDER_FACTORIES } from './providers/factories';
 import { ModelProvidersService } from './ModelProvidersService';
 
 export const MODEL_PROVIDER_REGISTRY_TOKEN = createServiceToken<ProviderRegistry>('nova.model-provider-registry');
@@ -35,6 +36,9 @@ export const modelProvidersModule: KernelModule = {
 
     // Provider Registry (singleton)
     const providerRegistry = new ProviderRegistryImpl();
+    for (const factory of BUILTIN_PROVIDER_FACTORIES) {
+      providerRegistry.register(factory);
+    }
 
     kernel.registerService({
       token: MODEL_PROVIDER_REGISTRY_TOKEN,

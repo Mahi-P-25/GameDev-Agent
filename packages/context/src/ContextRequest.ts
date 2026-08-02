@@ -6,7 +6,8 @@ export type AgentRole =
   | 'executor'
   | 'analyst'
   | 'architect'
-  | 'code-reviewer';
+  | 'code-reviewer'
+  | '*';
 
 export type ContextPurpose = 'planning' | 'codegen' | 'debug' | 'review' | 'explore';
 

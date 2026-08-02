@@ -1,5 +1,4 @@
 import type { ContextSourceName } from './ContextPackage';
-import { ContextPolicyError } from './ContextPipelineErrors';
 import type { ContextPolicy, ProviderPolicyConfig } from './ContextPolicy';
 import { findPolicyForRole } from './ContextPolicy';
 import type { ContextProvider } from './ContextProvider';

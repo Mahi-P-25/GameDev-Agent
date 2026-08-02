@@ -29,7 +29,7 @@ import type {
   StudioWorkspace,
 } from '@gamedev-agent/studio-api';
 import { browserTerminalModule } from '@gamedev-agent/terminal';
-import { toolRuntimeModule } from '@gamedev-agent/tool-runtime';
+import { toolRuntimeModule, filesystemModule } from '@gamedev-agent/tool-runtime';
 import { intelligenceModule } from '@gamedev-agent/intelligence';
 import { runtimeModule, RUNTIME_TOKEN, type Runtime } from '@gamedev-agent/runtime';
 import { runtimeWorkflowModule } from '@gamedev-agent/studio-api';
@@ -70,6 +70,7 @@ async function bootStudioApi(): Promise<{ api: StudioApi; runtime: Runtime | nul
       agentRuntimeModule,
       toolRuntimeModule,
       browserTerminalModule,
+      filesystemModule,
       workflowModule,
       executionEngineModule,
       missionAgentModule,
@@ -128,6 +129,12 @@ export class KernelStudioApiClient implements StudioApiClient {
       throw new Error(`Project not found: ${id}`);
     }
     return this.api.getProject(id);
+  }
+  async openProject(id: string): Promise<StudioProject> {
+    if (this.api === null) {
+      throw new Error(`Project not found: ${id}`);
+    }
+    return this.api.openProject(id);
   }
   listMissions(): ReadonlyArray<StudioMission> {
     return this.api === null ? [] : this.api.listMissions();
@@ -189,6 +196,16 @@ export class KernelStudioApiClient implements StudioApiClient {
       throw new Error('Studio API is not ready');
     }
     return this.api.resetContext();
+  }
+  async submitGoal(request: {
+    projectId: string;
+    title: string;
+    description: string;
+  }): Promise<{ goalId: string; projectId: string }> {
+    if (this.api === null) {
+      throw new Error('Studio API is not ready');
+    }
+    return this.api.submitGoal(request);
   }
   getActivity(limit = 50): ReadonlyArray<StudioActivity> {
     return this.api === null ? [] : this.api.getActivity(limit);

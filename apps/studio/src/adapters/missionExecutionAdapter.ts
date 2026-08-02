@@ -1,5 +1,5 @@
 import type { Disposable } from '@gamedev-agent/shared';
-import type { CapabilityPlanner, MissionAbility, ResolvedCapability, ToolOrchestrator } from '@gamedev-agent/tool-runtime';
+import type { CapabilityPlanner, ResolvedCapability, ToolOrchestrator } from '@gamedev-agent/tool-runtime';
 import type { DataSource } from './types';
 import type { MissionEvent } from './missionTypes';
 import type { MissionPlan } from './missionPlannerTypes';
@@ -32,6 +32,10 @@ export class MockMissionExecutionAdapter implements MissionExecutionAdapter {
   constructor(planner?: CapabilityPlanner, orchestrator?: ToolOrchestrator) {
     this.planner = planner ?? null;
     this.orchestrator = orchestrator ?? null;
+  }
+
+  get toolOrchestrator(): ToolOrchestrator | null {
+    return this.orchestrator;
   }
 
   private emit(event: MissionEvent): void {

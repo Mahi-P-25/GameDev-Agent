@@ -13,7 +13,7 @@ export class LintCheckStrategy implements VerificationStrategy {
 
   private readonly runner: TestRunStrategy;
 
-  constructor(private readonly terminal: TerminalAdapter) {
+  constructor(terminal: TerminalAdapter) {
     this.runner = new TestRunStrategy(terminal);
   }
 

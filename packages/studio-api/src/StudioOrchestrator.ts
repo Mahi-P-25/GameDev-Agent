@@ -1,4 +1,5 @@
 import { COORDINATOR_MANAGER_TOKEN, type CoordinatorManager } from '@gamedev-agent/coordinator';
+import { PROJECT_MANAGER_TOKEN, type ProjectManager } from '@gamedev-agent/project';
 import { createServiceToken } from '@gamedev-agent/di';
 import type { KernelModule, StudioKernel } from '@gamedev-agent/kernel';
 import { MISSION_AGENT_TOKEN, type MissionAgent } from '@gamedev-agent/execution-engine';
@@ -55,6 +56,7 @@ export class StudioOrchestrator implements Disposable {
   private readonly workflow: WorkflowManager;
   private readonly coordinator: CoordinatorManager;
   private readonly missionAgent: MissionAgent;
+  private readonly projects: ProjectManager | undefined;
   private readonly logger: Logger | undefined;
   private readonly disposers: Array<Disposable> = [];
   private disposed = false;
@@ -65,14 +67,20 @@ export class StudioOrchestrator implements Disposable {
     workflow: WorkflowManager;
     coordinator: CoordinatorManager;
     missionAgent: MissionAgent;
-    logger?: Logger;
+    projects?: ProjectManager | undefined;
+    logger?: Logger | undefined;
   }) {
     this.producer = params.producer;
     this.planner = params.planner;
     this.workflow = params.workflow;
     this.coordinator = params.coordinator;
     this.missionAgent = params.missionAgent;
+    this.projects = params.projects;
     this.logger = params.logger;
+  }
+
+  get workflowManager(): WorkflowManager {
+    return this.workflow;
   }
 
   /** Subscribe to every pipeline event. Idempotent. */
@@ -199,6 +207,24 @@ export class StudioOrchestrator implements Disposable {
     if (report.status === 'completed') {
       await this.coordinator.review(mission.id);
       await this.coordinator.complete(mission.id);
+
+      if (this.projects !== undefined) {
+        const projectName = goal?.title ?? title;
+        try {
+          await this.projects.create({
+            name: projectName,
+            description: `Autonomous project derived from goal: ${projectName}`,
+            rootPath: `./${projectName}`,
+            engine: 'three.js',
+            language: 'typescript',
+          });
+          this.logger?.info('Project registered in ProjectManager', { name: projectName });
+        } catch (error) {
+          if (!(error instanceof Error) || !/duplicate|already|exists/i.test(error.message)) {
+            this.logger?.warn('Failed to register created project in ProjectManager', { error });
+          }
+        }
+      }
     } else if (report.status === 'failed') {
       await this.coordinator.fail(mission.id, report.finalSummary);
     }
@@ -209,14 +235,25 @@ export class StudioOrchestrator implements Disposable {
 export const studioOrchestratorModule: KernelModule = {
   name: 'nova.studio-orchestrator',
   async register(kernel: StudioKernel): Promise<void> {
-    const [producer, planner, workflow, coordinator, missionAgent] = await Promise.all([
+    const [producer, planner, workflow, coordinator, missionAgent, projects] = await Promise.all([
       kernel.services.resolve(PRODUCER_MANAGER_TOKEN),
       kernel.services.resolve(PLANNER_MANAGER_TOKEN),
       kernel.services.resolve(WORKFLOW_MANAGER_TOKEN),
       kernel.services.resolve(COORDINATOR_MANAGER_TOKEN),
       kernel.services.resolve(MISSION_AGENT_TOKEN),
+      kernel.services.has(PROJECT_MANAGER_TOKEN)
+        ? kernel.services.resolve<ProjectManager>(PROJECT_MANAGER_TOKEN)
+        : Promise.resolve(undefined),
     ]);
-    const orchestrator = new StudioOrchestrator({ producer, planner, workflow, coordinator, missionAgent, logger: kernel.logger.child('studio-orchestrator') });
+    const orchestrator = new StudioOrchestrator({
+      producer,
+      planner,
+      workflow,
+      coordinator,
+      missionAgent,
+      projects,
+      logger: kernel.logger.child('studio-orchestrator'),
+    });
     kernel.registerService({
       token: STUDIO_ORCHESTRATOR_TOKEN,
       singleton: true,

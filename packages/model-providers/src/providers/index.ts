@@ -5,4 +5,5 @@ export { GeminiProvider, GEMINI_MODELS } from './gemini';
 export { DeepSeekProvider, DEEPSEEK_MODELS } from './deepseek';
 export { OpenRouterProvider, OPENROUTER_MODELS } from './openrouter';
 export { OllamaProvider, OLLAMA_MODELS } from './ollama';
+export { DeterministicProvider, DeterministicProviderFactory } from './deterministic/DeterministicProvider';
 export { BUILTIN_PROVIDER_FACTORIES } from './factories';

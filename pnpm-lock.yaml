@@ -263,6 +263,52 @@ importers:
         specifier: ^2.1.1
         version: 2.1.9(@types/node@22.20.1)(lightningcss@1.32.0)
 
+  packages/agents:
+    dependencies:
+      '@gamedev-agent/agent-runtime':
+        specifier: workspace:*
+        version: link:../agent-runtime
+      '@gamedev-agent/ami':
+        specifier: workspace:*
+        version: link:../ami
+      '@gamedev-agent/di':
+        specifier: workspace:*
+        version: link:../di
+      '@gamedev-agent/events':
+        specifier: workspace:*
+        version: link:../events
+      '@gamedev-agent/kernel':
+        specifier: workspace:*
+        version: link:../kernel
+      '@gamedev-agent/logging':
+        specifier: workspace:*
+        version: link:../logging
+      '@gamedev-agent/shared':
+        specifier: workspace:*
+        version: link:../shared
+      '@gamedev-agent/tool-runtime':
+        specifier: workspace:*
+        version: link:../tool-runtime
+      '@gamedev-agent/workflow':
+        specifier: workspace:*
+        version: link:../workflow
+    devDependencies:
+      '@biomejs/biome':
+        specifier: ^1.9.3
+        version: 1.9.4
+      '@gamedev-agent/memory':
+        specifier: workspace:*
+        version: link:../memory
+      tsup:
+        specifier: ^8.3.0
+        version: 8.5.1(jiti@2.7.0)(postcss@8.5.19)(typescript@5.9.3)
+      typescript:
+        specifier: ^5.6.2
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.1
+        version: 2.1.9(@types/node@22.20.1)(lightningcss@1.32.0)
+
   packages/ami:
     dependencies:
       '@gamedev-agent/di':
@@ -775,9 +821,6 @@ importers:
       '@gamedev-agent/shared':
         specifier: workspace:*
         version: link:../shared
-      '@gamedev-agent/studio-api':
-        specifier: workspace:*
-        version: link:../studio-api
       '@gamedev-agent/workflow':
         specifier: workspace:*
         version: link:../workflow
@@ -1067,9 +1110,6 @@ importers:
       '@gamedev-agent/shared':
         specifier: workspace:*
         version: link:../shared
-      '@gamedev-agent/vscode':
-        specifier: workspace:*
-        version: link:../vscode
     devDependencies:
       '@biomejs/biome':
         specifier: ^1.9.3
@@ -1144,9 +1184,6 @@ importers:
       '@gamedev-agent/shared':
         specifier: workspace:*
         version: link:../shared
-      '@gamedev-agent/studio-api':
-        specifier: workspace:*
-        version: link:../studio-api
     devDependencies:
       '@biomejs/biome':
         specifier: ^1.9.3

@@ -13,6 +13,7 @@ export * from './VSCodeToolAdapter';
 export * from './GitToolAdapter';
 export * from './TerminalToolAdapter';
 export * from './FilesystemToolAdapter';
+export { InMemoryFSImplementation } from './InMemoryFSImplementation';
 export { toolRuntimeModule } from './ToolModule';
 export { gitModule } from './GitModule';
 export { terminalModule } from './TerminalModule';

@@ -52,8 +52,8 @@ export class ToolBridge {
     }
 
     await this.eventBus.publish(ExecutionToolInvoked, {
-      executionId: this.executionId as any,
-      stepId: this.stepId as any,
+      executionId: this.executionId as never,
+      stepId: this.stepId as never,
       toolId: entry.toolId,
       action: entry.action,
       round: this.round,
@@ -88,8 +88,8 @@ export class ToolBridge {
     const durationMs = Date.now() - startTime;
 
     await this.eventBus.publish(ExecutionToolResult, {
-      executionId: this.executionId as any,
-      stepId: this.stepId as any,
+      executionId: this.executionId as never,
+      stepId: this.stepId as never,
       toolId: entry.toolId,
       action: entry.action,
       ok: result.ok,

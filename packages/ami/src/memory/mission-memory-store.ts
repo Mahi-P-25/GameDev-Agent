@@ -1,5 +1,6 @@
 import type { IMissionMemoryStore } from '../reasoning/interfaces';
-import type { MemoryQuery, MemoryRecord } from './memory-query';
+import type { MemoryQuery } from './memory-query';
+import type { MemoryRecord } from './memory-record';
 import type { MemoryProvider } from './providers/in-memory-provider';
 
 /** Default number of recent records folded into `summarize`. */

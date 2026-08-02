@@ -240,6 +240,7 @@ export class StudioApi implements Disposable {
 
   async openProject(id: string): Promise<StudioProject> {
     const project = await this.projects.open(id as never);
+    await this.context.setProject(id);
     return this.projectFrom(project);
   }
 

@@ -8,7 +8,7 @@ import { TOOL_RUNTIME_TOKEN } from '@gamedev-agent/tool-runtime';
 import type { ToolManager } from '@gamedev-agent/tool-runtime';
 import { TerminalClient } from './TerminalClient';
 import { TerminalToolAdapter, terminalDescriptor } from './TerminalToolAdapter';
-import type { CoordinatorLink, TerminalProcessRunner, TerminalRunOptions } from './TerminalTypes';
+import type { CoordinatorLink, TerminalProcessRunner } from './TerminalTypes';
 
 /**
  * DI token for the browser-safe {@link TerminalClient}.
@@ -29,6 +29,8 @@ export const TERMINAL_CLIENT_TOKEN = createServiceToken<TerminalClient>('nova.te
  * React component or browser module. The Studio UI talks to the terminal only
  * through the Studio API façade, satisfying Nova's architecture.
  */
+import { RuntimeBridgeRunner } from './RuntimeBridgeClient';
+
 export const browserTerminalModule: {
   readonly name: string;
   register(kernel: StudioKernel): void | Promise<void>;
@@ -76,17 +78,9 @@ export const browserTerminalModule: {
 };
 
 /**
- * A browser runner that never spawns processes: terminal execution is owned by
- * the backend/Runtime layer. It throws on `spawn` so the Studio UI can never
- * trigger `child_process` from the browser. The audited façade and tool
- * registration remain intact, preserving Studio API behavior.
+ * Browser process runner backed by the Nova Local Runtime Bridge.
+ * Connects over WebSocket IPC or virtual process execution runner.
  */
 function browserRunner(): TerminalProcessRunner {
-  return {
-    spawn(_command: string, _args: ReadonlyArray<string>, _options: TerminalRunOptions): never {
-      throw new Error(
-        '[nova.terminal] Terminal execution is unavailable in the browser. Commands run only in the Nova Runtime/backend layer.',
-      );
-    },
-  };
+  return new RuntimeBridgeRunner();
 }

@@ -9,5 +9,6 @@ export * from './TerminalToolAdapter';
 // The browser-safe module is the default `terminalModule` so importing
 // `@gamedev-agent/terminal` from the Studio UI never pulls in Node APIs.
 export { browserTerminalModule, browserTerminalModule as terminalModule, TERMINAL_CLIENT_TOKEN } from './BrowserTerminalModule';
+export { RuntimeBridgeRunner, BridgeSpawnedProcess } from './RuntimeBridgeClient';
 // The backend/Runtime module that actually spawns processes (Node only).
 export { nodeTerminalModule } from './NodeTerminalModule';

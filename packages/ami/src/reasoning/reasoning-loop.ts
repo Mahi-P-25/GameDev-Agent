@@ -307,8 +307,9 @@ export class ReasoningLoop implements IReasoningLoop {
     const priorFailures: FailureInfo[] = failureRecords.map((r) => ({
       kind: r.kind,
       message: r.content,
-      capabilityId:
-        typeof r.evidence?.capabilityId === 'string' ? (r.evidence.capabilityId as string) : undefined,
+      ...(typeof r.evidence?.capabilityId === 'string'
+        ? { capabilityId: r.evidence.capabilityId }
+        : {}),
       attempt: 1,
     }));
     return {
@@ -341,7 +342,7 @@ export class ReasoningLoop implements IReasoningLoop {
       executionId: executionId as WorkflowExecutionId,
       workflowId: plan.id as WorkflowId,
       projectId: 'unknown' as ProjectId,
-      missionId: plan.goalNodeId,
+      missionId: null,
       attempt,
       metadata: {},
     };

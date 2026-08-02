@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import type { IMissionMemoryStore, IReflectionEngine, IRetryStrategyResolver } from './interfaces';
-import type { Decision, MemoryRecord, ReasoningContext, VerificationResult } from './types';
+import type { Decision, FailureInfo, MemoryRecord, ReasoningContext, VerificationResult } from './types';
 
 /**
  * Decides what to do after a verification result. Every branch is deterministic

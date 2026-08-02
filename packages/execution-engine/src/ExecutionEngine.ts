@@ -123,6 +123,9 @@ export class ExecutionEngine implements StepExecutor {
     });
 
     // 1. Assemble context
+    if ((context as any).signal) {
+      this.checkCancelled((context as any).signal, step.id);
+    }
     const assembled = await this.contextAssembler.assemble(step, context);
 
     await tracker.stepStarted(context.attempt, assembled.modelId, assembled.contextPackage.metrics);
@@ -175,7 +178,6 @@ export class ExecutionEngine implements StepExecutor {
         const assistantMessage: Message = {
           role: 'assistant',
           content: dispatchResult.response.content,
-          toolCallId: undefined,
         };
         messages = [...messages, assistantMessage];
 
@@ -392,6 +394,7 @@ export class ExecutionEngine implements StepExecutor {
   private checkCancelled(signal: AbortSignal, stepId: string): void {
     if (signal.aborted) {
       const reason = signal.reason instanceof Error ? signal.reason.message : 'Execution cancelled';
+      this.logger?.warn('Step execution cancelled', { stepId, reason });
       throw new StepCancelledError(stepId);
     }
   }

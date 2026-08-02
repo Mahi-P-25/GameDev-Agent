@@ -112,26 +112,11 @@ export const contextModule: KernelModule = {
         new ContextManager({
           eventBus: kernel.events,
           logger: kernel.logger.child('context'),
-          workspaceExists:
-            workspaceManager === undefined
-              ? undefined
-              : (id: string) => workspaceManager.find(id as never) !== undefined,
-          projectExists:
-            projectManager === undefined
-              ? undefined
-              : (id: string) => projectManager.find(id as never) !== undefined,
-          goalExists:
-            producerManager === undefined
-              ? undefined
-              : (id: string) => producerManager.find(id as never) !== undefined,
-          missionExists:
-            coordinatorManager === undefined
-              ? undefined
-              : (id: string) => coordinatorManager.find(id as never) !== undefined,
-          workflowExists:
-            workflowManager === undefined
-              ? undefined
-              : (id: string) => workflowManager.find(id as never) !== undefined,
+          workspaceExists: (id: string) => workspaceManager?.find(id as never) !== undefined,
+          projectExists: (id: string) => projectManager?.find(id as never) !== undefined,
+          goalExists: (id: string) => producerManager?.find(id as never) !== undefined,
+          missionExists: (id: string) => coordinatorManager?.find(id as never) !== undefined,
+          workflowExists: (id: string) => workflowManager?.find(id as never) !== undefined,
         }),
     });
 

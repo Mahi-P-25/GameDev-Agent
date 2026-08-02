@@ -8,7 +8,7 @@ import type {
 } from '@gamedev-agent/model-providers';
 import type { Message } from '@gamedev-agent/model-providers';
 import { AgentDispatchError } from './errors';
-import type { AgentDispatchResult, DispatchContext } from './types';
+import type { AgentDispatchResult } from './types';
 
 export class AgentDispatcher {
   constructor(
@@ -16,6 +16,10 @@ export class AgentDispatcher {
     private readonly modelProviders: ModelProvidersService,
     private readonly logger?: Logger,
   ) {}
+
+  get runtime(): AgentRuntime {
+    return this.agentRuntime;
+  }
 
   async dispatch(
     messages: readonly Message[],
@@ -30,9 +34,9 @@ export class AgentDispatcher {
 
     const modelRequest: ModelRequest = {
       messages,
-      tools,
-      signal,
-      metadata,
+      ...(tools !== undefined ? { tools } : {}),
+      ...(signal !== undefined ? { signal } : {}),
+      ...(metadata !== undefined ? { metadata } : {}),
     };
 
     this.logger?.debug('Dispatching to model', {

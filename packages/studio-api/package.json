@@ -28,6 +28,7 @@
     "@gamedev-agent/config": "workspace:*",
     "@gamedev-agent/di": "workspace:*",
     "@gamedev-agent/events": "workspace:*",
+    "@gamedev-agent/execution-engine": "workspace:*",
     "@gamedev-agent/kernel": "workspace:*",
     "@gamedev-agent/terminal": "workspace:*",
     "@gamedev-agent/logging": "workspace:*",

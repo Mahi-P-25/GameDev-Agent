@@ -85,10 +85,11 @@ export class MissionStateMachine implements IMissionStateMachine {
       }
       next = 'canceled';
     } else {
-      next = TRANSITIONS[this.state][event] as MissionState | undefined;
-      if (next === undefined) {
+      const candidate = TRANSITIONS[this.state][event];
+      if (candidate === undefined) {
         throw new InvalidTransitionError(this.state, event);
       }
+      next = candidate;
     }
     this.state = next;
     return next;

@@ -30,7 +30,7 @@ function asTimestamp(value: number): Timestamp {
   return value as unknown as Timestamp;
 }
 
-function item(overrides: { id: string; content: string } & Partial<ContextItem>): ContextItem {
+function item(overrides: { id: string; content: string } & Omit<Partial<ContextItem>, 'id'>): ContextItem {
   const base: ContextItem = {
     id: overrides.id as never,
     content: overrides.content,

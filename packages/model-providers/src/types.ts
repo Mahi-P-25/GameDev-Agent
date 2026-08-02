@@ -131,7 +131,7 @@ export interface ModelPricing {
 
 // ─── Provider ──────────────────────────────────────────────────────────────
 
-export type ProviderKind = 'openai' | 'anthropic' | 'gemini' | 'deepseek' | 'openrouter' | 'ollama';
+export type ProviderKind = 'openai' | 'anthropic' | 'gemini' | 'deepseek' | 'openrouter' | 'ollama' | 'deterministic';
 
 export interface ProviderConfig {
   readonly apiKey?: string;

@@ -1,4 +1,7 @@
+import type { StudioProjectSummary } from '@gamedev-agent/studio-api';
 import { FolderOpen } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Page } from '../components/layout/Page';
 import { Badge } from '../components/ui/Badge';
 import { Card } from '../components/ui/Card';
@@ -8,7 +11,45 @@ import { projectStatusIntent, timeAgo } from './statusMaps';
 
 export function ProjectsPage(): React.ReactNode {
   const { api } = useStudioData();
-  const projects = api.listProjects();
+  const navigate = useNavigate();
+  const [projects, setProjects] = useState<ReadonlyArray<StudioProjectSummary>>([]);
+  const [openingId, setOpeningId] = useState<string | null>(null);
+
+  const refresh = useCallback(() => {
+    if (!api.ready) {
+      return;
+    }
+    setProjects(api.listProjects());
+  }, [api]);
+
+  useEffect(() => {
+    if (!api.ready) {
+      const handle = setTimeout(refresh, 100);
+      return () => clearTimeout(handle);
+    }
+    refresh();
+    const disposer = api.onActivity(() => {
+      refresh();
+    });
+    return () => {
+      disposer.dispose();
+    };
+  }, [api.ready, api, refresh]);
+
+  const handleOpenProject = useCallback(
+    async (id: string) => {
+      setOpeningId(id);
+      try {
+        await api.openProject(id);
+        navigate('/intelligence');
+      } catch (error) {
+        console.error('Failed to open project:', error);
+      } finally {
+        setOpeningId(null);
+      }
+    },
+    [api, navigate],
+  );
 
   return (
     <Page title="Projects">
@@ -23,14 +64,18 @@ export function ProjectsPage(): React.ReactNode {
           ) : (
             <ul className="divide-y divide-border">
               {projects.map((p) => (
-                <li key={p.id} className="flex items-center gap-4 py-3">
+                <li
+                  key={p.id}
+                  className="flex cursor-pointer items-center gap-4 rounded-md p-3 transition-colors duration-fast hover:bg-bg-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
+                  onClick={() => handleOpenProject(p.id)}
+                >
                   <div className="min-w-0 flex-1">
                     <div className="text-sm font-medium text-fg">{p.name}</div>
                     <div className="mt-0.5 text-xs text-fg-muted">{p.description}</div>
                   </div>
                   <div className="shrink-0 text-right">
                     <Badge intent={projectStatusIntent(p.status)} dot>
-                      {p.status}
+                      {openingId === p.id ? 'opening…' : p.status}
                     </Badge>
                     <div className="mt-1 text-[11px] text-fg-subtle">
                       updated {timeAgo(p.updatedAt)}

@@ -14,28 +14,12 @@ function formatTimestamp(): string {
   ].join(':');
 }
 
-const STEP_LABELS: Record<string, string> = {
-  'step-project-intelligence': 'Project Intelligence',
-  'step-create-dir': 'Create project directory',
-  'step-scaffold': 'Scaffold Vite project',
-  'step-install-deps': 'Install template dependencies',
-  'step-install-three': 'Install Three.js',
-  'step-write-config': 'Write Vite config',
-  'step-write-entry': 'Write entry file',
-  'step-write-html': 'Write HTML entry',
-  'step-verify-build': 'Verify build',
-  'step-open-workspace': 'Open workspace',
-  'step-verify-exists': 'Verify project exists',
-};
-
 export class KernelMissionExecutionAdapter {
   readonly source: DataSource = 'live';
   private handlers = new Set<(event: MissionEvent) => void>();
   private api: StudioApiClient;
-  private activeExecutionId: string | null = null;
   private completedSteps = new Set<string>();
   private activityDisposable: Disposable | null = null;
-  private pollTimer: number | null = null;
 
   constructor(api: StudioApiClient) {
     this.api = api;
@@ -54,7 +38,6 @@ export class KernelMissionExecutionAdapter {
 
   async execute(plan: MissionPlan): Promise<void> {
     this.completedSteps.clear();
-    this.activeExecutionId = null;
 
     this.emit({
       type: 'mission.started',
@@ -64,33 +47,35 @@ export class KernelMissionExecutionAdapter {
       message: `Mission started: ${plan.goal}`,
     });
 
-    const kind = plan.goal === 'create-project' ? 'create-project' : 'validate-project';
-    const projectId = 'default';
+    const activeContext = this.api.ready ? this.api.getContext() : null;
+    const projectId = activeContext?.projectId ?? 'default';
 
     this.emit({
       type: 'step.started',
       timestamp: formatTimestamp(),
       stepId: 'mission-planning',
       stepLabel: 'Planning',
-      stepDescription: 'Submitting mission to Nova kernel',
-      message: 'Submitting mission through kernel pipeline',
+      stepDescription: 'Submitting goal to Nova pipeline',
+      message: 'Submitting goal through Producer -> Planner -> MissionAgent pipeline',
     });
 
     try {
       if (this.api.ready) {
-        const run = await this.api.startWorkflow({ kind, projectId });
-        this.activeExecutionId = run.id;
+        this.startActivitySubscription();
+
+        const goalResult = await this.api.submitGoal({
+          projectId,
+          title: plan.summary,
+          description: plan.summary,
+        });
 
         this.emit({
           type: 'step.completed',
           timestamp: formatTimestamp(),
           stepId: 'mission-planning',
           stepLabel: 'Planning',
-          message: `Workflow started: ${run.id}`,
+          message: `Goal submitted: ${goalResult.goalId}`,
         });
-
-        this.startActivitySubscription();
-        this.startPolling();
       } else {
         this.emit({
           type: 'step.failed',
@@ -109,7 +94,7 @@ export class KernelMissionExecutionAdapter {
         timestamp: formatTimestamp(),
         stepId: 'mission-planning',
         stepLabel: 'Planning',
-        message: `Failed to start workflow: ${msg}`,
+        message: `Failed to submit goal: ${msg}`,
         error: msg,
       });
       this.failMission(msg);
@@ -121,67 +106,6 @@ export class KernelMissionExecutionAdapter {
     this.activityDisposable = this.api.onActivity((activity: StudioActivity) => {
       this.processActivity(activity);
     });
-  }
-
-  private startPolling(): void {
-    if (this.pollTimer !== null) clearInterval(this.pollTimer);
-    this.pollTimer = window.setInterval(() => {
-      void this.pollWorkflowStatus();
-    }, 500);
-  }
-
-  private stopPolling(): void {
-    if (this.pollTimer !== null) {
-      clearInterval(this.pollTimer);
-      this.pollTimer = null;
-    }
-  }
-
-  private async pollWorkflowStatus(): Promise<void> {
-    if (this.activeExecutionId === null) return;
-    try {
-      const run = this.api.getWorkflowRun(this.activeExecutionId);
-      if (run === undefined) return;
-
-      for (const step of run.steps) {
-        if (step.state === 'succeeded' && !this.completedSteps.has(step.stepId)) {
-          this.completedSteps.add(step.stepId);
-          const label = STEP_LABELS[step.stepId] ?? step.title;
-          this.emit({
-            type: 'step.completed',
-            timestamp: formatTimestamp(),
-            stepId: step.stepId,
-            stepLabel: label,
-            message: `${label} complete`,
-          });
-        }
-        if (step.state === 'failed' && !this.completedSteps.has(step.stepId)) {
-          this.completedSteps.add(step.stepId);
-          const label = STEP_LABELS[step.stepId] ?? step.title;
-          this.emit({
-            type: 'step.failed',
-            timestamp: formatTimestamp(),
-            stepId: step.stepId,
-            stepLabel: label,
-            message: `${label} failed`,
-            error: step.error,
-          });
-        }
-      }
-
-      if (run.state === 'completed') {
-        this.stopPolling();
-        this.completeMission('Project created successfully');
-      } else if (run.state === 'failed') {
-        this.stopPolling();
-        this.failMission(run.failureReason ?? 'Workflow failed');
-      } else if (run.state === 'cancelled') {
-        this.stopPolling();
-        this.failMission(run.cancellationReason ?? 'Workflow cancelled');
-      }
-    } catch {
-      // polling degrades gracefully
-    }
   }
 
   private processActivity(activity: StudioActivity): void {
@@ -213,6 +137,26 @@ export class KernelMissionExecutionAdapter {
           stepDescription: activity.message,
           message: activity.message,
         });
+      } else if (activity.kind === 'agent.mission-complete') {
+        if (activity.message.includes('completed')) {
+          this.completeMission(activity.message);
+        } else {
+          this.failMission(activity.message);
+        }
+      }
+    } else if (activity.kind.startsWith('goal.') || activity.kind.startsWith('plan.') || activity.kind.startsWith('mission.')) {
+      if (activity.kind === 'mission.completed') {
+        this.completeMission(activity.message);
+      } else if (activity.kind === 'mission.failed') {
+        this.failMission(activity.message);
+      } else {
+        this.emit({
+          type: 'step.completed',
+          timestamp: formatTimestamp(),
+          stepId: activity.kind,
+          stepLabel: activity.kind,
+          message: activity.message,
+        });
       }
     }
   }
@@ -242,7 +186,6 @@ export class KernelMissionExecutionAdapter {
 
   dispose(): void {
     this.activityDisposable?.dispose();
-    this.stopPolling();
     this.handlers.clear();
   }
 }

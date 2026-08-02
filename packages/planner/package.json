@@ -30,8 +30,7 @@
     "@gamedev-agent/shared": "workspace:*",
     "@gamedev-agent/coordinator": "workspace:*",
     "@gamedev-agent/producer": "workspace:*",
-    "@gamedev-agent/workflow": "workspace:*",
-    "@gamedev-agent/studio-api": "workspace:*"
+    "@gamedev-agent/workflow": "workspace:*"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.3",

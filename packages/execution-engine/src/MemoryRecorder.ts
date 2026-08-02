@@ -24,7 +24,7 @@ export class MemoryRecorder {
           source: 'execution-engine',
           timestamp: Date.now() as never,
           actor: 'execution-engine',
-          missionId: context.missionId,
+          ...(context.missionId !== null ? { missionId: context.missionId } : {}),
         },
         metadata: {
           stepId: step.id,
@@ -41,7 +41,7 @@ export class MemoryRecorder {
           toolCallCount: result.toolCalls.length,
           error: result.error,
         },
-      };
+      } as MemoryEntryInput;
 
       await this.memoryManager.storeEntry(entry);
 

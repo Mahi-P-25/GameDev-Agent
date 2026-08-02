@@ -40,7 +40,7 @@ import { WorkspaceService } from './WorkspaceService';
  * `CoordinatorLink`. It imports no subsystem packages directly.
  */
 export class VSCodeClient implements Disposable {
-  private readonly bus: EventBusContract;
+  readonly bus: EventBusContract;
   private readonly logger: Logger;
   private readonly coordinator: CoordinatorLink | undefined;
 

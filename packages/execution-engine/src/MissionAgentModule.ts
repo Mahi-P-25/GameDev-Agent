@@ -2,7 +2,7 @@ import { createServiceToken } from '@gamedev-agent/di';
 import type { KernelModule, StudioKernel } from '@gamedev-agent/kernel';
 import { MODEL_PROVIDERS_SERVICE_TOKEN } from '@gamedev-agent/model-providers';
 import { TOOL_RUNTIME_TOKEN } from '@gamedev-agent/tool-runtime';
-import { REASONING_LOOP_TOKEN } from '@gamedev-agent/ami';
+import { REASONING_LOOP_TOKEN } from '@gamedev-agent/ami/tokens';
 import { MissionAgent } from './MissionAgent';
 
 export const MISSION_AGENT_TOKEN = createServiceToken<MissionAgent>('nova.mission-agent');

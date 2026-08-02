@@ -70,6 +70,7 @@ export interface StudioApiClient {
   getWorkspace(): StudioWorkspace;
   listProjects(): ReadonlyArray<StudioProjectSummary>;
   getProject(id: string): StudioProject;
+  openProject(id: string): Promise<StudioProject>;
   listMissions(): ReadonlyArray<StudioMission>;
   getMission(id: string): StudioMission;
   listCapabilities(): ReadonlyArray<StudioCapability>;
@@ -92,6 +93,13 @@ export interface StudioApiClient {
   setActiveFile(file: string): Promise<StudioContext>;
   /** Clear the context back to onboarding; returns the updated context. */
   resetContext(): Promise<StudioContext>;
+  /** Submit a new Goal to the Producer -> Planner -> StudioOrchestrator -> MissionAgent pipeline. */
+  submitGoal(request: {
+    projectId: string;
+    title: string;
+    description: string;
+  }): Promise<{ goalId: string; projectId: string }>;
+
   getActivity(limit?: number): ReadonlyArray<StudioActivity>;
 
   // --- development workflows ------------------------------------------------

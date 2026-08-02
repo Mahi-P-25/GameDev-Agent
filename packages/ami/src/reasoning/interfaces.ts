@@ -104,7 +104,7 @@ export interface IApprovalGate {
  */
 export interface IReasoningEngine {
   think(context: ReasoningContext): Promise<Thought>;
-  plan(thought: Thought, node: GoalNode): Promise<StepPlan>;
+  plan(thought: Thought, node: GoalNode): StepPlan;
 }
 
 /**

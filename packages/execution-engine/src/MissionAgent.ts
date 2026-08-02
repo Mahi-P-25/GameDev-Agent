@@ -150,7 +150,14 @@ export class MissionAgent implements Disposable {
    * `run()` is unchanged.
    */
   private async runViaReasoning(startTime: number): Promise<MissionReport> {
-    const source: WorkflowSource = this.memory?.source ?? { sourceId: 'unknown', steps: [], projectId: 'unknown' };
+    const source: WorkflowSource = this.memory?.source ?? ({
+      sourceId: 'unknown',
+      steps: [],
+      projectId: 'unknown',
+      missionId: 'unknown',
+      mode: 'sequential',
+      failFast: true,
+    } as any);
     await this.transitionTo('running');
 
     const goal: MissionGoal = {
@@ -164,7 +171,7 @@ export class MissionAgent implements Disposable {
         params: {},
       })),
       priority: undefined,
-    };
+    } as any;
 
     if (this.abortSignal !== null) {
       const loop = this.reasoningLoop!;

@@ -49,30 +49,79 @@ export class ModelProvidersService {
   }
 
   /**
-   * Send a generation request to the appropriate provider.
-   * If provider is not specified, uses the default.
+   * Determine candidate providers in priority order for generation.
+   */
+  private getCandidateProviders(preferredKind?: ProviderKind): ProviderKind[] {
+    const priorityOrder: readonly ProviderKind[] = [
+      'gemini',
+      'anthropic',
+      'openai',
+      'openrouter',
+      'ollama',
+      'deepseek',
+      'deterministic',
+    ];
+    const registered = this.providerRegistry.listKinds();
+    const priority = priorityOrder.filter((k) => registered.includes(k));
+
+    if (preferredKind !== undefined && registered.includes(preferredKind)) {
+      return [preferredKind, ...priority.filter((k) => k !== preferredKind)];
+    }
+
+    return priority.length > 0 ? priority : ['deterministic'];
+  }
+
+  /**
+   * Send a generation request with automatic provider routing and fallback.
    */
   async generate(
     request: ModelRequest,
     providerKind?: ProviderKind,
     config?: ProviderConfig,
   ): Promise<ModelResponse> {
-    const kind = providerKind ?? 'openrouter';
-    const provider = this.getProvider(kind, config);
-    return provider.generate(request);
+    const candidates = this.getCandidateProviders(providerKind);
+    let lastError: unknown = null;
+
+    for (const kind of candidates) {
+      try {
+        const provider = this.getProvider(kind, config);
+        const response = await provider.generate(request);
+        this.logger?.info('model-provider.selected', { provider: kind });
+        return response;
+      } catch (error) {
+        lastError = error;
+        this.logger?.warn('model-provider.fallback', {
+          failedProvider: kind,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
+    }
+
+    throw lastError ?? new ModelConfigurationError('No available model provider could process request');
   }
 
   /**
-   * Stream a generation response.
+   * Stream a generation response with fallback.
    */
   async *generateStream(
     request: ModelRequest,
     providerKind?: ProviderKind,
     config?: ProviderConfig,
   ): AsyncIterable<StreamingChunk> {
-    const kind = providerKind ?? 'openrouter';
-    const provider = this.getProvider(kind, config);
-    yield* provider.generateStream(request);
+    const candidates = this.getCandidateProviders(providerKind);
+
+    for (const kind of candidates) {
+      try {
+        const provider = this.getProvider(kind, config);
+        yield* provider.generateStream(request);
+        return;
+      } catch (error) {
+        this.logger?.warn('model-provider-stream.fallback', {
+          failedProvider: kind,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
+    }
   }
 
   /**

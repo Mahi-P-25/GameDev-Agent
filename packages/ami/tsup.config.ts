@@ -1,7 +1,7 @@
 import { defineConfig } from 'tsup';
 
 export default defineConfig({
-  entry: ['src/index.ts'],
+  entry: ['src/index.ts', 'src/tokens-entry.ts'],
   tsconfig: 'tsconfig.build.json',
   format: ['esm'],
   target: 'node20',

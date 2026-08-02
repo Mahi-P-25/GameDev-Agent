@@ -97,7 +97,7 @@ export class GoalDecomposer implements IGoalDecomposer {
       .join('\n');
   }
 
-  private parse(response: string): DecomposerResponse['subgoals'] {
+  private parse(response: string): NonNullable<DecomposerResponse['subgoals']> {
     try {
       const jsonMatch = response.match(/\{[\s\S]*\}/);
       if (jsonMatch === null) return [];

@@ -12,7 +12,8 @@
       "@gamedev-agent/kernel": ["packages/kernel/dist/index.d.ts"],
       "@gamedev-agent/project": ["packages/project/dist/index.d.ts"],
       "@gamedev-agent/coordinator": ["packages/coordinator/dist/index.d.ts"],
-      "@gamedev-agent/capabilities": ["packages/capabilities/dist/index.d.ts"]
+      "@gamedev-agent/capabilities": ["packages/capabilities/dist/index.d.ts"],
+      "@gamedev-agent/execution-engine": ["packages/execution-engine/dist/index.d.ts"]
     }
   },
   "include": ["src"]

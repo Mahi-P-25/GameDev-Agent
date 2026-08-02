@@ -76,7 +76,7 @@ export const vscodeModule: {
     if (kernel.services.has(TOOL_RUNTIME_TOKEN)) {
       const manager = await kernel.services.resolve<ToolManager>(TOOL_RUNTIME_TOKEN);
       const client = await kernel.services.resolve<VSCodeClient>(VSCODE_CLIENT_TOKEN);
-      await manager.register(vscodeDescriptor, new VSCodeToolAdapter(client));
+      await manager.register(vscodeDescriptor, new VSCodeToolAdapter(client as never));
       await manager.connect(vscodeDescriptor.id, { kind: 'director' });
     }
   },

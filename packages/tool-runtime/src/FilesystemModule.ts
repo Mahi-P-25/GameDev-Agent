@@ -3,9 +3,10 @@ import { FilesystemToolAdapter, filesystemDescriptor } from './FilesystemToolAda
 import type { FSImplementation } from './FilesystemToolAdapter';
 import type { ToolManager } from './ToolManager';
 import { TOOL_RUNTIME_TOKEN } from './ToolTypes';
+import { InMemoryFSImplementation } from './InMemoryFSImplementation';
 
 export interface FilesystemModuleOptions {
-  readonly fs: FSImplementation;
+  readonly fs?: FSImplementation;
 }
 
 export const filesystemModule: {
@@ -21,15 +22,9 @@ export const filesystemModule: {
       return;
     }
 
-    if (options === undefined) {
-      kernel.logger.warn('filesystem.module.no-options', {
-        msg: 'No FilesystemModuleOptions provided; skipping filesystem tool registration.',
-      });
-      return;
-    }
-
+    const fsImpl = options?.fs ?? new InMemoryFSImplementation();
     const manager = await kernel.services.resolve<ToolManager>(TOOL_RUNTIME_TOKEN);
-    const adapter = new FilesystemToolAdapter(options.fs);
+    const adapter = new FilesystemToolAdapter(fsImpl);
 
     await manager.register(filesystemDescriptor, adapter);
     await manager.connect(filesystemDescriptor.id, { kind: 'director' });

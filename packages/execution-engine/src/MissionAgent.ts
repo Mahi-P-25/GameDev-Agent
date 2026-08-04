@@ -5,8 +5,10 @@ import type { Message, ModelProvidersService } from '@gamedev-agent/model-provid
 import type { Disposable, Json, Timestamp } from '@gamedev-agent/shared';
 import { CapabilityPlanner } from '@gamedev-agent/tool-runtime';
 import type { MissionAbility, ResolvedCapability, ToolManager } from '@gamedev-agent/tool-runtime';
+import { Workflow } from '@gamedev-agent/workflow';
 import type { WorkflowSource, WorkflowStep } from '@gamedev-agent/workflow';
 import type { IReasoningLoop, MissionGoal, MissionOutcome } from '@gamedev-agent/ami';
+import type { MissionMemoryIntegration, MissionMemoryContext } from './MissionMemoryIntegration';
 import {
   AgentActionStarted,
   AgentActionResult,
@@ -51,8 +53,11 @@ export class MissionAgent implements Disposable {
   private readonly logger: Logger;
   private readonly defaultModel: string;
   private readonly reasoningLoop: IReasoningLoop | null;
+  private readonly memoryIntegration: MissionMemoryIntegration | null;
+  private readonly projectIntelligence: any;
 
   private memory: ShortTermMemory | null = null;
+  private memoryContext: MissionMemoryContext | null = null;
   private state: AgentState = 'idle';
   private previousState: AgentState = 'idle';
   private abortSignal: AbortSignal | null = null;
@@ -66,6 +71,8 @@ export class MissionAgent implements Disposable {
     this.logger = options.logger ?? new RootLogger('nova.mission-agent', [new ConsoleLogSink()]);
     this.defaultModel = options.defaultModel ?? 'gpt-4o';
     this.reasoningLoop = options.reasoningLoop ?? null;
+    this.memoryIntegration = options.memoryIntegration ?? null;
+    this.projectIntelligence = (options as any).projectIntelligence ?? null;
   }
 
   // ─── Public API ─────────────────────────────────────────────────────────
@@ -98,6 +105,38 @@ export class MissionAgent implements Disposable {
       currentState: 'running',
     };
 
+    // ── Memory hook: retrieve relevant memories before execution ──────
+    if (this.memoryIntegration !== null) {
+      this.memoryContext = await this.memoryIntegration.retrieveRelevantMemories(
+        source.missionId ?? source.sourceId,
+        source.projectId,
+        this.memory.goalTitle,
+      );
+    }
+
+    // ── Project Intelligence hook: attach project context automatically ──────
+    if (this.projectIntelligence !== null && source.projectId) {
+      try {
+        const projectCtx = this.projectIntelligence.get(source.projectId);
+        if (projectCtx) {
+          const techList = (projectCtx.technologies ?? []).map((t: any) => t.name).join(', ');
+          const summaryText = `[PROJECT INTELLIGENCE] ${projectCtx.summary?.totalFiles ?? 0} files indexed. Tech: ${techList}. Configs: ${projectCtx.summary?.configFiles?.join(', ') ?? 'none'}.`;
+          this.recordObservation({
+            kind: 'project',
+            content: summaryText,
+            data: projectCtx as any,
+          });
+          this.logger.info('mission.project-intelligence-attached', {
+            projectId: source.projectId,
+            totalFiles: projectCtx.summary?.totalFiles,
+            tech: techList,
+          });
+        }
+      } catch (err) {
+        this.logger.warn('mission.project-intelligence-attach-failed', { error: String(err) });
+      }
+    }
+
     if (this.reasoningLoop !== null) {
       return this.runViaReasoning(startTime);
     }
@@ -105,16 +144,67 @@ export class MissionAgent implements Disposable {
     await this.transitionTo('running');
 
     try {
-      const steps = source.steps;
-      let stepIndex = 0;
+      // 1. Normalize steps so dependsOn is always an array
+      const normalizedSteps: readonly WorkflowStep[] = source.steps.map((s) => ({
+        ...s,
+        dependsOn: s.dependsOn ?? [],
+      }));
 
-      while (stepIndex < steps.length && !this.isTerminal && !this.isCancelled) {
-        const currentStep = steps[stepIndex]!;
-        const completed = await this.executeStep(currentStep);
-        if (!completed && this.state === 'cancelled') {
-          break;
+      // 2. Compute topological execution order respecting step dependencies
+      let plannedSteps: readonly WorkflowStep[] = normalizedSteps;
+      try {
+        if (normalizedSteps.length > 0) {
+          const plan = new Workflow().planFromSource({
+            ...source,
+            steps: normalizedSteps,
+          });
+          plannedSteps = plan.order.map((id) => plan.steps.get(id)!).filter((s): s is WorkflowStep => s !== undefined);
         }
-        stepIndex++;
+      } catch (planningError) {
+        this.logger.warn('mission.planning-fallback', {
+          error: planningError instanceof Error ? planningError.message : String(planningError),
+        });
+      }
+
+      const succeededSteps = new Set<string>();
+
+      for (const currentStep of plannedSteps) {
+        if (this.isTerminal || this.isCancelled) break;
+
+        // 3. Check dependencies
+        const missingDeps = (currentStep.dependsOn ?? []).filter((depId) => !succeededSteps.has(depId));
+        if (missingDeps.length > 0) {
+          this.logger.warn('mission.step-dependency-unmet', {
+            stepId: currentStep.id,
+            missingDependencies: missingDeps,
+          });
+          if (source.failFast ?? true) {
+            const mem = this.memory;
+            if (mem) {
+              mem.failures.push({
+                action: currentStep.title,
+                reason: `Unmet dependencies: ${missingDeps.join(', ')}`,
+                recovered: false,
+              });
+            }
+            break;
+          } else {
+            continue; // Skip this step when failFast is false
+          }
+        }
+
+        // 4. Execute step
+        const completed = await this.executeStep(currentStep);
+
+        if (completed) {
+          succeededSteps.add(currentStep.id);
+        } else {
+          if (this.isCancelled) break;
+          if (source.failFast ?? false) {
+            this.logger.warn('mission.step-failed-failfast', { stepId: currentStep.id });
+            break;
+          }
+        }
       }
 
       if (this.isCancelled) {
@@ -138,6 +228,17 @@ export class MissionAgent implements Disposable {
     }
     const report = this.buildReport(startTime);
     await this.emitCompletion(report);
+
+    // ── Memory hook: persist structured memory after completion ────────
+    if (this.memoryIntegration !== null) {
+      await this.memoryIntegration.persistMissionSummary(
+        report.missionId,
+        mem?.projectId ?? '',
+        report,
+        mem,
+      );
+    }
+
     return report;
   }
 
@@ -227,6 +328,17 @@ export class MissionAgent implements Disposable {
     };
 
     await this.emitCompletion(report);
+
+    // ── Memory hook: persist structured memory after reasoning completion ──
+    if (this.memoryIntegration !== null) {
+      await this.memoryIntegration.persistMissionSummary(
+        report.missionId,
+        mem?.projectId ?? source.projectId,
+        report,
+        mem,
+      );
+    }
+
     return report;
   }
 
@@ -303,16 +415,18 @@ export class MissionAgent implements Disposable {
       const verification = await this.verify(action, decision);
       this.recordVerification(verification);
 
+      const capName = decision.type === 'continue' ? decision.capability : decision.type;
+
       if (verification.passed) {
-        this.logger.info('mission.step-verified', { step: step.id });
+        this.logger.info('mission.step-verified', { step: step.id, capability: capName });
         return true;
       }
 
       const mem = this.memory;
       if (mem) {
         mem.failures.push({
-          action: step.title,
-          reason: `verification failed: ${verification.observed}`,
+          action: `${step.title} (${capName})`,
+          reason: action.error ?? verification.observed,
           recovered: attempts < maxAttempts,
         });
       }
@@ -643,11 +757,19 @@ export class MissionAgent implements Disposable {
       ? availableAbilities.join(', ')
       : 'read-files, write-files, run-commands, list-files, install-packages';
 
+    // Inject memory context into the prompt if available
+    const memoryLines: string[] = [];
+    if (this.memoryContext !== null && this.memoryContext.promptSummary.length > 0) {
+      memoryLines.push('## Memory from previous missions');
+      memoryLines.push(this.memoryContext.promptSummary);
+    }
+
     return [
       'You are an autonomous game development engineer. Your mission is to complete a development task.',
       '',
       `Mission goal: ${mem?.goalTitle ?? 'unknown'}`,
       '',
+      ...memoryLines,
       '## Available capabilities',
       abilities,
       '',
@@ -734,6 +856,25 @@ export class MissionAgent implements Disposable {
     if (mem) {
       mem.actions.push(action);
     }
+
+    // ── Memory hook: record action to persistent memory ────────────────
+    if (this.memoryIntegration !== null && mem !== null) {
+      const capability = action.decision.type === 'continue' ? action.decision.capability : action.decision.type;
+      void this.memoryIntegration.recordMissionEvent(
+        mem.missionId ?? '',
+        mem.projectId,
+        {
+          kind: action.ok ? 'action-completed' : 'action-failed',
+          summary: `${capability} — ${action.ok ? 'OK' : 'FAIL'}`,
+          details: {
+            capability,
+            ok: action.ok,
+            durationMs: action.durationMs,
+            error: action.error,
+          },
+        },
+      );
+    }
   }
 
   private recordVerification(verification: Verification): void {
@@ -748,6 +889,23 @@ export class MissionAgent implements Disposable {
       passed: verification.passed,
       timestamp: verification.timestamp,
     });
+
+    // ── Memory hook: record verification to persistent memory ──────────
+    if (this.memoryIntegration !== null && mem !== null) {
+      void this.memoryIntegration.recordMissionEvent(
+        mem.missionId ?? '',
+        mem.projectId,
+        {
+          kind: verification.passed ? 'step-verified' : 'step-failed',
+          summary: `Verification ${verification.passed ? 'passed' : 'failed'}: ${verification.expected}`,
+          details: {
+            expected: verification.expected,
+            observed: verification.observed,
+            passed: verification.passed,
+          },
+        },
+      );
+    }
   }
 
   private async emitDecision(decision: Decision): Promise<void> {

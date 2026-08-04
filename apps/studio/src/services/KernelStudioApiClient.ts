@@ -4,6 +4,7 @@ import { MemoryConfigSource } from '@gamedev-agent/config';
 import { coordinatorModule } from '@gamedev-agent/coordinator';
 import { InMemoryEventBus } from '@gamedev-agent/events';
 import { executionEngineModule, missionAgentModule } from '@gamedev-agent/execution-engine';
+import { intelligenceModule } from '@gamedev-agent/intelligence';
 import { Kernel } from '@gamedev-agent/kernel';
 import { ConsoleLogSink, RootLogger } from '@gamedev-agent/logging';
 import { memoryModule } from '@gamedev-agent/memory';
@@ -11,6 +12,8 @@ import { modelProvidersModule } from '@gamedev-agent/model-providers';
 import { plannerModule } from '@gamedev-agent/planner';
 import { producerModule } from '@gamedev-agent/producer';
 import { projectModule } from '@gamedev-agent/project';
+import { projectIntelligenceModule } from '@gamedev-agent/project-intelligence';
+import { RUNTIME_TOKEN, type Runtime, runtimeModule } from '@gamedev-agent/runtime';
 import type { Disposable } from '@gamedev-agent/shared';
 import { STUDIO_API_TOKEN, type StudioApi, studioModule } from '@gamedev-agent/studio-api';
 import type {
@@ -28,13 +31,12 @@ import type {
   StudioWorkflowTemplate,
   StudioWorkspace,
 } from '@gamedev-agent/studio-api';
-import { browserTerminalModule } from '@gamedev-agent/terminal';
-import { toolRuntimeModule, filesystemModule } from '@gamedev-agent/tool-runtime';
-import { intelligenceModule } from '@gamedev-agent/intelligence';
-import { runtimeModule, RUNTIME_TOKEN, type Runtime } from '@gamedev-agent/runtime';
 import { runtimeWorkflowModule } from '@gamedev-agent/studio-api';
+import { browserTerminalModule } from '@gamedev-agent/terminal';
+import { filesystemModule, toolRuntimeModule } from '@gamedev-agent/tool-runtime';
 import { workflowModule } from '@gamedev-agent/workflow';
-import type { StudioApiClient, RuntimeClient, RuntimeAwareness } from './StudioApiClient';
+import { workspaceModule } from '@gamedev-agent/workspace';
+import type { RuntimeAwareness, RuntimeClient, StudioApiClient } from './StudioApiClient';
 
 /**
  * Boots the Nova kernel in the browser and resolves a live {@link StudioApi},
@@ -65,6 +67,7 @@ async function bootStudioApi(): Promise<{ api: StudioApi; runtime: Runtime | nul
       producerModule,
       plannerModule,
       projectModule,
+      workspaceModule,
       modelProvidersModule,
       memoryModule,
       agentRuntimeModule,
@@ -76,6 +79,7 @@ async function bootStudioApi(): Promise<{ api: StudioApi; runtime: Runtime | nul
       missionAgentModule,
       intelligenceModule,
       runtimeModule,
+      projectIntelligenceModule,
       studioModule,
       runtimeWorkflowModule,
     ],

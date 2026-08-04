@@ -97,6 +97,21 @@ export type {
   AgentEventPayloads,
 } from './MissionAgentEvents';
 
+// ─── Memory Integration ───────────────────────────────────────────────────
+export { MissionMemoryIntegration } from './MissionMemoryIntegration';
+export type { MissionMemoryContext } from './MissionMemoryIntegration';
+export {
+  MissionMemoryRetrieved,
+  MissionMemoryRecorded,
+  MissionMemoryPersisted,
+} from './MissionMemoryEvents';
+export type {
+  MissionMemoryRetrievedPayload,
+  MissionMemoryRecordedPayload,
+  MissionMemoryPersistedPayload,
+  MissionMemoryEventPayloads,
+} from './MissionMemoryEvents';
+
 // ─── DI Module ─────────────────────────────────────────────────────────────
 export {
   executionEngineModule,

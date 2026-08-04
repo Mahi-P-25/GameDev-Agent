@@ -648,4 +648,45 @@ describe('MissionAgent — AMI reasoning loop delegation', () => {
     expect(report.failureCount).toBe(1);
     expect(report.finalSummary).toContain('boom');
   });
+
+  it('automatically retrieves, records, and persists memory when memoryIntegration is provided', async () => {
+    const bus = new InMemoryEventBus({ source: 'test' });
+    const store = new (await import('@gamedev-agent/memory')).InMemoryMemoryStore();
+    const registry = new (await import('@gamedev-agent/memory')).MemoryRegistry();
+    const memoryManager = new (await import('@gamedev-agent/memory')).MemoryManager({
+      store,
+      registry,
+      eventBus: bus,
+      logger: noopLogger,
+    });
+    const { MissionMemoryIntegration } = await import('./MissionMemoryIntegration');
+    const memoryIntegration = new MissionMemoryIntegration({
+      memoryManager,
+      eventBus: bus,
+      logger: noopLogger,
+    });
+
+    const model = fakeModel(vi.fn().mockImplementation((req: any) => {
+      if (req.metadata?.phase === 'thinking') return modelResponse(thinkResp());
+      if (req.metadata?.phase === 'deciding') return modelResponse(continueResp());
+      return MODEL_OK;
+    }));
+
+    const agent = new MissionAgent({
+      toolManager: fakeToolManager(),
+      capabilityPlanner: fakePlanner(),
+      modelProviders: model,
+      eventBus: bus,
+      memoryIntegration,
+    });
+
+    const report = await agent.run(source([step()]));
+    expect(report.status).toBe('completed');
+
+    // Verify memories stored in MemoryManager
+    const stored = await memoryManager.query({ namespace: 'project/p1' });
+    expect(stored.length).toBeGreaterThan(0);
+    const categories = stored.map((s) => s.category);
+    expect(categories).toContain('execution');
+  });
 });

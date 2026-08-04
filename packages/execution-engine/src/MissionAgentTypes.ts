@@ -114,4 +114,15 @@ export interface MissionAgentOptions {
    * this option. Absent, the legacy loop remains for backward compatibility.
    */
   readonly reasoningLoop?: import('@gamedev-agent/ami').IReasoningLoop;
+  /**
+   * Memory integration: when supplied, MissionAgent automatically retrieves
+   * relevant memories before execution, records events during execution, and
+   * persists structured mission/project/agent memories after completion.
+   * Absent, the agent remains stateless (backward compatible).
+   */
+  /**
+   * Project Intelligence Manager: when supplied, MissionAgent automatically retrieves
+   * and attaches ProjectContext for the active project id before execution.
+   */
+  readonly projectIntelligence?: any;
 }

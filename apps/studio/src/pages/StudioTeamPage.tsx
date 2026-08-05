@@ -20,7 +20,11 @@ export function StudioTeamPage(): React.ReactNode {
           actions={<Users className="size-4 text-fg-subtle" />}
         >
           {items.length === 0 ? (
-            <EmptyState title="No roles defined" />
+            <EmptyState
+              icon={<Users className="size-6" />}
+              title="No roles defined"
+              hint="Nova's coordinator assembles a team of roles when you submit a mission, each with the capabilities it needs to execute."
+            />
           ) : (
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {items.map((role) => (

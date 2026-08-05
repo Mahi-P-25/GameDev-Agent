@@ -1,255 +1,310 @@
-import { ChevronLeft, Sparkles } from 'lucide-react';
+import {
+  Plus,
+  Search,
+  ChevronLeft,
+  ChevronRight,
+  Boxes,
+  LayoutDashboard,
+  Rocket,
+  Brain,
+  Terminal,
+  Settings,
+  Sparkles,
+  ChevronDown,
+  Pin,
+  Edit2,
+  Trash2,
+} from 'lucide-react';
 import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { cn } from '../../design/cn';
-import { NovaMark, NovaWordmark } from '../brand';
-import { Icon, type IconName } from '../icons';
-import { SystemStatus } from '../status/SystemStatus';
+import { useConversationStore } from '../../services/ConversationStoreProvider';
 
-export interface NavEntry {
-  readonly to: string;
-  readonly label: string;
-  readonly icon: IconName;
-}
-
-interface Section {
-  readonly label: string;
-  readonly items: ReadonlyArray<NavEntry>;
-}
-
-const SECTIONS: ReadonlyArray<Section> = [
-  {
-    label: 'Studio',
-    items: [
-      { to: '/', label: 'Home', icon: 'home' },
-      { to: '/mission-control', label: 'Mission Control', icon: 'mission' },
-      { to: '/inbox', label: 'Inbox', icon: 'inbox' },
-      { to: '/goals', label: 'Goals', icon: 'goals' },
-    ],
-  },
-  {
-    label: 'Pinned Projects',
-    items: [{ to: '/projects', label: 'Projects', icon: 'projects' }],
-  },
-  {
-    label: 'Knowledge',
-    items: [{ to: '/intelligence', label: 'Project Intelligence', icon: 'memory' }],
-  },
-  {
-    label: 'Agents',
-    items: [{ to: '/studio', label: 'Studio Team', icon: 'agents' }],
-  },
-  {
-    label: 'Tools',
-    items: [{ to: '/workflows', label: 'Workflows', icon: 'workflow' }],
-  },
-  {
-    label: 'Assets',
-    items: [{ to: '/workspace', label: 'Workspace', icon: 'workspace' }],
-  },
+const COCKPIT_VIEWS = [
+  { to: '/projects', label: 'Projects', icon: Boxes },
+  { to: '/workspace', label: 'Workspace', icon: LayoutDashboard },
+  { to: '/missions', label: 'Missions', icon: Rocket },
+  { to: '/intelligence', label: 'Memory', icon: Brain },
+  { to: '/workflows', label: 'Terminal', icon: Terminal },
+  { to: '/settings', label: 'Settings', icon: Settings },
 ];
-
-const RECENT_MISSIONS = [
-  { name: 'Optimize terrain LODs', time: '2m ago', status: 'active' as const },
-  { name: 'Fix shader compilation', time: '1h ago', status: 'complete' as const },
-  { name: 'Generate procedural assets', time: '3h ago', status: 'complete' as const },
-  { name: 'Refactor physics pipeline', time: '1d ago', status: 'queued' as const },
-];
-
-function SectionLabel({
-  label,
-  collapsed,
-}: { readonly label: string; readonly collapsed: boolean }): React.ReactNode {
-  if (collapsed) {
-    return <div className="mx-auto my-3 h-px w-6 bg-border" aria-hidden="true" />;
-  }
-  return (
-    <span className="mb-1.5 block px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-fg-subtle">
-      {label}
-    </span>
-  );
-}
 
 export function Sidebar(): React.ReactNode {
   const [collapsed, setCollapsed] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState('');
+
+  const {
+    threads,
+    activeThreadId,
+    createThread,
+    switchThread,
+    deleteThread,
+    renameThread,
+    togglePin,
+    searchThreads,
+  } = useConversationStore();
+
+  const filteredThreads = searchQuery.trim() ? searchThreads(searchQuery) : threads;
+
+  const pinned = filteredThreads.filter((t) => t.pinned);
+  const unpinned = filteredThreads.filter((t) => !t.pinned);
+
+  const handleStartRename = (id: string, currentTitle: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingId(id);
+    setEditTitle(currentTitle);
+  };
+
+  const handleSaveRename = (id: string, e: React.FormEvent) => {
+    e.preventDefault();
+    if (editTitle.trim()) {
+      renameThread(id, editTitle.trim());
+    }
+    setEditingId(null);
+  };
 
   return (
     <aside
       className={cn(
-        'nova-sidebar transition-[width] duration-300 ease-standard',
-        collapsed ? 'w-16' : 'w-[--sidebar-width]',
+        'flex h-screen flex-col border-r border-border/80 bg-bg-panel/95 backdrop-blur-2xl select-none transition-all duration-300',
+        collapsed ? 'w-16' : 'w-64',
       )}
     >
-      <div
-        className={cn(
-          'flex items-center border-b border-border px-4 py-3',
-          collapsed ? 'justify-center' : 'justify-between',
-        )}
-      >
-        {collapsed ? (
-          <NavLink to="/" aria-label="Nova home">
-            <NovaMark size="sm" />
+      {/* Brand Header */}
+      <div className="flex h-12 items-center justify-between border-b border-border/80 px-4">
+        {!collapsed ? (
+          <NavLink to="/" className="flex items-center gap-2 font-bold text-fg text-base hover:opacity-80 transition-opacity">
+            <Sparkles className="size-4 text-accent animate-pulse" />
+            <span>Nova</span>
           </NavLink>
         ) : (
-          <NavLink
-            to="/"
-            aria-label="Nova home"
-            className="transition-opacity duration-fast hover:opacity-80"
-          >
-            <NovaWordmark size="sm" withMark withEyebrow={false} />
+          <NavLink to="/" title="Nova Home">
+            <Sparkles className="size-5 text-accent mx-auto" />
           </NavLink>
         )}
+
         <button
           type="button"
           onClick={() => setCollapsed((c) => !c)}
-          className={cn(
-            'grid size-6 place-items-center rounded-md text-fg-subtle transition-colors duration-fast hover:bg-bg-hover hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50',
-            collapsed && 'rotate-180',
-          )}
-          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          className="rounded-lg p-1 text-fg-subtle hover:bg-bg-hover hover:text-fg transition-colors"
+          title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
-          <ChevronLeft className="size-3.5" />
+          {collapsed ? <ChevronRight className="size-4" /> : <ChevronLeft className="size-4" />}
         </button>
       </div>
 
-      <nav
-        className="flex flex-1 flex-col gap-3 overflow-y-auto px-3 py-4"
-        aria-label="Studio navigation"
-      >
-        {SECTIONS.map((section) => (
-          <div key={section.label}>
-            <SectionLabel label={section.label} collapsed={collapsed} />
-            <div className={cn('flex flex-col', collapsed ? 'gap-1.5' : 'gap-1')}>
-              {section.items.map((item) => (
-                <NavLink
-                  key={item.to}
-                  to={item.to}
-                  end={item.to === '/'}
-                  className={({ isActive }) =>
-                    cn(
-                      'group relative flex items-center gap-3 rounded-md py-1.5 transition-colors duration-fast',
-                      collapsed ? 'justify-center px-0' : 'px-3',
-                      isActive ? 'text-accent' : 'text-fg-muted hover:bg-bg-hover hover:text-fg',
-                    )
-                  }
-                >
-                  {({ isActive }) => (
-                    <>
-                      <span
-                        aria-hidden
-                        className={cn(
-                          'absolute left-0 top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-full bg-accent transition-opacity duration-fast',
-                          isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-30',
-                        )}
-                      />
-                      <Icon name={item.icon} size={18} />
-                      {!collapsed && (
-                        <span className="text-[13px] font-medium leading-none">{item.label}</span>
-                      )}
-                    </>
-                  )}
-                </NavLink>
-              ))}
-            </div>
-          </div>
-        ))}
-
-        <div>
-          <SectionLabel label="Recent Missions" collapsed={collapsed} />
-          {collapsed ? (
-            <NavLink
-              to="/missions"
-              className="flex justify-center rounded-md py-1.5 text-fg-muted transition-colors duration-fast hover:bg-bg-hover hover:text-fg"
-              aria-label="Missions"
-            >
-              <Icon name="missions" size={18} />
-            </NavLink>
-          ) : (
-            <>
-              <div className="flex flex-col gap-0.5">
-                {RECENT_MISSIONS.map((mission) => (
-                  <button
-                    key={mission.name}
-                    type="button"
-                    className="flex w-full items-center gap-3 rounded-md px-3 py-1.5 text-left transition-colors duration-fast hover:bg-bg-hover"
-                  >
-                    <span
-                      className={cn(
-                        'size-1.5 shrink-0 rounded-full',
-                        mission.status === 'active' && 'bg-accent',
-                        mission.status === 'complete' && 'bg-success',
-                        mission.status === 'queued' && 'bg-fg-subtle',
-                      )}
-                    />
-                    <div className="min-w-0 flex-1">
-                      <div className="truncate text-[13px] text-fg">{mission.name}</div>
-                      <div className="text-[11px] text-fg-subtle">{mission.time}</div>
-                    </div>
-                  </button>
-                ))}
-              </div>
-              <NavLink
-                to="/missions"
-                className="mt-1.5 block px-3 text-[11px] text-fg-subtle transition-colors duration-fast hover:text-fg"
-              >
-                View all missions
-              </NavLink>
-            </>
-          )}
-        </div>
-      </nav>
-
-      <div className="mt-auto flex flex-col gap-3 border-t border-border px-4 py-3">
-        {!collapsed && (
-          <NavLink
-            to="/settings"
-            className={({ isActive }) =>
-              cn(
-                'group relative flex items-center gap-3 rounded-md py-1.5 transition-colors duration-fast',
-                isActive ? 'text-accent' : 'text-fg-muted hover:bg-bg-hover hover:text-fg',
-              )
-            }
-          >
-            {({ isActive }) => (
-              <>
-                <span
-                  aria-hidden
-                  className={cn(
-                    'absolute left-0 top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-full bg-accent transition-opacity duration-fast',
-                    isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-30',
-                  )}
-                />
-                <Icon name="settings" size={18} />
-                <span className="text-[13px] font-medium leading-none">Settings</span>
-              </>
-            )}
-          </NavLink>
-        )}
-        {collapsed && (
-          <NavLink
-            to="/settings"
-            aria-label="Settings"
-            className="flex justify-center rounded-md py-1.5 text-fg-muted transition-colors duration-fast hover:bg-bg-hover hover:text-fg"
-          >
-            <Icon name="settings" size={18} />
-          </NavLink>
-        )}
-        <div
+      {/* Main Sidebar Scroll Body */}
+      <div className="flex flex-1 flex-col overflow-y-auto px-3 py-3 gap-4">
+        {/* + New Chat Button */}
+        <button
+          type="button"
+          onClick={() => createThread()}
           className={cn(
-            'flex items-center gap-2',
-            collapsed ? 'justify-center' : 'justify-between',
+            'flex items-center justify-center gap-2 rounded-xl border border-accent/40 bg-accent/10 px-3 py-2 text-xs font-semibold text-accent transition-all hover:bg-accent/20 hover:scale-[1.02] shadow-sm',
+            collapsed && 'px-0 justify-center',
           )}
         >
-          <SystemStatus className="min-w-0" compact={collapsed} />
-          {!collapsed && (
-            <button
-              type="button"
-              className="inline-flex shrink-0 items-center gap-1 rounded-md border border-border bg-bg-hover px-2 py-1 text-[10px] font-medium text-fg-muted transition-colors duration-fast hover:border-border-strong hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
-            >
-              <Sparkles className="size-3 text-accent" />
-              Upgrade
-            </button>
-          )}
+          <Plus className="size-4 text-accent" />
+          {!collapsed && <span>New Chat</span>}
+        </button>
+
+        {/* Search Bar */}
+        {!collapsed && (
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-fg-subtle" />
+            <input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search conversations…"
+              className="w-full rounded-xl border border-border bg-bg-surface py-1.5 pl-8 pr-3 text-xs text-fg placeholder:text-fg-subtle outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/20"
+            />
+          </div>
+        )}
+
+        {/* PINNED CONVERSATIONS */}
+        {!collapsed && pinned.length > 0 && (
+          <div className="flex flex-col gap-1">
+            <span className="px-2 text-[10px] font-bold uppercase tracking-wider text-fg-subtle">
+              Pinned
+            </span>
+            {pinned.map((t) => (
+              <div
+                key={t.id}
+                onClick={() => switchThread(t.id)}
+                className={cn(
+                  'group flex items-center justify-between rounded-xl border p-2.5 text-xs font-medium cursor-pointer transition-colors shadow-sm',
+                  t.id === activeThreadId
+                    ? 'border-accent/50 bg-accent/15 text-accent font-semibold'
+                    : 'border-border/60 bg-bg-surface text-fg hover:border-accent/30 hover:bg-bg-hover',
+                )}
+              >
+                <div className="flex items-center gap-2 min-w-0 flex-1">
+                  <Rocket className="size-3.5 text-accent shrink-0" />
+                  {editingId === t.id ? (
+                    <form onSubmit={(e) => handleSaveRename(t.id, e)} className="flex-1">
+                      <input
+                        value={editTitle}
+                        onChange={(e) => setEditTitle(e.target.value)}
+                        onBlur={(e) => handleSaveRename(t.id, e)}
+                        autoFocus
+                        className="w-full bg-bg-base px-1.5 py-0.5 rounded text-xs text-fg outline-none border border-accent"
+                      />
+                    </form>
+                  ) : (
+                    <span className="truncate">{t.title}</span>
+                  )}
+                </div>
+
+                {/* Hover Action Buttons */}
+                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity ml-1">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      togglePin(t.id);
+                    }}
+                    className="p-1 text-fg-subtle hover:text-accent"
+                    title="Unpin conversation"
+                  >
+                    <Pin className="size-3 text-accent fill-current" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => handleStartRename(t.id, t.title, e)}
+                    className="p-1 text-fg-subtle hover:text-fg"
+                    title="Rename"
+                  >
+                    <Edit2 className="size-3" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      deleteThread(t.id);
+                    }}
+                    className="p-1 text-fg-subtle hover:text-danger"
+                    title="Delete"
+                  >
+                    <Trash2 className="size-3" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* UNPINNED CONVERSATIONS */}
+        {!collapsed && unpinned.length > 0 && (
+          <div className="flex flex-col gap-1">
+            <span className="px-2 text-[10px] font-bold uppercase tracking-wider text-fg-subtle">
+              Recent
+            </span>
+            {unpinned.map((t) => (
+              <div
+                key={t.id}
+                onClick={() => switchThread(t.id)}
+                className={cn(
+                  'group flex items-center justify-between rounded-lg px-2.5 py-1.5 text-xs cursor-pointer transition-colors',
+                  t.id === activeThreadId
+                    ? 'bg-accent/15 text-accent font-semibold'
+                    : 'text-fg-muted hover:bg-bg-hover hover:text-fg',
+                )}
+              >
+                {editingId === t.id ? (
+                  <form onSubmit={(e) => handleSaveRename(t.id, e)} className="flex-1">
+                    <input
+                      value={editTitle}
+                      onChange={(e) => setEditTitle(e.target.value)}
+                      onBlur={(e) => handleSaveRename(t.id, e)}
+                      autoFocus
+                      className="w-full bg-bg-base px-1.5 py-0.5 rounded text-xs text-fg outline-none border border-accent"
+                    />
+                  </form>
+                ) : (
+                  <span className="truncate flex-1">{t.title}</span>
+                )}
+
+                {/* Hover Action Buttons */}
+                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity ml-1">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      togglePin(t.id);
+                    }}
+                    className="p-1 text-fg-subtle hover:text-accent"
+                    title="Pin conversation"
+                  >
+                    <Pin className="size-3" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => handleStartRename(t.id, t.title, e)}
+                    className="p-1 text-fg-subtle hover:text-fg"
+                    title="Rename"
+                  >
+                    <Edit2 className="size-3" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      deleteThread(t.id);
+                    }}
+                    className="p-1 text-fg-subtle hover:text-danger"
+                    title="Delete"
+                  >
+                    <Trash2 className="size-3" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Cockpit Views Navigation */}
+        <div className="mt-auto border-t border-border/60 pt-3 flex flex-col gap-1">
+          {COCKPIT_VIEWS.map((item) => {
+            const IconComp = item.icon;
+            return (
+              <NavLink
+                key={item.label}
+                to={item.to}
+                className={({ isActive }) =>
+                  cn(
+                    'flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-semibold transition-colors',
+                    isActive
+                      ? 'bg-accent/15 text-accent shadow-sm'
+                      : 'text-fg-muted hover:bg-bg-hover hover:text-fg',
+                    collapsed && 'justify-center px-0',
+                  )
+                }
+              >
+                <IconComp className="size-4 shrink-0 text-accent" />
+                {!collapsed && <span>{item.label}</span>}
+              </NavLink>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* User Profile Card */}
+      <div className="border-t border-border/80 p-3 select-none">
+        <div className="flex items-center justify-between rounded-xl border border-border/60 bg-bg-surface p-2 text-xs cursor-pointer hover:bg-bg-hover transition-colors">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="grid size-7 place-items-center rounded-lg border border-accent/40 bg-accent/20 text-xs font-bold text-accent">
+              MV
+            </div>
+            {!collapsed && (
+              <div className="min-w-0 flex-1">
+                <div className="font-semibold text-fg truncate">Mahi Vardhan</div>
+                <div className="text-[10px] text-fg-subtle">Free Plan</div>
+              </div>
+            )}
+          </div>
+          {!collapsed && <ChevronDown className="size-3.5 text-fg-subtle" />}
         </div>
       </div>
     </aside>

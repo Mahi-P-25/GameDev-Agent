@@ -1,7 +1,9 @@
 import { Target } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import type { GoalStatus } from '../adapters/types';
 import { Page } from '../components/layout/Page';
 import { Badge } from '../components/ui/Badge';
+import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { EmptyState } from '../components/ui/EmptyState';
 import type { Intent } from '../design/variants';
@@ -27,6 +29,7 @@ const INTENT_VAR: Record<Intent, string> = {
 /** Goals — read-only view powered by the typed placeholder adapter. */
 export function GoalsPage(): React.ReactNode {
   const { goals } = useStudioData();
+  const navigate = useNavigate();
   const items = goals.list();
 
   return (
@@ -38,7 +41,16 @@ export function GoalsPage(): React.ReactNode {
           actions={<Target className="size-4 text-fg-subtle" />}
         >
           {items.length === 0 ? (
-            <EmptyState title="No goals defined" />
+            <EmptyState
+              icon={<Target className="size-6" />}
+              title="No goals defined"
+              hint="Describe a goal in chat and Nova will decompose it into a plan, then surface it here as it progresses."
+              action={
+                <Button variant="primary" onClick={() => navigate('/')}>
+                  Set a goal in chat
+                </Button>
+              }
+            />
           ) : (
             <ul className="divide-y divide-border">
               {items.map((g) => (

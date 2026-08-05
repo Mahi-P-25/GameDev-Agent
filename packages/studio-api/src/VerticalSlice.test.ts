@@ -52,7 +52,29 @@ describe('Vertical Slice — Goal to Studio Home', () => {
       toolProbe: new NoopToolProbe(),
     });
 
-    orchestrator = new StudioOrchestrator({ producer, planner, workflow, coordinator });
+    orchestrator = new StudioOrchestrator({
+      producer,
+      planner,
+      workflow,
+      coordinator,
+      missionAgent: {
+        run: async () => ({
+          missionId: 'mission-test',
+          planId: 'plan-test',
+          goalTitle: 'Realistic Formula racing',
+          startedAt: Date.now(),
+          completedAt: Date.now(),
+          status: 'completed',
+          finalSummary: 'Mission completed',
+          timeline: [],
+          actionCount: 0,
+          failureCount: 0,
+          artifacts: [],
+          totalDurationMs: 0,
+          decisionCount: 0,
+        }),
+      } as never,
+    });
     orchestrator.start(bus);
 
     api = new StudioApi({
@@ -71,15 +93,12 @@ describe('Vertical Slice — Goal to Studio Home', () => {
     orchestrator.dispose();
   });
 
-  /** Wait until the orchestrator has driven the pipeline to a completed run. */
+  /** Wait until the orchestrator has driven the pipeline to a completed mission. */
   async function settle(): Promise<void> {
     for (let i = 0; i < 100; i += 1) {
-      const executions = workflow.list();
-      if (executions.length > 0) {
-        const first = executions[0] as (typeof executions)[number];
-        if (first.state === 'completed') {
-          return;
-        }
+      const missions = coordinator.list();
+      if (missions.some((m) => m.status === 'completed' || m.status === 'failed')) {
+        return;
       }
       await new Promise((r) => setTimeout(r, 5));
     }
@@ -110,7 +129,7 @@ describe('Vertical Slice — Goal to Studio Home', () => {
     }
   });
 
-  it('fans a plan out into a Coordinator Mission and a Workflow execution', async () => {
+  it('fans a plan out into a Coordinator Mission executed by the MissionAgent', async () => {
     const project = await projects.create({ name: 'Racer', rootPath: '/tmp/racer' } as never);
     await producer.submit({
       projectId: project.id,
@@ -122,13 +141,8 @@ describe('Vertical Slice — Goal to Studio Home', () => {
     const missions = coordinator.list();
     expect(missions.length).toBeGreaterThan(0);
     const mission = missions[0] as (typeof missions)[number];
-    expect(['ready', 'running', 'executing', 'completed']).toContain(mission.status);
-
-    const executions = workflow.list();
-    expect(executions.length).toBeGreaterThan(0);
-    const execution = executions[0] as (typeof executions)[number];
-    expect(execution.state).toBe('completed');
-    expect(execution.progress).toBe(100);
+    // The MissionAgent ran autonomously and completed the coordinator mission.
+    expect(['completed', 'reviewed']).toContain(mission.status);
   });
 
   it('exposes the whole pipeline through a single StudioHome read', async () => {
@@ -145,12 +159,11 @@ describe('Vertical Slice — Goal to Studio Home', () => {
     expect(home.goal.title).toBe('Realistic Formula racing');
     expect(home.plannerStatus.planCount).toBe(1);
     expect(home.plannerStatus.lastPlan?.phaseCount).toBeGreaterThan(0);
-    expect(home.workflowStatus.executionCount).toBe(1);
-    expect(home.workflowStatus.current?.state).toBe('completed');
     expect(home.coordinatorStatus.total).toBeGreaterThan(0);
     // The activity feed captured the pipeline unfolding.
     const kinds = home.activity.map((a) => a.kind);
     expect(kinds).toContain('goal.submitted');
     expect(kinds).toContain('plan.created');
+    expect(kinds).toContain('mission.submitted');
   });
 });

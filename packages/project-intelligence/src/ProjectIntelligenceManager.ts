@@ -5,8 +5,15 @@ import type { Project, ProjectId, ProjectManager } from '@gamedev-agent/project'
 import { ProjectOpened } from '@gamedev-agent/project';
 import type { Disposable } from '@gamedev-agent/shared';
 import type { WorkspaceManager } from '@gamedev-agent/workspace';
+import {
+  type IndexStage,
+  ProjectIndexCompleted,
+  ProjectIndexFailed,
+  ProjectIndexProgress,
+  ProjectIndexStarted,
+} from './ProjectIntelligenceEvents';
 import { ProjectIntelligenceError, ProjectIntelligenceIndexed } from './ProjectIntelligenceEvents';
-import { analyzeProject } from './analyze';
+import { ProjectSummarizer } from './summarizer/ProjectSummarizer';
 import type { FileIndex, ProjectContext } from './types';
 
 /** The seam the manager needs from an indexer — walk a root into a FileIndex. */
@@ -26,6 +33,8 @@ export interface ProjectIntelligenceManagerOptions {
   readonly indexer: ProjectIndexerLike;
   /** Name used when a workspace must be created to host a project. */
   readonly workspaceName?: string;
+  /** Project summary + incremental cache. Injected for tests; defaulted in prod. */
+  readonly summarizer?: ProjectSummarizer;
 }
 
 /**
@@ -37,9 +46,11 @@ export interface ProjectIntelligenceManagerOptions {
  *   2. It indexes the project's root through the {@link ProjectIndexer}
  *      (Filesystem tool seam): file tree, framework/language, package manager,
  *      and dependency discovery.
- *   3. It caches the resulting {@link ProjectContext} per project id so the
- *      Studio API can serve it synchronously.
- *   4. It publishes {@link ProjectIntelligenceIndexed} so the UI can react.
+ *   3. It summarizes the scan through the {@link ProjectSummarizer}, which
+ *      reuses the cached projection when nothing changed.
+ *   4. It publishes the `project.index.*` lifecycle events
+ *      (started → progress → completed | failed) and, for compatibility, the
+ *      legacy {@link ProjectIntelligenceIndexed} / {@link ProjectIntelligenceError}.
  *
  * The manager owns no project state — it reads through the Project and
  * Workspace managers and caches only the derived index, keyed by project id.
@@ -51,8 +62,8 @@ export class ProjectIntelligenceManager implements Disposable {
   private readonly workspaces: WorkspaceManager;
   private readonly indexer: ProjectIndexerLike;
   private readonly workspaceName: string;
+  private readonly summarizer: ProjectSummarizer;
 
-  private readonly cache = new Map<string, ProjectContext>();
   private readonly disposers: Array<Disposable> = [];
   private started = false;
   private disposed = false;
@@ -65,6 +76,7 @@ export class ProjectIntelligenceManager implements Disposable {
     this.workspaces = options.workspaces;
     this.indexer = options.indexer;
     this.workspaceName = options.workspaceName ?? 'Nova Workspace';
+    this.summarizer = options.summarizer ?? new ProjectSummarizer();
   }
 
   /**
@@ -85,29 +97,67 @@ export class ProjectIntelligenceManager implements Disposable {
   }
 
   /**
-   * Index a project's root now and cache the result. Returns the produced
-   * context; publishes nothing (callers may publish if they own the flow).
+   * Index a project's root now and cache the result. Publishes the
+   * `project.index.started → progress → completed` lifecycle; rethrows on
+   * failure after publishing `project.index.failed`.
    */
   async indexProject(projectId: ProjectId, rootPath: string): Promise<ProjectContext> {
-    const files: FileIndex = await this.indexer.index(rootPath);
-    const context = analyzeProject(files, rootPath);
-    this.cache.set(String(projectId), context);
-    return context;
+    const startedAt = Date.now();
+    const incremental = this.summarizer.has(projectId);
+
+    await this.bus.publish(ProjectIndexStarted, {
+      projectId,
+      rootPath,
+      incremental,
+      timestamp: Date.now(),
+    });
+
+    try {
+      const files: FileIndex = await this.indexer.index(rootPath);
+      const total = Object.keys(files).length;
+      await this.emitProgress(projectId, rootPath, 'scan', total, total);
+
+      const result = this.summarizer.summarize(projectId, rootPath, files);
+      await this.emitProgress(projectId, rootPath, 'summary', total, total);
+
+      await this.bus.publish(ProjectIndexCompleted, {
+        projectId,
+        rootPath,
+        totalFiles: result.context.summary.totalFiles,
+        totalDirs: result.context.summary.totalDirs,
+        durationMs: Date.now() - startedAt,
+        incremental: result.incremental,
+        changedFiles: result.delta.changedCount,
+        timestamp: Date.now(),
+      });
+      return result.context;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger.warn('project-intelligence.index-failed', { projectId, error: message });
+      await this.bus.publish(ProjectIndexFailed, {
+        projectId,
+        rootPath,
+        stage: 'scan',
+        error: message,
+        timestamp: Date.now(),
+      });
+      throw error;
+    }
   }
 
   /** The cached index for a project, or `null` when it has not been indexed. */
   get(projectId: ProjectId): ProjectContext | null {
-    return this.cache.get(String(projectId)) ?? null;
+    return this.summarizer.get(projectId);
   }
 
   /** Whether a project's index is currently cached. */
   has(projectId: ProjectId): boolean {
-    return this.cache.has(String(projectId));
+    return this.summarizer.has(projectId);
   }
 
   /** Drop the cached index for a project (e.g. after the project is closed). */
   invalidate(projectId: ProjectId): void {
-    this.cache.delete(String(projectId));
+    this.summarizer.invalidate(projectId);
   }
 
   dispose(): void {
@@ -118,10 +168,29 @@ export class ProjectIntelligenceManager implements Disposable {
     for (const disposer of this.disposers.splice(0)) {
       disposer.dispose();
     }
-    this.cache.clear();
+    this.summarizer.dispose();
   }
 
   // --- internals -------------------------------------------------------------
+
+  private async emitProgress(
+    projectId: ProjectId,
+    rootPath: string,
+    stage: IndexStage,
+    processed: number,
+    total: number,
+  ): Promise<void> {
+    const percent = total === 0 ? 100 : Math.min(100, Math.round((processed / total) * 100));
+    await this.bus.publish(ProjectIndexProgress, {
+      projectId,
+      rootPath,
+      stage,
+      processed,
+      total,
+      percent,
+      timestamp: Date.now(),
+    });
+  }
 
   private async handleProjectOpened(projectId: ProjectId): Promise<void> {
     try {

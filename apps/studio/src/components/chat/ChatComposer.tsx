@@ -1,4 +1,4 @@
-import { Paperclip, ArrowUp, Square, RefreshCw, X, FileCode } from 'lucide-react';
+import { Paperclip, ArrowUp, Square, RefreshCw, X, FileCode, Sparkles, Command } from 'lucide-react';
 import { useCallback, useRef, useState } from 'react';
 import { cn } from '../../design/cn';
 
@@ -9,6 +9,13 @@ interface ChatComposerProps {
   readonly onRegenerate?: () => void;
 }
 
+const QUICK_PROMPTS = [
+  '⚡ Fix build errors',
+  '🧪 Write unit tests',
+  '🔍 Analyze architecture',
+  '🛠 Refactor component',
+];
+
 export function ChatComposer({ onSend, isGenerating = false, onStop, onRegenerate }: ChatComposerProps): React.ReactNode {
   const [text, setText] = useState('');
   const [isDragging, setIsDragging] = useState(false);
@@ -18,17 +25,18 @@ export function ChatComposer({ onSend, isGenerating = false, onStop, onRegenerat
 
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setText(e.target.value);
-    // Auto-grow height
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 200)}px`;
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 220)}px`;
     }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if ((e.key === 'Enter' && (e.metaKey || e.ctrlKey)) || (e.key === 'Enter' && !e.shiftKey)) {
       e.preventDefault();
       submit();
+    } else if (e.key === 'Escape' && isGenerating && onStop) {
+      onStop();
     }
   };
 
@@ -73,6 +81,13 @@ export function ChatComposer({ onSend, isGenerating = false, onStop, onRegenerat
     setAttachedFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const insertQuickPrompt = (prompt: string) => {
+    setText((prev) => (prev ? `${prev}\n${prompt}` : prompt));
+    if (textareaRef.current) {
+      textareaRef.current.focus();
+    }
+  };
+
   return (
     <div
       onDragOver={handleDragOver}
@@ -80,9 +95,28 @@ export function ChatComposer({ onSend, isGenerating = false, onStop, onRegenerat
       onDrop={handleDrop}
       className="relative mx-auto w-full max-w-4xl px-4 pb-6"
     >
+      {/* Quick Prompts Bar */}
+      {!text && (
+        <div className="mb-2 flex flex-wrap items-center gap-1.5 px-1">
+          <span className="text-[11px] font-medium text-fg-subtle flex items-center gap-1 mr-1">
+            <Sparkles className="size-3 text-accent" /> Quick:
+          </span>
+          {QUICK_PROMPTS.map((qp, idx) => (
+            <button
+              key={idx}
+              type="button"
+              onClick={() => insertQuickPrompt(qp.replace(/^[^\s]+\s/, ''))}
+              className="rounded-full border border-border/80 bg-bg-panel/80 px-2.5 py-1 text-[11px] font-medium text-fg-muted backdrop-blur-md transition-all duration-fast hover:border-accent/40 hover:bg-bg-hover hover:text-accent"
+            >
+              {qp}
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* Drag & Drop Overlay */}
       {isDragging && (
-        <div className="absolute inset-x-4 inset-y-0 z-30 flex items-center justify-center rounded-2xl border-2 border-dashed border-accent bg-accent/10 backdrop-blur-md transition-all duration-fast">
+        <div className="absolute inset-x-4 inset-y-0 z-30 flex items-center justify-center rounded-2xl border-2 border-dashed border-accent bg-accent/15 backdrop-blur-md transition-all duration-fast">
           <div className="flex items-center gap-2 text-sm font-semibold text-accent">
             <Paperclip className="size-5 animate-bounce" />
             <span>Drop files here to attach to prompt</span>
@@ -119,7 +153,7 @@ export function ChatComposer({ onSend, isGenerating = false, onStop, onRegenerat
           value={text}
           onChange={handleTextChange}
           onKeyDown={handleKeyDown}
-          placeholder="What would you like to build today? (Enter to send, Shift+Enter for line break)"
+          placeholder="Ask Nova to build features, fix bugs, or optimize performance… (Enter to send, Shift+Enter for line break)"
           rows={1}
           className="w-full resize-none bg-transparent px-2 py-1 text-sm text-fg placeholder:text-fg-subtle focus:outline-none"
         />
@@ -137,37 +171,42 @@ export function ChatComposer({ onSend, isGenerating = false, onStop, onRegenerat
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-fg-subtle transition-colors duration-fast hover:bg-bg-hover hover:text-fg"
-              title="Attach files (UI placeholder)"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-border/60 bg-bg-surface/50 px-2.5 py-1 text-fg-muted transition-colors duration-fast hover:border-accent/40 hover:bg-bg-hover hover:text-fg"
+              title="Attach context files"
             >
-              <Paperclip className="size-4" />
+              <Paperclip className="size-3.5 text-accent" />
               <span>Attach</span>
             </button>
 
-            {/* Stop & Regenerate Placeholders */}
-            <button
-              type="button"
-              onClick={onStop}
-              disabled={!isGenerating}
-              className="inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-fg-subtle opacity-50 transition-colors duration-fast hover:bg-bg-hover hover:text-fg disabled:cursor-not-allowed"
-              title="Stop generation (disabled placeholder)"
-            >
-              <Square className="size-3.5" />
-              <span className="hidden sm:inline">Stop</span>
-            </button>
-            <button
-              type="button"
-              onClick={onRegenerate}
-              disabled={isGenerating}
-              className="inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-fg-subtle opacity-50 transition-colors duration-fast hover:bg-bg-hover hover:text-fg disabled:cursor-not-allowed"
-              title="Regenerate (disabled placeholder)"
-            >
-              <RefreshCw className="size-3.5" />
-              <span className="hidden sm:inline">Regenerate</span>
-            </button>
+            {onStop && isGenerating && (
+              <button
+                type="button"
+                onClick={onStop}
+                className="inline-flex items-center gap-1 rounded-lg border border-accent/40 bg-accent/15 px-2.5 py-1 text-accent transition-colors duration-fast hover:bg-accent/25"
+                title="Stop generation"
+              >
+                <Square className="size-3 fill-current" />
+                <span className="hidden sm:inline">Stop</span>
+              </button>
+            )}
+
+            {onRegenerate && !isGenerating && (
+              <button
+                type="button"
+                onClick={onRegenerate}
+                className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-fg-subtle transition-colors duration-fast hover:bg-bg-hover hover:text-fg"
+                title="Regenerate previous response"
+              >
+                <RefreshCw className="size-3" />
+                <span className="hidden sm:inline">Retry</span>
+              </button>
+            )}
           </div>
 
           <div className="flex items-center gap-3">
+            <span className="hidden text-[10px] text-fg-subtle font-mono sm:inline-flex items-center gap-1">
+              <Command className="size-3" /> + Enter to send
+            </span>
             <span className="text-[11px] text-fg-subtle font-mono">{text.length} chars</span>
             <button
               type="button"

@@ -122,6 +122,7 @@ export class MissionAgent implements Disposable {
           const techList = (projectCtx.technologies ?? []).map((t: any) => t.name).join(', ');
           const summaryText = `[PROJECT INTELLIGENCE] ${projectCtx.summary?.totalFiles ?? 0} files indexed. Tech: ${techList}. Configs: ${projectCtx.summary?.configFiles?.join(', ') ?? 'none'}.`;
           this.recordObservation({
+            timestamp: Date.now(),
             kind: 'project',
             content: summaryText,
             data: projectCtx as any,

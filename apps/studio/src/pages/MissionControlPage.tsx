@@ -1,4 +1,5 @@
 import { Page } from '../components/layout/Page';
+import { LiveActivityPanel } from '../components/activity/LiveActivityPanel';
 import { MissionControlModule } from '../modules/mission-control';
 
 /**
@@ -8,7 +9,14 @@ import { MissionControlModule } from '../modules/mission-control';
  */
 export function MissionControlPage(): React.ReactNode {
   return (
-    <Page title="Mission Control">
+    <Page
+      title="Mission Control"
+      rightRail={
+        <div className="flex flex-col gap-4">
+          <LiveActivityPanel />
+        </div>
+      }
+    >
       <div className="mx-auto w-full max-w-5xl">
         <MissionControlModule />
       </div>

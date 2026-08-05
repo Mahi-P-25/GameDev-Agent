@@ -5,11 +5,15 @@ import { capabilityModule } from '@gamedev-agent/capabilities';
 import { MemoryConfigSource } from '@gamedev-agent/config';
 import { coordinatorModule } from '@gamedev-agent/coordinator';
 import { InMemoryEventBus } from '@gamedev-agent/events';
+import { executionEngineModule, missionAgentModule } from '@gamedev-agent/execution-engine';
 import { Kernel } from '@gamedev-agent/kernel';
 import { ConsoleLogSink, RootLogger } from '@gamedev-agent/logging';
+import { memoryModule } from '@gamedev-agent/memory';
+import { modelProvidersModule } from '@gamedev-agent/model-providers';
 import { plannerModule } from '@gamedev-agent/planner';
 import { producerModule } from '@gamedev-agent/producer';
 import { projectModule } from '@gamedev-agent/project';
+import { agentRuntimeModule } from '@gamedev-agent/agent-runtime';
 import { STUDIO_API_TOKEN, type StudioApi, studioModule } from '@gamedev-agent/studio-api';
 import { nodeTerminalModule as terminalModule } from '@gamedev-agent/terminal';
 import { TOOL_RUNTIME_TOKEN, toolRuntimeModule } from '@gamedev-agent/tool-runtime';
@@ -46,6 +50,11 @@ describe('Development Workflows — full kernel boot', () => {
         terminalModule,
         vscodeModule,
         workflowModule,
+        modelProvidersModule,
+        memoryModule,
+        agentRuntimeModule,
+        executionEngineModule,
+        missionAgentModule,
         studioModule,
       ],
     });

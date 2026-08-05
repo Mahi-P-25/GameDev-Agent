@@ -120,6 +120,7 @@ export interface MissionAgentOptions {
    * persists structured mission/project/agent memories after completion.
    * Absent, the agent remains stateless (backward compatible).
    */
+  readonly memoryIntegration?: import('./MissionMemoryIntegration').MissionMemoryIntegration | null;
   /**
    * Project Intelligence Manager: when supplied, MissionAgent automatically retrieves
    * and attaches ProjectContext for the active project id before execution.

@@ -1,71 +1,21 @@
-import { WelcomeView } from '../components/chat/WelcomeView';
-import { ChatComposer } from '../components/chat/ChatComposer';
-import { ChatMessageList } from '../components/chat/ChatMessageList';
-import { ChatSidebar } from '../components/chat/ChatSidebar';
-import { TopBar } from '../components/layout/TopBar';
-import { ConversationStoreProvider, useConversationStore } from '../services/ConversationStoreProvider';
+import { ConversationStoreProvider } from '../services/ConversationStoreProvider';
+import { ChatCockpit } from '../components/cockpit/ChatCockpit';
+import { Page } from '../components/layout/Page';
 
-function ChatCockpitContent(): React.ReactNode {
-  const {
-    threads,
-    activeThread,
-    activeThreadId,
-    isGenerating,
-    sendMessage,
-    stopGeneration,
-    regenerateResponse,
-    switchThread,
-    createThread,
-    deleteThread,
-  } = useConversationStore();
-
-  const activeMessages = activeThread?.messages ?? [];
-
+function HomeCockpitContent(): React.ReactNode {
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-bg-app text-fg antialiased">
-      {/* Left Chat Sidebar */}
-      <ChatSidebar
-        threads={threads}
-        activeThreadId={activeThreadId}
-        onSelectThread={switchThread}
-        onNewChat={() => createThread()}
-        onDeleteThread={deleteThread}
-      />
-
-      {/* Main Conversation Center Panel */}
-      <div className="flex flex-1 flex-col overflow-hidden">
-        <TopBar />
-
-        <main className="flex flex-1 flex-col overflow-hidden relative">
-          {activeMessages.length === 0 ? (
-            <div className="flex-1 overflow-y-auto px-4">
-              <WelcomeView onSelectPrompt={(prompt) => sendMessage(prompt)} />
-            </div>
-          ) : (
-            <ChatMessageList
-              messages={activeMessages}
-              isTyping={isGenerating && activeMessages.length % 2 !== 0}
-              onRegenerate={regenerateResponse}
-              onStop={stopGeneration}
-            />
-          )}
-
-          {/* Bottom Glassmorphic Composer */}
-          <ChatComposer
-            onSend={(prompt) => sendMessage(prompt)}
-            isGenerating={isGenerating}
-            onStop={stopGeneration}
-          />
-        </main>
+    <Page title="Cockpit">
+      <div className="h-[calc(100vh-100px)] w-full overflow-hidden rounded-2xl border border-border/80 bg-bg-panel/90 shadow-2xl backdrop-blur-2xl">
+        <ChatCockpit />
       </div>
-    </div>
+    </Page>
   );
 }
 
 export function HomePage(): React.ReactNode {
   return (
     <ConversationStoreProvider>
-      <ChatCockpitContent />
+      <HomeCockpitContent />
     </ConversationStoreProvider>
   );
 }

@@ -1,4 +1,5 @@
-import { useEffect, useRef } from 'react';
+import { memo, useCallback, useEffect, useRef } from 'react';
+import { motion } from 'motion/react';
 import { ChatMessageItem } from './ChatMessageItem';
 import type { ChatMessage } from '../../services/ConversationStore';
 import { NovaMark } from '../brand';
@@ -10,19 +11,55 @@ interface ChatMessageListProps {
   readonly onStop?: (() => void) | undefined;
 }
 
+const MemoChatMessageItem = memo(ChatMessageItem);
+
+/**
+ * ChatMessageList — the scrolling conversation thread.
+ *
+ * Auto-scroll is "smart": it always pins to the newest message while a response
+ * is streaming, but once the user scrolls up the thread stays put so they can
+ * read earlier context. New messages animate in with a subtle fade.
+ */
 export function ChatMessageList({ messages, isTyping, onRegenerate, onStop }: ChatMessageListProps): React.ReactNode {
+  const containerRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const stickToBottomRef = useRef(true);
+
+  const hasStreaming = messages.some((m) => m.role === 'assistant' && m.status === 'streaming');
+
+  // Track whether the user has scrolled away from the bottom.
+  const handleScroll = useCallback(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const distance = el.scrollHeight - el.scrollTop - el.clientHeight;
+    stickToBottomRef.current = distance < 96;
+  }, []);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, isTyping]);
+    if (stickToBottomRef.current) {
+      bottomRef.current?.scrollIntoView({ behavior: hasStreaming ? 'smooth' : 'auto' });
+    }
+  }, [messages, hasStreaming]);
 
   return (
-    <div className="flex flex-1 flex-col overflow-y-auto">
+    <div ref={containerRef} onScroll={handleScroll} className="flex flex-1 flex-col overflow-y-auto scrollbar-thin">
       <div className="mx-auto w-full max-w-4xl py-4">
-        {messages.map((msg) => (
-          <ChatMessageItem key={msg.id} message={msg} onRegenerate={onRegenerate} onStop={onStop} />
-        ))}
+        <motion.div
+          initial={false}
+          className="flex flex-col"
+        >
+          {messages.map((msg) => (
+            <motion.div
+              key={msg.id}
+              layout
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            >
+              <MemoChatMessageItem message={msg} onRegenerate={onRegenerate} onStop={onStop} />
+            </motion.div>
+          ))}
+        </motion.div>
 
         {isTyping && (
           <div className="flex w-full gap-4 px-4 py-4 bg-bg-panel/40 border-y border-border/40">

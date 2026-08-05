@@ -1,6 +1,7 @@
 import type { StudioApiClient } from './StudioApiClient';
 import type { StudioActivity } from '@gamedev-agent/studio-api';
 import type { Disposable } from '@gamedev-agent/shared';
+import { ContextAssembler } from './ContextAssembler';
 
 export interface ToolCallEntry {
   readonly id: string;
@@ -39,6 +40,8 @@ export interface ChatThread {
   messages: ChatMessage[];
   activeGoalId?: string;
   isGenerating?: boolean;
+  /** Pinned conversations float to the top of the sidebar. */
+  pinned?: boolean;
 }
 
 const STORAGE_KEY = 'nova_chat_threads_v1';
@@ -111,6 +114,40 @@ export class ConversationStore {
 
   public getThreads(): ReadonlyArray<ChatThread> {
     return this.threads;
+  }
+
+  /** Conversations ordered pinned-first, then most recently updated. */
+  public getOrderedThreads(): ReadonlyArray<ChatThread> {
+    return [...this.threads].sort((a, b) => {
+      const aPinned = a.pinned === true ? 1 : 0;
+      const bPinned = b.pinned === true ? 1 : 0;
+      if (aPinned !== bPinned) return bPinned - aPinned;
+      return b.updatedAt.localeCompare(a.updatedAt);
+    });
+  }
+
+  /**
+   * Filter conversations by a free-text query against title and message
+   * content. Returns conversations whose title or any message body matches.
+   */
+  public searchThreads(query: string): ReadonlyArray<ChatThread> {
+    const q = query.trim().toLowerCase();
+    if (!q) return this.getOrderedThreads();
+    return this.getOrderedThreads().filter(
+      (t) =>
+        t.title.toLowerCase().includes(q) ||
+        t.messages.some((m) => m.content.toLowerCase().includes(q)),
+    );
+  }
+
+  /** Toggle the pinned state of a conversation. */
+  public togglePin(threadId: string): void {
+    const thread = this.threads.find((t) => t.id === threadId);
+    if (thread) {
+      thread.pinned = !thread.pinned;
+      thread.updatedAt = 'Just now';
+      this.notify();
+    }
   }
 
   public getActiveThread(): ChatThread | null {
@@ -187,13 +224,22 @@ export class ConversationStore {
       attachments,
     };
 
+    // Automatically build Nova Context Package for full project awareness
+    const contextPackage = ContextAssembler.buildContext({
+      api: this.api,
+      activeThread: thread,
+    });
+
     const assistantMessage: ChatMessage = {
       id: `assistant-msg-${Date.now()}`,
       role: 'assistant',
       content: `Thinking and planning execution for: "${prompt}"...\n\n`,
       timestamp: time,
       status: 'streaming',
-      thoughtTrace: [`Goal received: ${prompt}`],
+      thoughtTrace: [
+        `Goal received: ${prompt}`,
+        `Context Package built for project "${contextPackage.activeProject?.name}" (${contextPackage.projectIntelligence.symbolCount} symbols indexed)`,
+      ],
       toolCalls: [],
       memoryHits: [],
     };
@@ -221,8 +267,11 @@ export class ConversationStore {
         thread.activeGoalId = goalResult.goalId;
         this.notify();
       } else {
-        // Mock fallback response if api not booted
-        this.simulateMockResponse(assistantMessage, prompt);
+        // No fabricated progress: surface the real orchestration state.
+        assistantMessage.status = 'failed';
+        assistantMessage.content += '\n\n❌ **Studio API is not ready** — the kernel has not finished booting.';
+        thread.isGenerating = false;
+        this.notify();
       }
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error);
@@ -288,8 +337,12 @@ export class ConversationStore {
     if (activity.kind === 'goal.created' || activity.kind === 'plan.created') {
       lastMsg.thoughtTrace.push(activity.message);
       lastMsg.content += `✦ ${activity.message}\n`;
-    } else if (activity.kind.startsWith('agent.action-started')) {
-      const toolName = activity.message.replace('Executing: ', '');
+    } else if (
+      activity.kind.startsWith('agent.action-started') ||
+      activity.kind.startsWith('tool.started') ||
+      activity.kind.startsWith('tool.invoked')
+    ) {
+      const toolName = activity.message.replace('Executing: ', '').replace(/^Tool.*: /, '').replace(/^Tool invoked: /, '');
       lastMsg.thoughtTrace.push(`Executing tool: ${toolName}`);
       lastMsg.toolCalls.push({
         id: `tool-${Date.now()}-${Math.random().toString(36).slice(2, 5)}`,
@@ -300,19 +353,40 @@ export class ConversationStore {
         timestamp,
       });
       lastMsg.content += `\n🛠 **Tool Executing**: \`${toolName}\`...\n`;
-    } else if (activity.kind.startsWith('agent.action-result')) {
-      const ok = activity.message.includes('OK');
+    } else if (
+      activity.kind.startsWith('agent.action-result') ||
+      activity.kind.startsWith('tool.completed') ||
+      activity.kind.startsWith('tool.result')
+    ) {
+      const ok =
+        activity.kind !== 'tool.result'
+          ? activity.message.includes('OK')
+          : !activity.message.includes('FAIL');
       const activeTool = lastMsg.toolCalls[lastMsg.toolCalls.length - 1];
       if (activeTool) {
         activeTool.status = ok ? 'ok' : 'failed';
       }
       lastMsg.content += `${ok ? '✓' : '❌'} ${activity.message}\n`;
-    } else if (activity.kind.startsWith('agent.state-changed') || activity.kind === 'agent.thought') {
+    } else if (
+      activity.kind.startsWith('agent.state-changed') ||
+      activity.kind === 'agent.thought' ||
+      activity.kind === 'agent.decision'
+    ) {
       lastMsg.thoughtTrace.push(activity.message);
-    } else if (activity.kind.startsWith('mission.memory')) {
+    } else if (activity.kind === 'agent.verification') {
+      lastMsg.thoughtTrace.push(activity.message);
+      lastMsg.content += `✓ ${activity.message}\n`;
+    } else if (
+      activity.kind === 'agent.artifact-created' ||
+      activity.kind.startsWith('agent.memory.') ||
+      activity.kind.startsWith('mission.memory')
+    ) {
       lastMsg.memoryHits.push({
         id: `mem-${Date.now()}`,
-        title: 'Project Memory Hit',
+        title:
+          activity.kind === 'agent.artifact-created'
+            ? 'Artifact Created'
+            : 'Project Memory Hit',
         summary: activity.message,
       });
     } else if (activity.kind === 'mission.completed' || activity.kind === 'agent.mission-complete') {
@@ -328,51 +402,5 @@ export class ConversationStore {
     }
 
     this.notify();
-  }
-
-  private simulateMockResponse(message: ChatMessage, prompt: string): void {
-    let step = 0;
-    const steps = [
-      () => {
-        message.thoughtTrace.push('Analyzing project architecture');
-        message.content += `✦ Analyzed project structure for goal.\n`;
-        this.notify();
-      },
-      () => {
-        message.thoughtTrace.push('Executing: npm install three');
-        message.toolCalls.push({
-          id: `t-${Date.now()}`,
-          toolId: 'terminal.run',
-          action: 'npm install three',
-          message: 'Executing: npm install three',
-          status: 'running',
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        });
-        message.content += `\n🛠 **Tool Executing**: \`npm install three\`...\n`;
-        this.notify();
-      },
-      () => {
-        if (message.toolCalls[0]) message.toolCalls[0].status = 'ok';
-        message.content += `✓ Dependencies installed cleanly.\n\n\`\`\`typescript\nimport * as THREE from 'three';\n// Generated component for ${prompt}\n\`\`\`\n`;
-        this.notify();
-      },
-      () => {
-        message.status = 'completed';
-        const thread = this.getActiveThread();
-        if (thread) thread.isGenerating = false;
-        message.content += `\n✅ **Mission Executed Successfully**.`;
-        this.notify();
-      },
-    ];
-
-    const interval = setInterval(() => {
-      if (step < steps.length) {
-        const stepFn = steps[step];
-        if (stepFn) stepFn();
-        step++;
-      } else {
-        clearInterval(interval);
-      }
-    }, 1000);
   }
 }

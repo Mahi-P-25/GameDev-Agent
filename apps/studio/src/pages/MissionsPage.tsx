@@ -2,6 +2,7 @@ import type { StudioMission } from '@gamedev-agent/studio-api';
 import { ListTodo } from 'lucide-react';
 import { useMemo } from 'react';
 import { Page } from '../components/layout/Page';
+import { MissionExecutionView } from '../components/mission/MissionExecutionView';
 import { Badge } from '../components/ui/Badge';
 import { Card } from '../components/ui/Card';
 import { EmptyState } from '../components/ui/EmptyState';
@@ -9,9 +10,10 @@ import { useStudioData } from '../studio/StudioDataProvider';
 import { missionStatusIntent, missionStatusLabel } from './statusMaps';
 
 /**
- * Missions — a read-only mission tree grouped by project. Each mission shows its
- * status, progress, approval state, and the roles the Coordinator determined it
- * needs. Data is read from the Studio API.
+ * Missions — plan and execute missions inline, plus a read-only mission tree
+ * grouped by project. Each mission shows its status, progress, approval state,
+ * and the roles the Coordinator determined it needs. Data is read from the
+ * Studio API.
  */
 export function MissionsPage(): React.ReactNode {
   const { api } = useStudioData();
@@ -30,6 +32,10 @@ export function MissionsPage(): React.ReactNode {
   return (
     <Page title="Missions">
       <div className="flex flex-col gap-5">
+        <Card title="Mission Control" actions={<ListTodo className="size-4 text-fg-subtle" />}>
+          <MissionExecutionView />
+        </Card>
+
         <Card
           title="Mission Tree"
           subtitle={`${missions.length} mission${missions.length === 1 ? '' : 's'} across ${byProject.length} project${byProject.length === 1 ? '' : 's'}`}

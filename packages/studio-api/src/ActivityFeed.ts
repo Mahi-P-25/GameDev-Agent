@@ -8,9 +8,16 @@ import {
 import {
   AgentActionStarted,
   AgentActionResult,
+  AgentArtifactCreated,
+  AgentDecisionEvent,
   AgentMissionComplete,
   AgentProgress,
   AgentStateChanged,
+  AgentThought,
+  AgentVerification,
+  MissionMemoryPersisted,
+  MissionMemoryRecorded,
+  MissionMemoryRetrieved,
 } from '@gamedev-agent/execution-engine';
 import {
   ContextChanged,
@@ -51,6 +58,14 @@ import {
   ProjectRenamed,
 } from '@gamedev-agent/project';
 import type { Disposable } from '@gamedev-agent/shared';
+import {
+  ToolCapabilityCompleted,
+  ToolCapabilityFailed,
+  ToolCapabilityStarted,
+  ToolInvocationFailed,
+  ToolInvocationSucceeded,
+  ToolInvoked,
+} from '@gamedev-agent/tool-runtime';
 import { WorkflowCompleted, WorkflowFailed, WorkflowStarted } from '@gamedev-agent/workflow';
 import type { StudioActivity } from './StudioApiContracts';
 
@@ -272,6 +287,83 @@ export class ActivityFeed implements Disposable {
       this.item(t, 'agent.mission-complete', `Mission ${p.status}: ${p.finalSummary}`, {
         missionId: p.missionId,
       }),
+    );
+    wire(AgentThought, (p, t) =>
+      this.item(t, 'agent.thought', p.intention || p.reasoning, { missionId: p.missionId }),
+    );
+    wire(AgentDecisionEvent, (p, t) =>
+      this.item(t, 'agent.decision', `Decision: ${p.decisionType}${p.capability ? ` (${p.capability})` : ''}`, {
+        missionId: p.missionId,
+      }),
+    );
+    wire(AgentVerification, (p, t) =>
+      this.item(
+        t,
+        'agent.verification',
+        `Verification ${p.passed ? 'passed' : 'failed'}: ${p.expected}`,
+        { missionId: p.missionId },
+      ),
+    );
+    wire(AgentArtifactCreated, (p, t) =>
+      this.item(t, 'agent.artifact-created', `Artifact created (${p.kind}): ${p.path}`, {
+        missionId: p.missionId,
+      }),
+    );
+
+    // Mission Memory — retrieval before planning, recording during execution,
+    // and persistence after completion. These stream the memory lifecycle live.
+    wire(MissionMemoryRetrieved, (p, t) =>
+      this.item(
+        t,
+        'agent.memory.retrieved',
+        `Retrieved ${p.projectMemoryCount} project + ${p.agentStrategyCount} strategy memories (prior missions: ${p.priorMissionCount})`,
+        { missionId: p.missionId, projectId: p.projectId },
+      ),
+    );
+    wire(MissionMemoryRecorded, (p, t) =>
+      this.item(t, 'agent.memory.recorded', `Memory recorded (${p.category}): ${p.summary}`, {
+        missionId: p.missionId,
+        projectId: p.projectId,
+      }),
+    );
+    wire(MissionMemoryPersisted, (p, t) =>
+      this.item(
+        t,
+        'agent.memory.persisted',
+        `Memory persisted: ${p.totalEntriesStored} entries (mission=${p.missionMemoryStored}, project=${p.projectMemoryStored}, agent=${p.agentMemoryStored})`,
+        { missionId: p.missionId, projectId: p.projectId },
+      ),
+    );
+
+    // Tool Runtime — every capability invocation streams live so the UI shows
+    // terminal/file-system/memory tool executions as they actually happen.
+    wire(ToolInvoked, (p, t) =>
+      this.item(t, 'tool.invoked', `Tool invoked: ${p.toolId} — ${p.action}`, {}),
+    );
+    wire(ToolCapabilityStarted, (p, t) =>
+      this.item(t, 'tool.started', `Tool: ${p.toolId} starting ${p.capabilityId}`, {}),
+    );
+    wire(ToolCapabilityCompleted, (p, t) =>
+      this.item(
+        t,
+        'tool.completed',
+        `Tool: ${p.toolId} completed ${p.capabilityId} (${p.durationMs}ms)`,
+        {},
+      ),
+    );
+    wire(ToolCapabilityFailed, (p, t) =>
+      this.item(
+        t,
+        'tool.failed',
+        `Tool: ${p.toolId} failed ${p.capabilityId}: ${p.message}`,
+        {},
+      ),
+    );
+    wire(ToolInvocationSucceeded, (p, t) =>
+      this.item(t, 'tool.result', `Action ${p.action}: OK (${p.durationMs}ms)`, {}),
+    );
+    wire(ToolInvocationFailed, (p, t) =>
+      this.item(t, 'tool.result', `Action ${p.action}: FAIL — ${p.message}`, {}),
     );
 
     // Context Engine — the live development surface the Director is working in.

@@ -15,6 +15,8 @@ interface ConversationStoreContextValue {
   createThread: (title?: string) => void;
   deleteThread: (threadId: string) => void;
   renameThread: (threadId: string, newTitle: string) => void;
+  togglePin: (threadId: string) => void;
+  searchThreads: (query: string) => ReadonlyArray<ChatThread>;
 }
 
 const ConversationStoreContext = createContext<ConversationStoreContextValue | null>(null);
@@ -52,6 +54,8 @@ export function ConversationStoreProvider({ children }: { readonly children: Rea
     createThread: (title) => store.createThread(title),
     deleteThread: (id) => store.deleteThread(id),
     renameThread: (id, title) => store.renameThread(id, title),
+    togglePin: (id) => store.togglePin(id),
+    searchThreads: (query) => store.searchThreads(query),
   };
 
   return (

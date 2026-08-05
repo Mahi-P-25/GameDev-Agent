@@ -3,16 +3,21 @@ import {
   AlertTriangle,
   BarChart3,
   Code2,
+  FileCog,
   FolderGit2,
   Layers,
+  Package,
   RefreshCw,
+  Share2,
   Swords,
+  Workflow,
   Zap,
 } from 'lucide-react';
 import { motion } from 'motion/react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import type {
   ArchitecturePattern,
+  DependencyGraph,
   DetectedTechnology,
   DirectoryNode,
   ProjectContext,
@@ -66,6 +71,165 @@ function sectionTitle(icon: React.ReactNode, label: string): React.ReactNode {
       {icon}
       {label}
     </span>
+  );
+}
+
+function SummarySection({ context }: { context: ProjectContext }) {
+  const { summary } = context;
+  const items: ReadonlyArray<{ readonly icon: React.ReactNode; readonly label: string; readonly value: string }> = [
+    {
+      icon: <FolderGit2 className="size-3.5" />,
+      label: 'Workspace',
+      value: context.workspacePath,
+    },
+    {
+      icon: <Workflow className="size-3.5" />,
+      label: 'Build Systems',
+      value: summary.buildSystems.join(', ') || '—',
+    },
+    {
+      icon: <Package className="size-3.5" />,
+      label: 'Package Managers',
+      value: summary.packageManagers.join(', ') || '—',
+    },
+    {
+      icon: <FileCog className="size-3.5" />,
+      label: 'Config Files',
+      value: `${summary.configFiles.length}`,
+    },
+  ];
+  return (
+    <Card
+      title={sectionTitle(<BarChart3 className="size-4 text-accent" />, 'Workspace Summary')}
+      size="sm"
+    >
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
+        {items.map((item) => (
+          <div key={item.label} className="flex items-start gap-2 rounded-lg bg-bg-inset px-3 py-2.5">
+            <span className="mt-0.5 shrink-0 text-accent">{item.icon}</span>
+            <div className="min-w-0">
+              <div className="text-[10px] font-medium uppercase tracking-wide text-fg-subtle">
+                {item.label}
+              </div>
+              <div className="truncate text-xs text-fg">{item.value}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </Card>
+  );
+}
+
+function DependencySection({ graph }: { graph: DependencyGraph }) {
+  const { nodes, edges, circularDependencies, isolatedModules } = graph;
+
+  const connectivity = useMemo(() => {
+    const degree = new Map<string, number>();
+    for (const edge of edges) {
+      degree.set(edge.source, (degree.get(edge.source) ?? 0) + 1);
+      degree.set(edge.target, (degree.get(edge.target) ?? 0) + 1);
+    }
+    const byId = new Map(nodes.map((n) => [n.id, n] as const));
+    return [...degree.entries()]
+      .map(([id, count]) => ({ id, count, path: byId.get(id)?.path ?? id }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 8);
+  }, [nodes, edges]);
+
+  const maxDegree = connectivity[0]?.count ?? 1;
+
+  return (
+    <Card
+      title={sectionTitle(<Share2 className="size-4 text-accent" />, 'Dependency Graph')}
+      size="md"
+      subtitle={`${nodes.length} modules · ${edges.length} imports · ${circularDependencies.length} circular chain${circularDependencies.length === 1 ? '' : 's'} · ${isolatedModules.length} isolated`}
+    >
+      <div className="flex flex-col gap-4">
+        {/* Connectivity leaders */}
+        {connectivity.length > 0 && (
+          <div>
+            <span className="text-[11px] font-medium uppercase tracking-[0.08em] text-fg-subtle">
+              Most connected modules
+            </span>
+            <div className="mt-2 flex flex-col gap-1.5">
+              {connectivity.map((mod) => (
+                <div key={mod.id} className="flex items-center gap-3">
+                  <span className="w-40 truncate text-xs text-fg-muted" title={mod.path}>
+                    {mod.path}
+                  </span>
+                  <div className="h-1 flex-1 overflow-hidden rounded-full bg-bg-inset">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${(mod.count / maxDegree) * 100}%` }}
+                      transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+                      className="h-full rounded-full bg-accent"
+                    />
+                  </div>
+                  <span className="w-6 shrink-0 text-right font-mono text-[11px] text-fg-subtle">
+                    {mod.count}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Circular dependencies */}
+        {circularDependencies.length > 0 && (
+          <div>
+            <span className="text-[11px] font-medium uppercase tracking-[0.08em] text-warning">
+              Circular dependencies
+            </span>
+            <div className="mt-1.5 flex flex-col gap-1.5">
+              {circularDependencies.map((chain, idx) => (
+                <div
+                  key={idx}
+                  className="flex flex-wrap items-center gap-1 rounded-lg bg-bg-inset px-3 py-1.5 font-mono text-[11px] text-warning"
+                >
+                  {chain.map((part, partIdx) => (
+                    <span key={part} className="flex items-center gap-1">
+                      {partIdx > 0 && <span>→</span>}
+                      <span className="max-w-[180px] truncate" title={part}>
+                        {part}
+                      </span>
+                    </span>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Isolated modules */}
+        {isolatedModules.length > 0 && (
+          <div>
+            <span className="text-[11px] font-medium uppercase tracking-[0.08em] text-fg-subtle">
+              Isolated modules ({isolatedModules.length})
+            </span>
+            <div className="mt-1.5 flex flex-wrap gap-1.5">
+              {isolatedModules.slice(0, 12).map((path) => (
+                <span
+                  key={path}
+                  className="rounded bg-bg-hover px-1.5 py-0.5 font-mono text-[10px] text-fg-subtle"
+                  title={path}
+                >
+                  {path}
+                </span>
+              ))}
+              {isolatedModules.length > 12 && (
+                <span className="px-1 text-[10px] text-fg-subtle">
+                  +{isolatedModules.length - 12} more
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+
+        {connectivity.length === 0 && circularDependencies.length === 0 && isolatedModules.length === 0 && (
+          <p className="text-sm text-fg-muted">No module relationships detected.</p>
+        )}
+      </div>
+    </Card>
   );
 }
 
@@ -382,13 +546,19 @@ export function ProjectIntelligenceView({
           </div>
         </div>
       ) : (
-        <div className="grid gap-5 md:grid-cols-2">
-          <TechSection technologies={context.technologies} />
-          <ArchitectureSection patterns={context.architecture} />
-          <AssetSection assets={context.assets} />
-          <HealthSection health={context.health} />
-          <div className="md:col-span-2">
-            <StructureSection structure={context.projectStructure} />
+        <div className="flex flex-col gap-5">
+          <SummarySection context={context} />
+          <div className="grid gap-5 md:grid-cols-2">
+            <TechSection technologies={context.technologies} />
+            <ArchitectureSection patterns={context.architecture} />
+            <AssetSection assets={context.assets} />
+            <HealthSection health={context.health} />
+            <div className="md:col-span-2">
+              <DependencySection graph={context.dependencyGraph} />
+            </div>
+            <div className="md:col-span-2">
+              <StructureSection structure={context.projectStructure} />
+            </div>
           </div>
         </div>
       )}

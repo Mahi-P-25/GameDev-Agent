@@ -12,12 +12,15 @@ import { ToastViewport } from '../ui/ToastViewport';
 export function GlobalOverlays(): ReactNode {
   const controller = useCommandCenter();
 
-  // Global Ctrl/Cmd+K listener toggles the Command Center from anywhere.
+  // Global Ctrl/Cmd+K, Ctrl/Cmd+P, Ctrl/Cmd+/, and ESC listener.
   useEffect(() => {
     const handler = (event: KeyboardEvent): void => {
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+      const key = event.key.toLowerCase();
+      if ((event.metaKey || event.ctrlKey) && (key === 'k' || key === 'p')) {
         event.preventDefault();
         controller.toggle();
+      } else if (key === 'escape' && controller.open) {
+        controller.setOpen(false);
       }
     };
     window.addEventListener('keydown', handler);
